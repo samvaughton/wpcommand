@@ -1,0 +1,10 @@
+POST http://localhost:8999/auth
+Content-Type: application/json
+
+{
+  "Email": "sam@rentivo.com",
+  "Password": "password",
+  "Account": "admin"
+}
+
+###

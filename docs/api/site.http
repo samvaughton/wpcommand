@@ -1,0 +1,11 @@
+### Create Command Job
+POST http://localhost:8999/api/site
+Content-Type: application/json
+Token: {{token}}
+
+{
+  "Key": "lch-wp",
+  "Description": "Lake Como Homes",
+  "Namespace": "site-lch",
+  "LabelSelector": "app.kubernetes.io/instance=lch-wordpress"
+}

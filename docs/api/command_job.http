@@ -1,0 +1,9 @@
+### Create Command Job
+POST http://localhost:8999/api/command/job
+Content-Type: application/json
+Token: {{token}}
+
+{
+  "command": "plugins-status",
+  "selector": "lch-wp"
+}

@@ -1,0 +1,3 @@
+GET http://localhost:8999/api/config
+Content-Type: application/json
+Token: {{token}}
