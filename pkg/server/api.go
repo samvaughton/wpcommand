@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
-	"github.com/samvaughton/wpcommand/v2/pkg/pipeline"
+	"github.com/samvaughton/wpcommand/v2/pkg/registry"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -21,7 +21,6 @@ func SetupApi(router *mux.Router) {
 	router.HandleFunc("/auth", authHandler).Methods("POST")
 
 	api := router.PathPrefix("/api").Subrouter()
-
 	api.Use(IsAuthorizedMiddleware)
 
 	api.HandleFunc("/user", notImplemented)
@@ -70,7 +69,7 @@ func createCommandJobHandler(resp http.ResponseWriter, req *http.Request) {
 	account := req.Context().Value("account").(*types.Account)
 
 	// we now need to validate this job request check command & site selector
-	if pipeline.CommandExists(jobReq.Command) == false {
+	if registry.CommandExists(jobReq.Command) == false {
 		resp.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(resp).Encode(map[string]interface{}{
 			"Status": "COMMAND_NOT_FOUND",

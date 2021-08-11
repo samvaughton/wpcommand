@@ -22,14 +22,15 @@ type CommandHooks struct {
 }
 
 type SiteCommandPipeline struct {
-	Name     string
-	Site     *types.Site
-	Config   *types.Config
-	Hooks    CommandHooks
-	Commands []SiteCommand
-	Options  ExecuteOptions
-	Executor execution.CommandExecutor
-	errors   []error
+	Name           string
+	Site           *types.Site
+	Config         *types.Config
+	Hooks          CommandHooks
+	Commands       []SiteCommand
+	Options        ExecuteOptions
+	Executor       execution.CommandExecutor
+	PreviousResult *types.CommandResult
+	errors         []error
 }
 
 type ExecuteOptions struct {
@@ -40,7 +41,11 @@ func (p *SiteCommandPipeline) Run() {
 		hook()
 	}
 
-	iterateAndExecute(p, p.Commands)
+	err := iterateAndExecute(p, p.Commands)
+
+	if err != nil {
+		p.errors = append(p.errors, err)
+	}
 
 	for _, hook := range p.Hooks.Finished {
 		hook(p.errors)
@@ -51,7 +56,7 @@ func (p *SiteCommandPipeline) getArgs(pipeline *SiteCommandPipeline) ([]string, 
 	panic("getArgs() on command pipeline should never be called")
 }
 
-func iterateAndExecute(pipeline *SiteCommandPipeline, commands []SiteCommand) {
+func iterateAndExecute(pipeline *SiteCommandPipeline, commands []SiteCommand) error {
 	for _, command := range commands {
 		for _, hook := range pipeline.Hooks.PreAlways {
 			hook(command)
@@ -82,7 +87,15 @@ func iterateAndExecute(pipeline *SiteCommandPipeline, commands []SiteCommand) {
 				}
 			}
 		}
+
+		if err != nil {
+			return err // always break on an error
+		}
+
+		pipeline.PreviousResult = result
 	}
+
+	return nil
 }
 
 func (p *SiteCommandPipeline) doExecute(c SiteCommand) (*types.CommandResult, error) {

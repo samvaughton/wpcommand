@@ -12,20 +12,22 @@ import (
 	"time"
 )
 
-func GetSiteThemeStatuses(siteId int64, executor execution.CommandExecutor) ([]types.ThemeActionItem, error) {
-	result, err := executor.ExecuteCommand([]string{"wp plugin list --format=json"})
+func GetSiteThemeStatuses(siteId int64, executor execution.CommandExecutor) (types.ThemeActionSet, error) {
+	result, err := executor.ExecuteCommand([]string{"wp theme list --format=json"})
 
 	if err != nil {
-		return []types.ThemeActionItem{}, err
+		return types.ThemeActionSet{}, err
 	}
 
 	themeList, err := ThemeListFromJson(result.Output)
 
 	if err != nil {
-		return []types.ThemeActionItem{}, err
+		return types.ThemeActionSet{}, err
 	}
 
-	return ComputeThemeActionSet(themeList, db.GetLatestObjectBlueprintsForSiteAndType(siteId, types.ObjectBlueprintTypeTheme)), nil
+	actionSet := ComputeThemeActionSet(themeList, db.GetLatestObjectBlueprintsForSiteAndType(siteId, types.ObjectBlueprintTypeTheme))
+
+	return types.ThemeActionSet{Items: actionSet}, nil
 }
 
 func RunThemeActionOnSet(executor execution.CommandExecutor, set []types.ThemeActionItem, actionToRun types.ThemeAction) error {
@@ -54,7 +56,7 @@ func RunThemeActionOnSet(executor execution.CommandExecutor, set []types.ThemeAc
 			executor.ExecuteCommand([]string{actionStr})
 			break
 		case types.ThemeActionEnum.Uninstall:
-			actionStr := fmt.Sprintf("wp theme uninstall %s", action.Object.OriginalObjectUrl)
+			actionStr := fmt.Sprintf("wp theme uninstall %s", action.Name)
 			executor.ExecuteCommand([]string{actionStr})
 			break
 		default:
@@ -74,16 +76,25 @@ func ComputeThemeActionSet(themes []types.Theme, objects []types.ObjectBlueprint
 
 	sortSet := make(map[string]int)
 	actionSet := make(map[int]types.ThemeActionItem)
-	pluginNameMap := make(map[string]types.ObjectBlueprint)
+	themeNameMap := make(map[string]types.ObjectBlueprint)
 
+	// used to define the order of the themes according to the manifest file
 	for i, object := range objects {
 		sortSet[object.ExactName] = i
-		pluginNameMap[object.ExactName] = object
+		themeNameMap[object.ExactName] = object
+	}
+
+	// add any other themes to this sort order
+	sortSetLen := len(sortSet)
+	for i, wp := range themes {
+		if _, found := sortSet[wp.Name]; found == false {
+			sortSet[wp.Name] = i + sortSetLen
+		}
 	}
 
 	// all themes returned from server
 	for _, theme := range themes {
-		if dbTheme, exists := pluginNameMap[theme.Name]; exists {
+		if dbTheme, exists := themeNameMap[theme.Name]; exists {
 
 			dbSemver := semver.MustParse(dbTheme.Version)
 			currentSemver := semver.MustParse(theme.Version)
@@ -91,18 +102,21 @@ func ComputeThemeActionSet(themes []types.Theme, objects []types.ObjectBlueprint
 			// the server version must match the manifest version
 			if currentSemver.Equal(dbSemver) {
 				actionSet[sortSet[theme.Name]] = types.ThemeActionItem{
+					Name:   dbTheme.ExactName,
 					Action: types.ThemeActionEnum.None,
-					Object: dbTheme,
+					Object: &dbTheme,
 				}
 			} else if currentSemver.GreaterThan(dbSemver) {
 				actionSet[sortSet[theme.Name]] = types.ThemeActionItem{
+					Name:   dbTheme.ExactName,
 					Action: types.ThemeActionEnum.Downgrade,
-					Object: dbTheme,
+					Object: &dbTheme,
 				}
 			} else if currentSemver.LessThan(dbSemver) {
 				actionSet[sortSet[theme.Name]] = types.ThemeActionItem{
+					Name:   dbTheme.ExactName,
 					Action: types.ThemeActionEnum.Upgrade,
-					Object: dbTheme,
+					Object: &dbTheme,
 				}
 			}
 
@@ -110,8 +124,9 @@ func ComputeThemeActionSet(themes []types.Theme, objects []types.ObjectBlueprint
 
 			// needs to be removed as it is not in the manifest
 			actionSet[sortSet[theme.Name]] = types.ThemeActionItem{
+				Name:   theme.Name,
 				Action: types.ThemeActionEnum.Uninstall,
-				Object: dbTheme,
+				Object: &dbTheme,
 			}
 
 		}
@@ -133,8 +148,9 @@ func ComputeThemeActionSet(themes []types.Theme, objects []types.ObjectBlueprint
 		// this loop is purely to handle the single case of the manifest theme existing only
 		if themeExists == false {
 			actionSet[sortSet[dbTheme.ExactName]] = types.ThemeActionItem{
+				Name:   dbTheme.ExactName,
 				Action: types.ThemeActionEnum.Install,
-				Object: dbTheme,
+				Object: &dbTheme,
 			}
 		}
 	}

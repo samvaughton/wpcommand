@@ -27,10 +27,11 @@ var ThemeActionsList = []ThemeAction{
 }
 
 type ThemeActionSet struct {
-	Actions []ThemeActionItem
+	Items []ThemeActionItem
 }
 
 type ThemeActionItem struct {
-	Object ObjectBlueprint
+	Name   string
+	Object *ObjectBlueprint
 	Action ThemeAction
 }

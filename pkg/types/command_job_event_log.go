@@ -5,10 +5,11 @@ import (
 	"time"
 )
 
-const EventLogStatusJobStarted = "JOB_STARTED"
-const EventLogStatusJobFinished = "JOB_FINISHED"
+const EventLogTypeInfo = "INFO"
+const EventLogTypeData = "DATA"
+const EventLogTypeJobStarted = "JOB_STARTED"
+const EventLogTypeJobFinished = "JOB_FINISHED"
 
-const EventLogStatusInfo = "INFO"
 const EventLogStatusSuccess = "SUCCESS"
 const EventLogStatusFailure = "FAILURE"
 const EventLogStatusSkipped = "SKIPPED"

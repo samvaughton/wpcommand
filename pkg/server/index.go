@@ -17,18 +17,19 @@ func Start() {
 	db.InitDbConnection()
 	logutil.SetupLogging()
 
-	scheduler.Init(time.Second*5, 1) // check every 5 seconds
+	scheduler.Init(time.Second*5, 2)
 	scheduler.Start()
 
 	router := mux.NewRouter()
 
 	SetupApi(router)
+	SetupPublic(router)
+
 	SetupSpa(router)
 
 	srv := &http.Server{
-		Handler: router,
-		Addr:    ":8999",
-		// Good practice: enforce timeouts for servers you create!
+		Handler:      router,
+		Addr:         ":8999",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}

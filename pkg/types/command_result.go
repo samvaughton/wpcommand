@@ -3,6 +3,7 @@ package types
 type CommandResult struct {
 	Command string
 	Output  string
+	Data    interface{}
 }
 
 type CommandResults struct {

@@ -12,20 +12,22 @@ import (
 	"time"
 )
 
-func GetSitePluginStatuses(siteId int64, executor execution.CommandExecutor) ([]types.PluginActionItem, error) {
+func GetSitePluginStatuses(siteId int64, executor execution.CommandExecutor) (types.PluginActionSet, error) {
 	result, err := executor.ExecuteCommand([]string{"wp plugin list --format=json"})
 
 	if err != nil {
-		return []types.PluginActionItem{}, err
+		return types.PluginActionSet{}, err
 	}
 
 	pluginList, err := PluginListFromJson(result.Output)
 
 	if err != nil {
-		return []types.PluginActionItem{}, err
+		return types.PluginActionSet{}, err
 	}
 
-	return ComputePluginActionSet(pluginList, db.GetLatestObjectBlueprintsForSiteAndType(siteId, types.ObjectBlueprintTypePlugin)), nil
+	actionSet := ComputePluginActionSet(pluginList, db.GetLatestObjectBlueprintsForSiteAndType(siteId, types.ObjectBlueprintTypePlugin))
+
+	return types.PluginActionSet{Items: actionSet}, nil
 }
 
 func RunPluginActionOnSet(executor execution.CommandExecutor, set []types.PluginActionItem, actionToRun types.PluginAction) error {
@@ -54,7 +56,7 @@ func RunPluginActionOnSet(executor execution.CommandExecutor, set []types.Plugin
 			executor.ExecuteCommand([]string{actionStr})
 			break
 		case types.PluginActionEnum.Uninstall:
-			actionStr := fmt.Sprintf("wp plugin uninstall %s", action.Object.OriginalObjectUrl)
+			actionStr := fmt.Sprintf("wp plugin uninstall --deactivate %s", action.Name)
 			executor.ExecuteCommand([]string{actionStr})
 			break
 		default:
@@ -76,9 +78,18 @@ func ComputePluginActionSet(plugins []types.Plugin, objects []types.ObjectBluepr
 	actionSet := make(map[int]types.PluginActionItem)
 	pluginNameMap := make(map[string]types.ObjectBlueprint)
 
+	// used to define the order of the plugins according to the manifest file
 	for i, object := range objects {
 		sortSet[object.ExactName] = i
 		pluginNameMap[object.ExactName] = object
+	}
+
+	// add any other plugins to this sort order
+	sortSetLen := len(sortSet)
+	for i, wp := range plugins {
+		if _, found := sortSet[wp.Name]; found == false {
+			sortSet[wp.Name] = i + sortSetLen
+		}
 	}
 
 	// all plugins returned from server
@@ -91,18 +102,21 @@ func ComputePluginActionSet(plugins []types.Plugin, objects []types.ObjectBluepr
 			// the server version must match the manifest version
 			if currentSemver.Equal(dbSemver) {
 				actionSet[sortSet[plugin.Name]] = types.PluginActionItem{
+					Name:   dbPlugin.ExactName,
 					Action: types.PluginActionEnum.None,
-					Object: dbPlugin,
+					Object: &dbPlugin,
 				}
 			} else if currentSemver.GreaterThan(dbSemver) {
 				actionSet[sortSet[plugin.Name]] = types.PluginActionItem{
+					Name:   dbPlugin.ExactName,
 					Action: types.PluginActionEnum.Downgrade,
-					Object: dbPlugin,
+					Object: &dbPlugin,
 				}
 			} else if currentSemver.LessThan(dbSemver) {
 				actionSet[sortSet[plugin.Name]] = types.PluginActionItem{
+					Name:   dbPlugin.ExactName,
 					Action: types.PluginActionEnum.Upgrade,
-					Object: dbPlugin,
+					Object: &dbPlugin,
 				}
 			}
 
@@ -110,8 +124,9 @@ func ComputePluginActionSet(plugins []types.Plugin, objects []types.ObjectBluepr
 
 			// needs to be removed as it is not in the manifest
 			actionSet[sortSet[plugin.Name]] = types.PluginActionItem{
+				Name:   plugin.Name,
 				Action: types.PluginActionEnum.Uninstall,
-				Object: dbPlugin,
+				Object: &dbPlugin,
 			}
 
 		}
@@ -133,8 +148,9 @@ func ComputePluginActionSet(plugins []types.Plugin, objects []types.ObjectBluepr
 		// this loop is purely to handle the single case of the manifest plugin existing only
 		if pluginExists == false {
 			actionSet[sortSet[dbPlugin.ExactName]] = types.PluginActionItem{
+				Name:   dbPlugin.ExactName,
 				Action: types.PluginActionEnum.Install,
-				Object: dbPlugin,
+				Object: &dbPlugin,
 			}
 		}
 	}

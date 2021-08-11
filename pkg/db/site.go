@@ -25,6 +25,18 @@ func SiteGetByEmail(email string) *types.Site {
 	return site
 }
 
+func SiteGetByUuid(uuid string) (*types.Site, error) {
+	site := new(types.Site)
+
+	err := Db.NewSelect().Model(site).Where("uuid = ?", uuid).Scan(context.Background())
+
+	if err != nil {
+		return nil, err // not found
+	}
+
+	return site, nil
+}
+
 func SelectSites(siteSelector string, accountId int64) []types.Site {
 	var err error
 	var sites []types.Site

@@ -7,6 +7,7 @@ import (
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/execution"
 	"github.com/samvaughton/wpcommand/v2/pkg/pipeline"
+	"github.com/samvaughton/wpcommand/v2/pkg/registry"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	"github.com/samvaughton/wpcommand/v2/pkg/worker"
 	log "github.com/sirupsen/logrus"
@@ -36,9 +37,6 @@ func Start() {
 			case <-done:
 				return
 			case <-ticker.C:
-				// move created jobs to the pending status and send them to the command runners
-				log.Debug("checking pending jobs")
-
 				created := db.GetCreatedJobs()
 
 				if len(created) > 0 {
@@ -70,7 +68,7 @@ func Start() {
 					log.Infof("dispatching job %s to pool", item.Uuid)
 
 					commands := []pipeline.SiteCommand{
-						pipeline.CommandRegistry[local.Key](local.Site),
+						registry.CommandRegistry[local.Key](local.Site),
 					}
 
 					AddPipelineTask(pipeline.SiteCommandPipeline{
@@ -80,15 +78,15 @@ func Start() {
 						Hooks: pipeline.CommandHooks{
 							Started: []func(){
 								func() {
-									meta := map[string]interface{}{}
+									meta := make(map[string]interface{})
 
 									local.Status = types.CommandJobStatusRunning
 
 									db.CreateCommandJobEvent(
 										local.Id,
-										"",
-										types.EventLogStatusJobStarted,
-										"",
+										types.EventLogTypeJobStarted,
+										types.EventLogStatusSuccess,
+										"job",
 										fmt.Sprintf("root_level_commands=%v", len(commands)),
 										meta,
 									)
@@ -98,7 +96,7 @@ func Start() {
 							},
 							Finished: []func([]error){
 								func(errors []error) {
-									meta := map[string]interface{}{}
+									meta := make(map[string]interface{})
 
 									if len(errors) > 0 {
 										local.Status = types.CommandJobStatusFailure
@@ -108,9 +106,9 @@ func Start() {
 
 									db.CreateCommandJobEvent(
 										local.Id,
-										"",
-										types.EventLogStatusJobFinished,
-										"",
+										types.EventLogTypeJobFinished,
+										types.EventLogStatusSuccess,
+										"job",
 										fmt.Sprintf("errors=%v", len(errors)),
 										meta,
 									)
@@ -120,20 +118,24 @@ func Start() {
 							},
 							PostSuccess: []func(pipeline.SiteCommand, *types.CommandResult, error){
 								func(c pipeline.SiteCommand, result *types.CommandResult, err error) {
-									meta := map[string]interface{}{}
+									meta := make(map[string]interface{})
 
-									command := ""
+									jType := types.EventLogTypeInfo
 									output := ""
-
 									if result != nil {
-										command = result.Command
+										//output = result.Output
+
+										if result.Data != nil {
+											jType = types.EventLogTypeData
+											meta["data"] = result.Data
+										}
 									}
 
 									db.CreateCommandJobEvent(
 										local.Id,
-										c.GetName(),
+										jType,
 										types.EventLogStatusSuccess,
-										command,
+										fmt.Sprintf("job.%s", c.GetName()),
 										output,
 										meta,
 									)
@@ -142,39 +144,46 @@ func Start() {
 							// run when a pre-check command fails
 							Skipped: []func(pipeline.SiteCommand, *types.CommandResult, error){
 								func(c pipeline.SiteCommand, result *types.CommandResult, err error) {
-									meta := map[string]interface{}{}
+									meta := make(map[string]interface{})
 
-									command := ""
-
+									jType := types.EventLogTypeInfo
+									output := ""
 									if result != nil {
-										command = result.Command
+										output = result.Output
+
+										if result.Data != nil {
+											jType = types.EventLogTypeData
+											meta["data"] = result.Data
+										}
 									}
 
 									db.CreateCommandJobEvent(
 										local.Id,
-										c.GetName(),
+										jType,
 										types.EventLogStatusSkipped,
-										command,
-										fmt.Sprintf("%s", err),
+										fmt.Sprintf("job.%s", c.GetName()),
+										output,
 										meta,
 									)
 								},
 							},
 							PostError: []func(pipeline.SiteCommand, *types.CommandResult, error){
 								func(c pipeline.SiteCommand, result *types.CommandResult, err error) {
-									meta := map[string]interface{}{}
+									meta := make(map[string]interface{})
 
-									command := ""
-
+									jType := types.EventLogTypeInfo
 									if result != nil {
-										command = result.Command
+										if result.Data != nil {
+											jType = types.EventLogTypeData
+											meta["data"] = result.Data
+										}
 									}
 
 									db.CreateCommandJobEvent(
 										local.Id,
-										c.GetName(),
+										jType,
 										types.EventLogStatusFailure,
-										command,
+										fmt.Sprintf("job.%s", c.GetName()),
 										fmt.Sprintf("%s", err),
 										meta,
 									)

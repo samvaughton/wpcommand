@@ -5,5 +5,15 @@ Token: {{token}}
 
 {
   "command": "plugins-status",
-  "selector": "lch-wp"
+  "selector": "demo-wp"
+}
+
+### Create Command Job
+POST http://localhost:8999/api/command/job
+Content-Type: application/json
+Token: {{token}}
+
+{
+  "command": "setup-fresh-install",
+  "selector": "demo-wp"
 }

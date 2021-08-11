@@ -26,11 +26,12 @@ var PluginActionsList = []PluginAction{
 	PluginActionEnum.Uninstall,
 }
 
-type PluginActionSet struct {
-	Actions []PluginActionItem
+type PluginActionItem struct {
+	Name   string // although object has the exact name, if the object does not exist, this needs to be set regardless
+	Object *ObjectBlueprint
+	Action PluginAction
 }
 
-type PluginActionItem struct {
-	Object ObjectBlueprint
-	Action PluginAction
+type PluginActionSet struct {
+	Items []PluginActionItem
 }

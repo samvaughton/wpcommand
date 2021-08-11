@@ -29,15 +29,15 @@ func (c *SimplePipelineCommand) Execute(pipeline *SiteCommandPipeline) (*types.C
 		result, err := c.RunPreCheckCommand.Execute(pipeline)
 
 		if (c.ErrorIsSuccessful && err != nil) || (!c.ErrorIsSuccessful && err == nil) {
-			iterateAndExecute(pipeline, c.Commands)
+			err := iterateAndExecute(pipeline, c.Commands)
 
-			return nil, nil
+			return nil, err
 		}
 
 		return result, &PreCheckFailedError{Err: err}
-	} else {
-		iterateAndExecute(pipeline, c.Commands)
 	}
 
-	return nil, nil
+	err := iterateAndExecute(pipeline, c.Commands)
+
+	return nil, err
 }

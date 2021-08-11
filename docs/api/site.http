@@ -1,11 +1,15 @@
-### Create Command Job
+### Create Site
 POST http://localhost:8999/api/site
 Content-Type: application/json
 Token: {{token}}
 
 {
-  "Key": "lch-wp",
-  "Description": "Lake Como Homes",
-  "Namespace": "site-lch",
-  "LabelSelector": "app.kubernetes.io/instance=lch-wordpress"
+  "Key": "demo-wp",
+  "Description": "Demo",
+  "Namespace": "default",
+  "LabelSelector": "app.kubernetes.io/instance=demo-wp"
 }
+
+### Get Site Config
+GET http://localhost:8999/public/site/e01d2914-f940-4946-b476-02bbba314c0c/simba-config
+Content-Type: application/json
