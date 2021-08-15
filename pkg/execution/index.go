@@ -10,6 +10,12 @@ type CommandExecutor interface {
 }
 
 func NewCommandExecutor(site *types.Site) (CommandExecutor, error) {
+	dce := &DebugCommandExecutor{Site: site}
+
+	if site.TestMode {
+		return dce, nil
+	}
+
 	if site.LabelSelector != "" && site.Namespace != "" {
 		ce, err := NewKubernetesCommandExecutor(site)
 
@@ -21,5 +27,5 @@ func NewCommandExecutor(site *types.Site) (CommandExecutor, error) {
 		return ce, nil
 	}
 
-	return &DebugCommandExecutor{Site: site}, nil
+	return dce, nil
 }

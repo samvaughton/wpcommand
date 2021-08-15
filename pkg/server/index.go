@@ -17,6 +17,8 @@ func Start() {
 	db.InitDbConnection()
 	logutil.SetupLogging()
 
+	db.CreateDefaultAccountAndUser()
+
 	scheduler.Init(time.Second*5, 2)
 	scheduler.Start()
 

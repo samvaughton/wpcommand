@@ -46,7 +46,7 @@ func UserGetByEmailAndAccountKey(email string, accountKey string) *types.User {
 	return user
 }
 
-func UserCreate(email string, firstName string, lastName string, passwordPlain string, accountId int64) *types.User {
+func UserCreate(email string, firstName string, lastName string, passwordPlain string, accountId int64) (*types.User, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordPlain), 10)
 
 	if err != nil {
@@ -69,7 +69,7 @@ func UserCreate(email string, firstName string, lastName string, passwordPlain s
 	if err != nil {
 		log.Error("could not create a new user", err)
 
-		return nil
+		return nil, err
 	}
 
 	// insert relation
@@ -79,8 +79,8 @@ func UserCreate(email string, firstName string, lastName string, passwordPlain s
 	if err != nil {
 		log.Error("could not create user <-> account relation", err)
 
-		return user
+		return user, err
 	}
 
-	return user
+	return user, nil
 }

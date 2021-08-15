@@ -13,6 +13,19 @@ func AccountExists(key string) bool {
 	return AccountGetByKey(key) != nil
 }
 
+func AccountsGetAll() ([]types.Account, error) {
+	var err error
+	var items []types.Account
+
+	err = Db.NewSelect().Model(&items).Scan(context.Background())
+
+	if err != nil {
+		return []types.Account{}, err
+	}
+
+	return items, nil
+}
+
 func AccountGetByUuid(uuid string) *types.Account {
 	account := new(types.Account)
 
@@ -37,7 +50,7 @@ func AccountGetByKey(key string) *types.Account {
 	return account
 }
 
-func AccountCreate(name string, key string) *types.Account {
+func AccountCreate(name string, key string) (*types.Account, error) {
 	account := &types.Account{
 		Uuid:      uuid.New().String(),
 		Name:      strings.Trim(name, " ,-_=/\n\r\t.@"),
@@ -52,8 +65,8 @@ func AccountCreate(name string, key string) *types.Account {
 	if err != nil {
 		log.Error("could not create a new account", err)
 
-		return account
+		return nil, err
 	}
 
-	return account
+	return account, nil
 }
