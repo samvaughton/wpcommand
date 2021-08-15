@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
+	"github.com/samvaughton/wpcommand/v2/pkg/execution"
 	"github.com/samvaughton/wpcommand/v2/pkg/registry"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
@@ -27,9 +28,51 @@ func SetupApi(router *mux.Router) {
 	api.HandleFunc("/account", notImplemented)
 
 	api.HandleFunc("/site", createSiteHandler).Methods("POST")
+	api.HandleFunc("/site", loadSitesHandler).Methods("GET")
+	api.HandleFunc("/site/{key}", loadSiteHandler).Methods("GET")
 	api.HandleFunc("/command/job", createCommandJobHandler).Methods("POST")
 
 	api.HandleFunc("/config", configHandler).Methods("GET")
+}
+
+func loadSiteHandler(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-Type", "application/json")
+
+	account := req.Context().Value("account").(*types.Account)
+
+	vars := mux.Vars(req)
+	key := vars["key"]
+
+	sites, err := db.SiteGetByKey(key, account.Id)
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	json.NewEncoder(resp).Encode(sites)
+}
+
+func loadSitesHandler(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-Type", "application/json")
+
+	selector := "*"
+	query := req.URL.Query()
+	if query.Get("selector") != "" {
+		selector = query.Get("selector")
+	}
+
+	account := req.Context().Value("account").(*types.Account)
+	sites, err := db.SelectSites(selector, account.Id)
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	json.NewEncoder(resp).Encode(sites)
 }
 
 func createSiteHandler(resp http.ResponseWriter, req *http.Request) {
@@ -43,12 +86,28 @@ func createSiteHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// validate that the provided label selector + namespace matches a pod
+	_, err = execution.GetPodBySite(site.LabelSelector, site.Namespace, config.Config.K8.LabelSelector, config.Config.K8RestConfig)
+
+	if err != nil {
+		resp.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(resp).Encode(map[string]string{
+			"Status":  "INVALID_CONFIGURATION",
+			"Message": "Could not find a wordpress instance with the given configuration.",
+		})
+		return
+	}
+
 	account := req.Context().Value("account").(*types.Account)
 	err = db.SiteCreateFromStruct(site, account.Id)
 
 	if err != nil {
 		log.Error(err)
 		resp.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(resp).Encode(map[string]string{
+			"Status":  "COULD_NOT_CREATE",
+			"Message": "Something went wrong creating the site.",
+		})
 		return
 	}
 
@@ -77,7 +136,15 @@ func createCommandJobHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	sites := db.SelectSites(jobReq.Selector, account.Id)
+	sites, err := db.SelectSites(jobReq.Selector, account.Id)
+
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(resp).Encode(map[string]interface{}{
+			"Status": err.Error(),
+		})
+		return
+	}
 
 	if len(sites) == 0 {
 		resp.WriteHeader(http.StatusNotFound)

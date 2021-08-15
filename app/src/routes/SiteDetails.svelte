@@ -1,33 +1,35 @@
 <script>
 
-    import { Router, Link, Route } from "svelte-routing";
-    import {configStore, fetchConfig, sitesStore} from '../store/config.js';
+    import { Router } from "svelte-routing";
 
-    export let name;
-
-    fetchConfig();
+    export let key;
 
     let site = null;
 
-    sitesStore.subscribe(sites => {
-        for (let i = 0; i < sites.length; i++) {
-            if (sites[i].name === name) {
-                site = sites[i];
-                break;
-            }
-        }
+    fetch("/api/site/" + key).then(resp => resp.json()).then(data => {
+        site = data;
     });
-
 
 </script>
 
 <Router>
+    {#if site}
     <div class="row">
         <div class="col-12">
-            <h1 class=" float-start">{name}</h1>
+            <div class="d-flex bd-highlight mb-3">
+                <div class="p-2 bd-highlight">
+                    <h1 class="float-start">{site.Description}</h1>
+                </div>
+                <div class="ms-auto p-2 bd-highlight">
+                    <div class="btn-group" role="group" aria-label="Site Actions">
+                        <button type="button" class="btn btn-outline-primary">Build & Deploy</button>
+                        <button type="button" class="btn btn-outline-primary">Sync Plugins</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-    {#if site}
     <div class="row">
         <div class="col-12">
             <table class="table table-borderless table-striped">
@@ -40,20 +42,24 @@
                 <tbody>
                     <tr>
                         <th>Status</th>
-                        <td>{#if site.enabled}<span class="badge bg-success">Enabled</span>{:else}<span class="badge bg-danger">Disabled</span>{/if}</td>
+                        <td>{#if site.Enabled}<span class="badge bg-success">Enabled</span>{:else}<span class="badge bg-danger">Disabled</span>{/if}</td>
                     </tr>
                     <tr>
                         <th>Namespace</th>
-                        <td>{site.namespace}</td>
+                        <td>{site.Namespace}</td>
                     </tr>
                     <tr>
                         <th>Label Selector</th>
-                        <td>{site.labelSelector}</td>
+                        <td>{site.LabelSelector}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
+    {:else}
+        <div class="spinner-border m-5" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
     {/if}
 
 </Router>

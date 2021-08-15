@@ -22,6 +22,6 @@
         <Route path="/"><Dashboard /></Route>
         <Route path="/config"><Config /></Route>
         <Route path="/instances"><Instances /></Route>
-        <Route path="/sites/:name" let:params><SiteDetails name="{params.name}" /></Route>
+        <Route path="/sites/:key" let:params><SiteDetails key="{params.key}" /></Route>
     </div>
 </Router>

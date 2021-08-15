@@ -39,7 +39,7 @@ func NewApiCreateCommandJobRequest(req *http.Request) (*ApiCreateCommandJobReque
 type ApiCreateCommandJobResponse struct {
 	Request   ApiCreateCommandJobRequest
 	JobStatus string
-	Sites     []Site
+	Sites     []*Site
 }
 
 type CommandJob struct {

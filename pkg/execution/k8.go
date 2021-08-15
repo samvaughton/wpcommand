@@ -26,7 +26,7 @@ type KubernetesCommandExecutor struct {
 }
 
 func NewKubernetesCommandExecutor(site *types.Site) (*KubernetesCommandExecutor, error) {
-	pod, err := getPodBySite(site, config.Config.K8.LabelSelector, config.Config.K8RestConfig)
+	pod, err := GetPodBySite(site.LabelSelector, site.Namespace, config.Config.K8.LabelSelector, config.Config.K8RestConfig)
 
 	if err != nil {
 		return nil, err
@@ -144,27 +144,25 @@ func executeRemoteCommand(restCfg *rest.Config, pod v1.Pod, command string, stdi
 	return buf.String(), errBuf.String(), nil
 }
 
-func getPodBySite(site *types.Site, baseSelector string, k8Config *rest.Config) (*v1.Pod, error) {
+func GetPodBySite(labelSelector string, namespace string, baseSelector string, k8Config *rest.Config) (*v1.Pod, error) {
 	client, err := kubernetes.NewForConfig(k8Config)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	// combine label selectors from wordpress and the specific one
-	combinedSelector := fmt.Sprintf("%s,%s", baseSelector, site.LabelSelector)
+	combinedSelector := fmt.Sprintf("%s,%s", baseSelector, labelSelector)
 
-	log.Info("selecting ", combinedSelector, " for site ", site.Key)
-
-	pods, err := client.CoreV1().Pods(site.Namespace).List(context.TODO(), metav1.ListOptions{
+	pods, err := client.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: combinedSelector,
 	})
 
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("an error occurred finding the pod for site %s", site.Key))
+		return nil, errors.New(fmt.Sprintf("an error occurred finding the pod with selector %s", labelSelector))
 	}
 
 	if len(pods.Items) != 1 {
-		return nil, errors.New("could not find pod with the label selector " + site.LabelSelector + ", items returned: " + strconv.Itoa(len(pods.Items)))
+		return nil, errors.New("could not find pod with the label selector " + labelSelector + ", items returned: " + strconv.Itoa(len(pods.Items)))
 	}
 
 	return &pods.Items[0], nil

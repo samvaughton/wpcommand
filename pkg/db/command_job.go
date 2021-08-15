@@ -40,7 +40,7 @@ func GetCreatedJobs() []types.CommandJob {
 	return items
 }
 
-func CreateCommandJobs(command string, sites []types.Site) []*types.CommandJob {
+func CreateCommandJobs(command string, sites []*types.Site) []*types.CommandJob {
 
 	var jobs []*types.CommandJob
 

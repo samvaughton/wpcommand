@@ -13,6 +13,7 @@ userStore.subscribe(value => {
     if (value !== null) {
         register(TYPE_REQUEST, 'auth', (url, reqOpts) => {
             reqOpts.headers = {...(reqOpts.headers ?? {}), ...{"Token": value.Token}};
+            reqOpts.headers = {...(reqOpts.headers ?? {}), ...{"Content-Type": "application/json"}};
         })
     }
 });

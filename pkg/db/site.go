@@ -3,26 +3,30 @@ package db
 import (
 	"context"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
+	"strings"
 	"time"
 )
 
-func SiteExists(email string) bool {
-	return SiteGetByEmail(email) != nil
+func SiteExists(key string, accountId int64) bool {
+	_, err := SiteGetByKey(key, accountId)
+
+	return err != nil
 }
 
-func SiteGetByEmail(email string) *types.Site {
+func SiteGetByKey(key string, accountId int64) (*types.Site, error) {
 	site := new(types.Site)
 
-	err := Db.NewSelect().Model(site).Where("email = ?", email).Scan(context.Background())
+	err := Db.NewSelect().Model(site).Where("key = ? and account_id = ?", key, accountId).Scan(context.Background())
 
 	if err != nil {
-		return nil // not found
+		return nil, err
 	}
 
-	return site
+	return site, nil
 }
 
 func SiteGetByUuid(uuid string) (*types.Site, error) {
@@ -37,9 +41,9 @@ func SiteGetByUuid(uuid string) (*types.Site, error) {
 	return site, nil
 }
 
-func SelectSites(siteSelector string, accountId int64) []types.Site {
+func SelectSites(siteSelector string, accountId int64) ([]*types.Site, error) {
 	var err error
-	var sites []types.Site
+	var sites = make([]*types.Site, 0)
 
 	if siteSelector == "*" || siteSelector == "all" {
 		err = Db.NewSelect().Model(&sites).Where("account_id = ?", accountId).Scan(context.Background())
@@ -48,13 +52,17 @@ func SelectSites(siteSelector string, accountId int64) []types.Site {
 	}
 
 	if err != nil {
-		log.Error(err)
+		return sites, err
 	}
 
-	return sites
+	return sites, nil
 }
 
 func SiteCreateFromStruct(site *types.Site, accountId int64) error {
+	if site.LabelSelector == "" || site.Namespace == "" {
+		return errors.New("please provide label selector & namespace when creating a site")
+	}
+
 	site.Enabled = true
 	site.AccountId = accountId
 	site.SiteConfig = "{}"
@@ -63,6 +71,21 @@ func SiteCreateFromStruct(site *types.Site, accountId int64) error {
 
 	if site.Uuid == "" {
 		site.Uuid = uuid.New().String()
+	}
+
+	if site.Key == "" {
+		// extract key from the label selector
+		parts := strings.Split(site.LabelSelector, "=")
+
+		if len(parts) != 2 {
+			return errors.New("could not generate a suitable key for the site")
+		}
+
+		site.Key = parts[1]
+	}
+
+	if site.Description == "" {
+		site.Description = strings.ToTitle(site.Key)
 	}
 
 	_, err := Db.NewInsert().Model(site).Returning("*").Exec(context.Background())
