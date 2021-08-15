@@ -6,6 +6,7 @@ A multi-instance wordpress server manager that performs tasks such as:
  - Running standard & custom WP CLI commands to manage the wordpress instances in any way you see fit. This can include
    such commands as setting config options, running plugin commands, syncing acf fields, importing lazyblocks json files.
  - Right now it is closely tied to Kubernetes. Making it platform agnostic is a future goal.
+ - Provides a UI to manage all the above operations, UI is built with Svelte.
 
 ## Migrations
 
