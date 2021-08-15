@@ -43,10 +43,6 @@ type Config struct {
 	Environment string `yaml:"environment" envconfig:"ENVIRONMENT" json:"environment"`
 	DatabaseDsn string `yaml:"databaseDsn" envconfig:"DATABASE_DSN" json:"-"`
 
-	Command struct {
-		Async bool `yaml:"async" envconfig:"COMMAND_ASYNC" json:"async"`
-	} `yaml:"command" json:"command"`
-
 	K8 struct {
 		LabelSelector string `yaml:"labelSelector" envconfig:"K8_LABEL_SELECTOR" json:"labelSelector"`
 	} `yaml:"kubernetes" json:"kubernetes"`

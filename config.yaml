@@ -1,8 +1,6 @@
 environment: dev
 databaseDsn: postgres://app:password@localhost:5444/app?sslmode=disable
 manifest: https://raw.githubusercontent.com/aptenex/k8-store/main/manifest.yaml
-command:
-  async: true
 kubernetes:
   labelSelector: app.kubernetes.io/name=wordpress
 logging:

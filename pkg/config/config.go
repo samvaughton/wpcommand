@@ -15,7 +15,6 @@ import (
 
 var (
 	Config          *types.Config
-	Async           bool
 	Environment     string
 	LoggingLevel    string
 	DisableManifest bool
@@ -62,11 +61,6 @@ func InitConfig() {
 	if LoggingLevel != "" {
 		config.Logging.Level = LoggingLevel
 		log.Info("logging-level=", LoggingLevel)
-	}
-
-	if Async {
-		config.Command.Async = Async
-		log.Info("async=", Async)
 	}
 
 	var kubeconfig *string
