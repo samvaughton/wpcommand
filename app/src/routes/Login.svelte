@@ -2,9 +2,9 @@
 
 import { userStore, authenticate } from '../store/user'
 
-let email = "sam@rentivo.com"
-let account = "admin"
-let password = "password"
+let email = ""
+let account = ""
+let password = ""
 
 function handleSubmit() {
     authenticate(account, email, password).then(user => {
