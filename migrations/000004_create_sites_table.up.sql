@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS sites(
     site_username TEXT DEFAULT '',
     site_password TEXT DEFAULT '',
     site_config JSON DEFAULT '{}',
+    test_mode BOOL DEFAULT FALSE NOT NULL,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     CONSTRAINT fk_account_id FOREIGN KEY (account_id) REFERENCES accounts (id)

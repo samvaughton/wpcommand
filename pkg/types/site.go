@@ -41,6 +41,7 @@ type Site struct {
 	SitePassword  string
 	SiteConfig    string
 	Enabled       bool
+	TestMode      bool
 	CreatedAt     time.Time
 	UpdatedAt     bun.NullTime
 }
