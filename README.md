@@ -1,8 +1,11 @@
-# WPCOMMAND CLI
+# WpCmd
 
-Kubernetes wordpress manager
+A multi-instance wordpress server manager that performs tasks such as:
 
-# WPCOMMAND Server
+ - Keeping plugins & themes in sync with a defined version set. Rollbacks are supported.
+ - Running standard & custom WP CLI commands to manage the wordpress instances in any way you see fit. This can include
+   such commands as setting config options, running plugin commands, syncing acf fields, importing lazyblocks json files.
+ - Right now it is closely tied to Kubernetes. Making it platform agnostic is a future goal.
 
 ## Migrations
 
