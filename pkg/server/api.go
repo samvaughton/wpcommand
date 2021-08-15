@@ -162,6 +162,11 @@ func authHandler(resp http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(resp).Encode(map[string]interface{}{
 		"Status": "AUTHENTICATED",
 		"Token":  tokenString,
+		"Email":  user.Email,
+		"Account": map[string]string{
+			"Name": account.Name,
+			"Key":  account.Key,
+		},
 	})
 }
 

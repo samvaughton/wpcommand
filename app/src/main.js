@@ -1,6 +1,10 @@
 import App from './App.svelte';
+import {takeover} from "./fetch/fetchm";
 
-var app = new App({
+// replaces fetch with fetchm that allows middleware
+takeover();
+
+let app = new App({
 	target: document.body
 });
 

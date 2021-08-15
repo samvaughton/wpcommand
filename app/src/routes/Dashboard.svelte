@@ -17,14 +17,14 @@
 <Router>
     <div class="row">
         <div class="col-12">
-            <h1 class="text-white">Sites</h1>
-            <p class="lead text-white">List of all sites managed by WPCOMMAND.</p>
-            <p class="text-white">Base selector: <code>{k8LabelSelector}</code></p>
+            <h1 class="">Sites</h1>
+            <p class="lead ">Currently managed sites.</p>
+            <p class="">Base selector: <code>{k8LabelSelector}</code></p>
         </div>
     </div>
     <div class="row">
         <div class="col-12">
-            <table class="table table-dark table-borderless table-striped">
+            <table class="table table-borderless table-striped">
                 <thead>
                 <tr>
                     <th scope="col">#</th>

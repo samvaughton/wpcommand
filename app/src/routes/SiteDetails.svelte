@@ -24,13 +24,13 @@
 <Router>
     <div class="row">
         <div class="col-12">
-            <h1 class="text-white float-start">{name}</h1>
+            <h1 class=" float-start">{name}</h1>
         </div>
     </div>
     {#if site}
     <div class="row">
         <div class="col-12">
-            <table class="table table-dark table-borderless table-striped">
+            <table class="table table-borderless table-striped">
                 <thead>
                 <tr>
                     <th scope="col"></th>
