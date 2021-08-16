@@ -72,3 +72,37 @@ func CreateDefaultAccountAndUser() {
 
 	log.Info(fmt.Sprintf("Default account \"%s\" has been created with user %s, password=\"%s\"", account.Key, user.Email, "password"))
 }
+
+func CreateDefaultCommands() {
+	accounts, err := AccountsGetAll()
+
+	if err != nil {
+		log.Error(err)
+
+		return
+	}
+
+	if len(accounts) > 0 {
+		log.Info("accounts exist")
+
+		return
+	}
+
+	account, err := AccountCreate("Default", "default")
+
+	if err != nil {
+		log.Error(err)
+
+		return
+	}
+
+	user, err := UserCreate("admin@admin.com", "Admin", "Admin", "password", account.Id)
+
+	if err != nil {
+		log.Error(err)
+
+		return
+	}
+
+	log.Info(fmt.Sprintf("Default account \"%s\" has been created with user %s, password=\"%s\"", account.Key, user.Email, "password"))
+}

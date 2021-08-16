@@ -45,6 +45,7 @@ type ApiCreateCommandJobResponse struct {
 type CommandJob struct {
 	Id          int64 `bun:"id,pk"`
 	RunByUserId int64
+	RunByUser   *User `bun:"rel:belongs-to"`
 	CommandId   int64
 	Command     int64
 	SiteId      int64
