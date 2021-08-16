@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"gopkg.in/guregu/null.v3"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -14,8 +15,8 @@ const CommandJobStatusSuccess = "SUCCESS"
 const CommandJobStatusFailure = "FAILURE"
 
 type ApiCreateCommandJobRequest struct {
-	Command  string
-	Selector string
+	CommandId int64
+	Selector  string
 }
 
 func NewApiCreateCommandJobRequest(req *http.Request) (*ApiCreateCommandJobRequest, error) {
@@ -44,10 +45,10 @@ type ApiCreateCommandJobResponse struct {
 
 type CommandJob struct {
 	Id          int64 `bun:"id,pk"`
-	RunByUserId int64
+	RunByUserId null.Int
 	RunByUser   *User `bun:"rel:belongs-to"`
 	CommandId   int64
-	Command     int64
+	Command     *Command `bun:"rel:belongs-to"`
 	SiteId      int64
 	Site        *Site `bun:"rel:belongs-to"`
 	Uuid        string

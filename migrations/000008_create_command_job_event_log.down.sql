@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS command_job_event_log;
+DROP TABLE IF EXISTS command_job_event_logs;

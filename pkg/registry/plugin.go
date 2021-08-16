@@ -20,10 +20,15 @@ func GetPluginsStatusCommand(site *types.Site) pipeline.SiteCommand {
 			}
 
 			for _, action := range actionSet.Items {
+				ver := ""
+				if action.Object != nil {
+					ver = action.Object.Version
+				}
+
 				log.WithFields(log.Fields{
 					"site":    site.Key,
 					"plugin":  action.Name,
-					"version": action.Object.Version,
+					"version": ver,
 					"action":  action.Action,
 				}).Info("plugin status")
 			}

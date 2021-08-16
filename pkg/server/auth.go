@@ -15,13 +15,13 @@ import (
 
 const SecretKey = "ai9ufgh94873yh8t0924hgt0[84wghneo8ridvoiah93-"
 
-func GenerateJWT(email string, accountUuid string) (string, error) {
+func GenerateJWT(userUuid string, accountUuid string) (string, error) {
 	var signingKey = []byte(SecretKey)
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 
 	claims["authorized"] = true
-	claims["userEmail"] = email
+	claims["userUuid"] = userUuid
 	claims["accountUuid"] = accountUuid
 	claims["exp"] = time.Now().Add(time.Hour * 7 * 24).Unix()
 
@@ -74,6 +74,13 @@ func IsAuthorizedMiddleware(next http.Handler) http.Handler {
 
 			if account != nil {
 				ctx := context.WithValue(r.Context(), "account", account)
+				r = r.WithContext(ctx)
+			}
+
+			user := db.UserGetByUuid(fmt.Sprintf("%s", claims["userUuid"]))
+
+			if user != nil {
+				ctx := context.WithValue(r.Context(), "user", user)
 				r = r.WithContext(ctx)
 			}
 

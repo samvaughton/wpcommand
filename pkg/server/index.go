@@ -6,6 +6,7 @@ import (
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/logutil"
+	"github.com/samvaughton/wpcommand/v2/pkg/registry"
 	"github.com/samvaughton/wpcommand/v2/pkg/scheduler"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -18,7 +19,8 @@ func Start() {
 	logutil.SetupLogging()
 
 	db.CreateDefaultAccountAndUser()
-	db.CreateDefaultCommands()
+
+	registry.CreateDefaultCommands()
 
 	scheduler.Init(time.Second*5, 2)
 	scheduler.Start()

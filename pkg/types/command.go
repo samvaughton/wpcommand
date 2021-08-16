@@ -1,6 +1,7 @@
 package types
 
 import (
+	"gopkg.in/guregu/null.v3"
 	"time"
 )
 
@@ -9,8 +10,10 @@ const CommandTypeHttpCall = "HTTP_CALL"
 
 type Command struct {
 	Id          int64 `bun:"id,pk"`
-	AccountId   int64
-	Account     *Account `bun:"rel:belongs-to"`
+	AccountId   null.Int
+	Account     *Account `bun:"rel:belongs-to" json:"-"`
+	SiteId      null.Int
+	Site        *Site `bun:"rel:belongs-to" json:"-"`
 	Uuid        string
 	Key         string
 	Type        string
@@ -20,4 +23,8 @@ type Command struct {
 	HttpHeaders string
 	HttpBody    string
 	CreatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp"`
+}
+
+func (c *Command) IsDefault() bool {
+	return c.AccountId.Valid == false && c.SiteId.Valid == false
 }

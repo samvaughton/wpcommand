@@ -131,7 +131,7 @@ func Start() {
 										}
 									}
 
-									db.CreateCommandJobEvent(
+									_, err = db.CreateCommandJobEvent(
 										local.Id,
 										jType,
 										types.EventLogStatusSuccess,
@@ -139,6 +139,10 @@ func Start() {
 										output,
 										meta,
 									)
+
+									if err != nil {
+										log.Error(err)
+									}
 								},
 							},
 							// run when a pre-check command fails

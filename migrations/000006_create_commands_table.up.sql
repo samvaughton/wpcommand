@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS commands(
     id SERIAL PRIMARY KEY,
     account_id INT,
+    site_id INT,
     uuid TEXT UNIQUE NOT NULL,
     type TEXT NOT NULL,
     key TEXT NOT NULL,
@@ -9,6 +10,5 @@ CREATE TABLE IF NOT EXISTS commands(
     http_url TEXT,
     http_headers JSON,
     http_body TEXT,
-    created_at TIMESTAMP,
-    CONSTRAINT fk_account_id FOREIGN KEY (account_id) REFERENCES accounts (id)
+    created_at TIMESTAMP
 );

@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/guregu/null.v3"
 	"time"
 )
 
@@ -29,6 +30,7 @@ func GetCreatedJobs() []types.CommandJob {
 		NewSelect().
 		Model(&items).
 		Relation("Site").
+		Relation("Command").
 		Where("status = ?", types.CommandJobStatusCreated).
 		Order("created_at ASC").
 		Scan(context.Background())
@@ -40,17 +42,18 @@ func GetCreatedJobs() []types.CommandJob {
 	return items
 }
 
-func CreateCommandJobs(command string, sites []*types.Site) []*types.CommandJob {
-
+func CreateCommandJobs(command *types.Command, sites []*types.Site, runByUserId int64) []*types.CommandJob {
 	var jobs []*types.CommandJob
 
 	for _, site := range sites {
 		job := &types.CommandJob{
 			Uuid:        uuid.New().String(),
 			SiteId:      site.Id,
-			Key:         command,
+			CommandId:   command.Id,
+			RunByUserId: null.IntFrom(runByUserId),
+			Key:         command.Key,
 			Status:      types.CommandJobStatusCreated,
-			Description: fmt.Sprintf("job created via api for: %s", command),
+			Description: fmt.Sprintf("job created via api"),
 			CreatedAt:   time.Now(),
 		}
 
@@ -58,6 +61,7 @@ func CreateCommandJobs(command string, sites []*types.Site) []*types.CommandJob 
 
 		if err != nil {
 			log.Error(err)
+
 			continue
 		}
 

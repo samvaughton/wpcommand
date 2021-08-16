@@ -126,7 +126,7 @@ func ComputePluginActionSet(plugins []types.Plugin, objects []types.ObjectBluepr
 			actionSet[sortSet[plugin.Name]] = types.PluginActionItem{
 				Name:   plugin.Name,
 				Action: types.PluginActionEnum.Uninstall,
-				Object: &dbPlugin,
+				Object: nil,
 			}
 
 		}

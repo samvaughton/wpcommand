@@ -30,6 +30,8 @@ func SetupApi(router *mux.Router) {
 	api.HandleFunc("/site", createSiteHandler).Methods("POST")
 	api.HandleFunc("/site", loadSitesHandler).Methods("GET")
 	api.HandleFunc("/site/{key}", loadSiteHandler).Methods("GET")
+	api.HandleFunc("/site/{key}/command", loadSiteCommandsHandler).Methods("GET")
+
 	api.HandleFunc("/command/job", createCommandJobHandler).Methods("POST")
 
 	api.HandleFunc("/config", configHandler).Methods("GET")
@@ -43,7 +45,7 @@ func loadSiteHandler(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	key := vars["key"]
 
-	sites, err := db.SiteGetByKey(key, account.Id)
+	site, err := db.SiteGetByKey(key, account.Id)
 
 	if err != nil {
 		log.Error(err)
@@ -51,7 +53,34 @@ func loadSiteHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	json.NewEncoder(resp).Encode(sites)
+	json.NewEncoder(resp).Encode(site)
+}
+
+func loadSiteCommandsHandler(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-Type", "application/json")
+
+	account := req.Context().Value("account").(*types.Account)
+
+	vars := mux.Vars(req)
+	key := vars["key"]
+
+	site, err := db.SiteGetByKey(key, account.Id)
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	commands, err := db.CommandsGetForSite(site.Id, account.Id)
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	json.NewEncoder(resp).Encode(commands)
 }
 
 func loadSitesHandler(resp http.ResponseWriter, req *http.Request) {
@@ -119,19 +148,32 @@ func createCommandJobHandler(resp http.ResponseWriter, req *http.Request) {
 
 	jobReq, err := types.NewApiCreateCommandJobRequest(req)
 
-	if err != nil {
+	if err != nil || jobReq.CommandId == 0 || jobReq.Selector == "" {
 		log.Error(err)
 		resp.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	account := req.Context().Value("account").(*types.Account)
+	user := req.Context().Value("user").(*types.User)
 
-	// we now need to validate this job request check command & site selector
-	if registry.CommandExists(jobReq.Command) == false {
+	// check database
+	command, err := db.CommandGetByIdAccountSafe(jobReq.CommandId, account.Id)
+
+	if err != nil {
+		log.Error(err)
 		resp.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(resp).Encode(map[string]interface{}{
 			"Status": "COMMAND_NOT_FOUND",
+		})
+		return
+	}
+
+	// we now need to validate this job request check command & site selector
+	if command.Type == types.CommandTypeBuiltIn && registry.CommandExists(command.Key) == false {
+		resp.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(resp).Encode(map[string]interface{}{
+			"Status": "BUILT_IN_COMMAND_NOT_FOUND",
 		})
 		return
 	}
@@ -155,10 +197,10 @@ func createCommandJobHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// create command job
-	jobs := db.CreateCommandJobs(jobReq.Command, sites)
+	jobs := db.CreateCommandJobs(command, sites, user.Id)
 
 	if len(jobs) == 0 {
-		log.Error(fmt.Sprintf("something went wrong creating jobs. command=%s selector=%s", jobReq.Command, jobReq.Selector))
+		log.Error(fmt.Sprintf("something went wrong creating jobs. command=%s selector=%s", command.Key, jobReq.Selector))
 		resp.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(resp).Encode(map[string]interface{}{
 			"Status": "ERROR_CREATING_JOBS",
@@ -215,7 +257,7 @@ func authHandler(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	tokenString, err := GenerateJWT(user.Email, account.Uuid)
+	tokenString, err := GenerateJWT(user.Uuid, account.Uuid)
 
 	if err != nil {
 		log.Error(err)

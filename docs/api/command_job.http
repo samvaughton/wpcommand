@@ -4,8 +4,8 @@ Content-Type: application/json
 Token: {{token}}
 
 {
-  "command": "plugins-status",
-  "selector": "demo-wp"
+  "CommandId": 31,
+  "Selector": "demo-wp"
 }
 
 ### Create Command Job
@@ -14,6 +14,6 @@ Content-Type: application/json
 Token: {{token}}
 
 {
-  "command": "setup-fresh-install",
-  "selector": "demo-wp"
+  "Command": "setup-fresh-install",
+  "Selector": "demo-wp"
 }

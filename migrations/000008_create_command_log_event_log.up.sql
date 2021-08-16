@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS command_job_event_log(
+CREATE TABLE IF NOT EXISTS command_job_event_logs(
     id SERIAL PRIMARY KEY,
     command_job_id INT NOT NULL,
     uuid TEXT UNIQUE NOT NULL,

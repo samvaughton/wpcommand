@@ -14,6 +14,18 @@ func UserExists(email string) bool {
 	return UserGetByEmail(email) != nil
 }
 
+func UserGetByUuid(uuid string) *types.User {
+	user := new(types.User)
+
+	err := Db.NewSelect().Model(user).Where("uuid = ?", uuid).Scan(context.Background())
+
+	if err != nil {
+		return nil // not found
+	}
+
+	return user
+}
+
 func UserGetByEmail(email string) *types.User {
 	user := new(types.User)
 

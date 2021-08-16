@@ -29,8 +29,8 @@ func NewSiteFromHttpRequest(req *http.Request) (*Site, error) {
 type Site struct {
 	Id            int64 `bun:"id,pk"`
 	AccountId     int64
-	Account       *Account        `bun:"rel:belongs-to"`
-	BlueprintSets []*BlueprintSet `bun:"m2m:sites_blueprint_sets"`
+	Account       *Account        `bun:"rel:belongs-to" json:"-"`
+	BlueprintSets []*BlueprintSet `bun:"m2m:sites_blueprint_sets" json:"-"`
 	Uuid          string
 	Key           string
 	Description   string

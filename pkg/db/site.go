@@ -85,7 +85,7 @@ func SiteCreateFromStruct(site *types.Site, accountId int64) error {
 	}
 
 	if site.Description == "" {
-		site.Description = strings.ToTitle(site.Key)
+		site.Description = strings.Title(site.Key)
 	}
 
 	_, err := Db.NewInsert().Model(site).Returning("*").Exec(context.Background())

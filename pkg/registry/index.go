@@ -1,8 +1,11 @@
 package registry
 
 import (
+	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/pipeline"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
+	log "github.com/sirupsen/logrus"
+	"strings"
 )
 
 const CmdWpSetupFreshInstall = "setup-fresh-install"
@@ -51,4 +54,34 @@ func CommandExists(key string) bool {
 	_, exists := CommandRegistry[key]
 
 	return exists
+}
+
+func CreateDefaultCommands() {
+	commands, err := db.CommandsGetDefault()
+
+	if err != nil {
+		log.Error(err)
+
+		return
+	}
+
+	if len(commands) > 0 {
+		log.Info("default commands exist, skipping")
+
+		return
+	}
+
+	for key, _ := range CommandRegistry {
+		description := strings.Title(strings.ReplaceAll(key, "-", " "))
+
+		cmd, err := db.CommandCreateDefault(description, key, types.CommandTypeBuiltIn)
+
+		if err != nil {
+			log.Error(err)
+
+			continue
+		}
+
+		log.Infof("command %s creeated", cmd.Key)
+	}
 }

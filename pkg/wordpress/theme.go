@@ -126,7 +126,7 @@ func ComputeThemeActionSet(themes []types.Theme, objects []types.ObjectBlueprint
 			actionSet[sortSet[theme.Name]] = types.ThemeActionItem{
 				Name:   theme.Name,
 				Action: types.ThemeActionEnum.Uninstall,
-				Object: &dbTheme,
+				Object: nil,
 			}
 
 		}
