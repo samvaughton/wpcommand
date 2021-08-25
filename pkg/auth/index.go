@@ -56,6 +56,8 @@ func InitAuth() {
 			{types.RoleMember, types.AuthObjectUser, "read"},
 			{types.RoleMember, types.AuthObjectAccount, "read"},
 		})
+
+		log.Info("default casbin policies added")
 	}
 
 	Enforcer = e

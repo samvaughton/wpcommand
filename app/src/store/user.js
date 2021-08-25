@@ -3,20 +3,41 @@ import {register, TYPE_REQUEST} from "../fetch/fetchm";
 
 const apiURL = "/auth";
 const storedUser = JSON.parse(localStorage.getItem("user"));
+let accessCache = JSON.parse(localStorage.getItem("accessCache"))
+
+const setAndSaveAccessCache = function(key, value) {
+    accessCache[key] = value;
+    localStorage.setItem("accessCache", JSON.stringify(accessCache));
+}
 
 export let enforcer = null;
 export const userStore = writable(storedUser);
 
 export const hasAccess = async function(obj, action) {
     // We need to cache these results into application storage
+    if (accessCache === undefined || accessCache === null) {
+        accessCache = {};
+    }
+
+    const key = obj + "," + action;
     return new Promise((resolve, reject) => {
-        fetch("/api/access?params=" + obj + "," + action, {method: "POST"}).then(resp => {
-            if (resp.status === 200) {
+        if (accessCache[key] === undefined) {
+            fetch("/api/access?params=" + key, {method: "POST"}).then(resp => {
+                if (resp.status === 200) {
+                    setAndSaveAccessCache(key, true);
+                    resolve();
+                } else {
+                    setAndSaveAccessCache(key, false);
+                    reject();
+                }
+            });
+        } else {
+            if (accessCache[key]) {
                 resolve();
             } else {
                 reject();
             }
-        });
+        }
     });
 };
 
