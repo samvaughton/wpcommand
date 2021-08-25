@@ -10,16 +10,43 @@ import (
 	"time"
 )
 
-func CommandJobGetByUuid(uuid string) (*types.CommandJob, bool) {
+func CommandJobGetByUuid(uuid string) (*types.CommandJob, error) {
 	job := new(types.CommandJob)
 
-	err := Db.NewSelect().Model(job).Where("uuid = ?", uuid).Scan(context.Background())
+	err := Db.
+		NewSelect().
+		Model(job).
+		Relation("Site").
+		Relation("Command").
+		Relation("RunByUser").
+		Where("\"command_job\".uuid = ?", uuid).
+		Scan(context.Background())
 
 	if err != nil {
-		return nil, false // not found
+		return nil, err
 	}
 
-	return job, true
+	return job, nil
+}
+
+func CommandJobGetByUuidSafe(uuid string, accountId int64) (*types.CommandJob, error) {
+	job := new(types.CommandJob)
+
+	err := Db.
+		NewSelect().
+		Model(job).
+		Relation("Site").
+		Relation("Command").
+		Relation("RunByUser").
+		Where("\"site\".account_id = ?", accountId).
+		Where("\"command_job\".uuid = ?", uuid).
+		Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return job, nil
 }
 
 func GetCreatedJobs() []types.CommandJob {
@@ -40,6 +67,27 @@ func GetCreatedJobs() []types.CommandJob {
 	}
 
 	return items
+}
+
+func CommandJobsGetForAccount(accountId int64) ([]*types.CommandJob, error) {
+	var err error
+	items := make([]*types.CommandJob, 0)
+
+	err = Db.
+		NewSelect().
+		Model(&items).
+		Relation("Site").
+		Relation("Command").
+		Relation("RunByUser").
+		Where("\"site\".account_id = ?", accountId).
+		Order("created_at ASC").
+		Scan(context.Background())
+
+	if err != nil {
+		return items, err
+	}
+
+	return items, nil
 }
 
 func CreateCommandJobs(command *types.Command, sites []*types.Site, runByUserId int64) []*types.CommandJob {

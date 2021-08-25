@@ -1,298 +1,69 @@
 package server
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/samvaughton/wpcommand/v2/pkg/config"
-	"github.com/samvaughton/wpcommand/v2/pkg/db"
-	"github.com/samvaughton/wpcommand/v2/pkg/execution"
-	"github.com/samvaughton/wpcommand/v2/pkg/registry"
+	"github.com/samvaughton/wpcommand/v2/pkg/auth"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"net/http"
 )
 
 var notImplemented = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Not Implemented"))
+	w.WriteHeader(http.StatusNotImplemented)
 })
+
+func AuthWrapper(obj string, act string, handler func(resp http.ResponseWriter, req *http.Request)) func(resp http.ResponseWriter, req *http.Request) {
+	return func(resp http.ResponseWriter, req *http.Request) {
+		ua := req.Context().Value("userAccount").(*types.UserAccount)
+
+		allowed, err := auth.Enforcer.Enforce(ua.GetCasbinPolicyKey(), obj, act)
+
+		if err != nil {
+			log.Errorf("failed to enforce: %s", err)
+			resp.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		if allowed == false {
+			resp.WriteHeader(http.StatusUnauthorized)
+
+			return
+		}
+
+		handler(resp, req)
+	}
+}
 
 func SetupApi(router *mux.Router) {
 	router.HandleFunc("/auth", authHandler).Methods("POST")
 
-	api := router.PathPrefix("/api").Subrouter()
-	api.Use(IsAuthorizedMiddleware)
+	api := NewAuthorizedApi("/api", router)
 
-	api.HandleFunc("/user", notImplemented)
+	api.HandleFunc("/user", AuthWrapper(types.AuthObjectUser, types.AuthActionWrite, createUserHandler)).Methods("POST")
+	api.HandleFunc("/access", notImplemented).Methods("GET")
+	api.HandleFunc("/access", hasAccessHandler).Methods("POST")
+
 	api.HandleFunc("/account", notImplemented)
 
-	api.HandleFunc("/site", createSiteHandler).Methods("POST")
-	api.HandleFunc("/site", loadSitesHandler).Methods("GET")
-	api.HandleFunc("/site/{key}", loadSiteHandler).Methods("GET")
-	api.HandleFunc("/site/{key}/command", loadSiteCommandsHandler).Methods("GET")
+	api.HandleFunc("/site", AuthWrapper(types.AuthObjectSite, types.AuthActionWrite, createSiteHandler)).Methods("POST")
+	api.HandleFunc("/site", AuthWrapper(types.AuthObjectSite, types.AuthActionRead, loadSitesHandler)).Methods("GET")
+	api.HandleFunc("/site/{key}", AuthWrapper(types.AuthObjectSite, types.AuthActionRead, loadSiteHandler)).Methods("GET")
 
-	api.HandleFunc("/command/job", createCommandJobHandler).Methods("POST")
+	api.HandleFunc("/site/{key}/command", AuthWrapper(types.AuthObjectCommand, types.AuthActionRead, loadSiteCommandsHandler)).Methods("GET")
 
-	api.HandleFunc("/config", configHandler).Methods("GET")
+	api.HandleFunc("/command/job", AuthWrapper(types.AuthObjectCommandJob, types.AuthActionWrite, createCommandJobHandler)).Methods("POST")
+	api.HandleFunc("/command/job", AuthWrapper(types.AuthObjectCommandJob, types.AuthActionRead, getCommandJobsHandler)).Methods("GET")
+	api.HandleFunc("/command/job/{uuid}", AuthWrapper(types.AuthObjectCommandJob, types.AuthActionRead, getCommandJobHandler)).Methods("GET")
+
+	api.HandleFunc("/command/job/{uuid}/events", AuthWrapper(types.AuthObjectCommandJobEvent, types.AuthActionRead, getCommandJobEventsHandler)).Methods("GET")
+
+	api.HandleFunc("/config", AuthWrapper(types.AuthObjectConfig, types.AuthActionRead, configHandler)).Methods("GET")
 }
 
-func loadSiteHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/json")
+func NewAuthorizedApi(path string, router *mux.Router) *mux.Router {
+	api := router.PathPrefix(path).Subrouter()
+	api.Use(IsAuthorizedMiddleware)
 
-	account := req.Context().Value("account").(*types.Account)
-
-	vars := mux.Vars(req)
-	key := vars["key"]
-
-	site, err := db.SiteGetByKey(key, account.Id)
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	json.NewEncoder(resp).Encode(site)
-}
-
-func loadSiteCommandsHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/json")
-
-	account := req.Context().Value("account").(*types.Account)
-
-	vars := mux.Vars(req)
-	key := vars["key"]
-
-	site, err := db.SiteGetByKey(key, account.Id)
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	commands, err := db.CommandsGetForSite(site.Id, account.Id)
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	json.NewEncoder(resp).Encode(commands)
-}
-
-func loadSitesHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/json")
-
-	selector := "*"
-	query := req.URL.Query()
-	if query.Get("selector") != "" {
-		selector = query.Get("selector")
-	}
-
-	account := req.Context().Value("account").(*types.Account)
-	sites, err := db.SelectSites(selector, account.Id)
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	json.NewEncoder(resp).Encode(sites)
-}
-
-func createSiteHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/json")
-
-	site, err := types.NewSiteFromHttpRequest(req)
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	// validate that the provided label selector + namespace matches a pod
-	_, err = execution.GetPodBySite(site.LabelSelector, site.Namespace, config.Config.K8.LabelSelector, config.Config.K8RestConfig)
-
-	if err != nil {
-		resp.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(resp).Encode(map[string]string{
-			"Status":  "INVALID_CONFIGURATION",
-			"Message": "Could not find a wordpress instance with the given configuration.",
-		})
-		return
-	}
-
-	account := req.Context().Value("account").(*types.Account)
-	err = db.SiteCreateFromStruct(site, account.Id)
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(resp).Encode(map[string]string{
-			"Status":  "COULD_NOT_CREATE",
-			"Message": "Something went wrong creating the site.",
-		})
-		return
-	}
-
-	json.NewEncoder(resp).Encode(site)
-}
-
-func createCommandJobHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/json")
-
-	jobReq, err := types.NewApiCreateCommandJobRequest(req)
-
-	if err != nil || jobReq.CommandId == 0 || jobReq.Selector == "" {
-		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	account := req.Context().Value("account").(*types.Account)
-	user := req.Context().Value("user").(*types.User)
-
-	// check database
-	command, err := db.CommandGetByIdAccountSafe(jobReq.CommandId, account.Id)
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(resp).Encode(map[string]interface{}{
-			"Status": "COMMAND_NOT_FOUND",
-		})
-		return
-	}
-
-	// we now need to validate this job request check command & site selector
-	if command.Type == types.CommandTypeBuiltIn && registry.CommandExists(command.Key) == false {
-		resp.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(resp).Encode(map[string]interface{}{
-			"Status": "BUILT_IN_COMMAND_NOT_FOUND",
-		})
-		return
-	}
-
-	sites, err := db.SelectSites(jobReq.Selector, account.Id)
-
-	if err != nil {
-		resp.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(resp).Encode(map[string]interface{}{
-			"Status": err.Error(),
-		})
-		return
-	}
-
-	if len(sites) == 0 {
-		resp.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(resp).Encode(map[string]interface{}{
-			"Status": "SITE_NOT_FOUND",
-		})
-		return
-	}
-
-	// create command job
-	jobs := db.CreateCommandJobs(command, sites, user.Id)
-
-	if len(jobs) == 0 {
-		log.Error(fmt.Sprintf("something went wrong creating jobs. command=%s selector=%s", command.Key, jobReq.Selector))
-		resp.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(resp).Encode(map[string]interface{}{
-			"Status": "ERROR_CREATING_JOBS",
-		})
-		return
-	}
-
-	json.NewEncoder(resp).Encode(types.ApiCreateCommandJobResponse{
-		Request:   *jobReq,
-		JobStatus: types.CommandJobStatusCreated,
-		Sites:     sites,
-	})
-}
-
-func authHandler(resp http.ResponseWriter, req *http.Request) {
-	var authPayload types.Authentication
-
-	bytes, err := ioutil.ReadAll(req.Body)
-
-	resp.Header().Set("Content-Type", "application/json")
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	err = json.Unmarshal(bytes, &authPayload)
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	user := db.UserGetByEmailAndAccountKey(authPayload.Email, authPayload.Account)
-
-	if user == nil {
-		resp.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	if CheckPasswordHash(authPayload.Password, user.Password) == false {
-		resp.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	// get the actual account with the key
-	var account types.Account
-	for _, accItem := range user.Accounts {
-		if accItem.Key == authPayload.Account {
-			account = *accItem
-			break
-		}
-	}
-
-	tokenString, err := GenerateJWT(user.Uuid, account.Uuid)
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusInternalServerError)
-
-		return
-	}
-
-	resp.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(resp).Encode(map[string]interface{}{
-		"Status": "AUTHENTICATED",
-		"Token":  tokenString,
-		"Email":  user.Email,
-		"Account": map[string]string{
-			"Name": account.Name,
-			"Key":  account.Key,
-		},
-	})
-}
-
-func configHandler(resp http.ResponseWriter, req *http.Request) {
-	bytes, err := json.Marshal(config.Config)
-
-	if err != nil {
-		log.WithFields(log.Fields{"endpoint": "/api/config"}).Error(err)
-
-		resp.WriteHeader(500)
-
-		return
-	}
-
-	_, err = resp.Write(bytes)
-
-	if err != nil {
-		log.WithFields(log.Fields{"endpoint": "/api/config"}).Error(err)
-	}
+	return api
 }

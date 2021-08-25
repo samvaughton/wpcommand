@@ -37,15 +37,22 @@ export default {
 		file: 'public/build/bundle.js'
 	},
 	plugins: [
+		//nodePolyfills(),
+
 		svelte({
 			compilerOptions: {
 				// enable run-time checks when not in production
-				dev: !production
+				dev: !production,
 			}
 		}),
 		// we'll extract any component CSS out into
 		// a separate file - better for performance
 		css({ output: 'bundle.css' }),
+
+		//babel(),
+
+		commonjs(),
+
 
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
@@ -56,7 +63,6 @@ export default {
 			browser: true,
 			dedupe: ['svelte']
 		}),
-		commonjs(),
 
 		// In dev mode, call `npm run start` once
 		// the bundle has been generated

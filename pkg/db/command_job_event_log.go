@@ -36,3 +36,22 @@ func CreateCommandJobEvent(jobId int64, rType string, status string, command str
 
 	return job, nil
 }
+
+func CommandJobEventLogGetByJob(jobId int64) ([]*types.CommandJobEventLog, error) {
+	var err error
+	items := make([]*types.CommandJobEventLog, 0)
+
+	err = Db.
+		NewSelect().
+		Model(&items).
+		Relation("CommandJob").
+		Where("command_job_id = ?", jobId).
+		Order("created_at ASC").
+		Scan(context.Background())
+
+	if err != nil {
+		return items, err
+	}
+
+	return items, nil
+}

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users(
     last_name TEXT DEFAULT '',
     password TEXT DEFAULT '',
     enabled BOOLEAN,
+    super_admin BOOLEAN,
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );

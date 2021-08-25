@@ -1,4 +1,4 @@
-package logutil
+package util
 
 import (
 	"github.com/samvaughton/wpcommand/v2/pkg/config"

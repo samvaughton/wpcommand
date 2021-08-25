@@ -4,7 +4,21 @@ import {register, TYPE_REQUEST} from "../fetch/fetchm";
 const apiURL = "/auth";
 const storedUser = JSON.parse(localStorage.getItem("user"));
 
+export let enforcer = null;
 export const userStore = writable(storedUser);
+
+export const hasAccess = async function(obj, action) {
+    // We need to cache these results into application storage
+    return new Promise((resolve, reject) => {
+        fetch("/api/access?params=" + obj + "," + action, {method: "POST"}).then(resp => {
+            if (resp.status === 200) {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+};
 
 userStore.subscribe(value => {
     localStorage.setItem("user", JSON.stringify(value))
@@ -33,5 +47,5 @@ export function authenticate(account, email, password) {
             Email: email,
             Password: password
         })
-    }).then(response => response.json());
+    });
 }

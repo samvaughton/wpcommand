@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-const CommandTypeBuiltIn = "BUILT_IN"
 const CommandTypeHttpCall = "HTTP_CALL"
+const CommandTypeWpBuiltIn = "WP_BUILT_IN"
 
 type Command struct {
 	Id          int64 `bun:"id,pk"`
@@ -14,6 +14,7 @@ type Command struct {
 	Account     *Account `bun:"rel:belongs-to" json:"-"`
 	SiteId      null.Int
 	Site        *Site `bun:"rel:belongs-to" json:"-"`
+	Public      bool
 	Uuid        string
 	Key         string
 	Type        string

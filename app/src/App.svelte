@@ -2,11 +2,12 @@
     import {Router, Link, Route} from "svelte-routing";
     import Dashboard from "./routes/Dashboard.svelte";
     import Header from "./layout/Header.svelte";
-    import Instances from "./routes/Instances.svelte";
     import Config from "./routes/Config.svelte";
     import SiteDetails from "./routes/SiteDetails.svelte";
     import Login from "./routes/Login.svelte";
-    import { userStore } from './store/user'
+    import {userStore} from './store/user'
+    import CommandJobs from "./routes/CommandJobs.svelte";
+    import CommandJob from "./routes/CommandJob.svelte";
 
     export let url = "";
 
@@ -21,7 +22,8 @@
         <Route path="/login"><Login /></Route>
         <Route path="/"><Dashboard /></Route>
         <Route path="/config"><Config /></Route>
-        <Route path="/instances"><Instances /></Route>
+        <Route path="/logs"><CommandJobs /></Route>
+        <Route path="/logs/:uuid" let:params><CommandJob uuid="{params.uuid}" /></Route>
         <Route path="/sites/:key" let:params><SiteDetails key="{params.key}" /></Route>
     </div>
 </Router>

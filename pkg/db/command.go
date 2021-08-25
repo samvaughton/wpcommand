@@ -90,6 +90,7 @@ func CommandCreateDefault(description string, key string, cmdType string) (*type
 		Uuid:        uuid.New().String(),
 		Type:        cmdType,
 		Key:         key,
+		Public:      false,
 		Description: description,
 		CreatedAt:   time.Now(),
 	})

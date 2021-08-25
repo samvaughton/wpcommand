@@ -10,5 +10,6 @@ CREATE TABLE IF NOT EXISTS commands(
     http_url TEXT,
     http_headers JSON,
     http_body TEXT,
+    public BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP
 );

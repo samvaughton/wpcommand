@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"github.com/uptrace/bun"
 	"strings"
 	"time"
 )
@@ -50,7 +51,7 @@ func AccountGetByKey(key string) *types.Account {
 	return account
 }
 
-func AccountCreate(name string, key string) (*types.Account, error) {
+func AccountCreate(bdb bun.IDB, name string, key string) (*types.Account, error) {
 	account := &types.Account{
 		Uuid:      uuid.New().String(),
 		Name:      strings.Trim(name, " ,-_=/\n\r\t.@"),
@@ -60,7 +61,7 @@ func AccountCreate(name string, key string) (*types.Account, error) {
 		UpdatedAt: time.Now(),
 	}
 
-	_, err := Db.NewInsert().Model(account).Returning("*").Exec(context.Background())
+	_, err := bdb.NewInsert().Model(account).Returning("*").Exec(context.Background())
 
 	if err != nil {
 		log.Error("could not create a new account", err)

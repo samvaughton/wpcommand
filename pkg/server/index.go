@@ -3,11 +3,13 @@ package server
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/samvaughton/wpcommand/v2/pkg/auth"
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
-	"github.com/samvaughton/wpcommand/v2/pkg/logutil"
+	"github.com/samvaughton/wpcommand/v2/pkg/flow"
 	"github.com/samvaughton/wpcommand/v2/pkg/registry"
 	"github.com/samvaughton/wpcommand/v2/pkg/scheduler"
+	"github.com/samvaughton/wpcommand/v2/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
@@ -16,9 +18,11 @@ import (
 func Start() {
 	config.InitConfig()
 	db.InitDbConnection()
-	logutil.SetupLogging()
+	util.SetupLogging()
 
-	db.CreateDefaultAccountAndUser()
+	auth.InitAuth()
+
+	flow.CreateDefaultAccountAndUser()
 
 	registry.CreateDefaultCommands()
 

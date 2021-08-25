@@ -1,3 +1,0 @@
-INSERT INTO public.accounts (id, uuid, name, key, enabled, created_at, updated_at) VALUES (1, '2a5c7de1-d15f-441a-b9f7-9bd9945f284a', 'admin', 'admin', true, '2021-08-09 08:49:51.341956', '2021-08-09 08:49:51.341956');
-INSERT INTO public.users (id, uuid, email, first_name, last_name, password, enabled, created_at, updated_at) VALUES (1, '1a9aae56-3f4e-4890-9ae6-bb924b417ee8', 'admin@admin.com', 'Admin', 'Admin', '$2a$10$ybLGXjEqXRm9PNz.SEZtUuEQzJgaCmwk9dEDaJ/mAaNrMaansr9mu', true, '2021-08-09 08:51:06.179850', '2021-08-09 08:51:06.179850');
-INSERT INTO public.users_accounts (user_id, account_id) VALUES (1, 1);

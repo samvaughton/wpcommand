@@ -41,6 +41,7 @@ type ApiCreateCommandJobResponse struct {
 	Request   ApiCreateCommandJobRequest
 	JobStatus string
 	Sites     []*Site
+	Jobs      []*CommandJob
 }
 
 type CommandJob struct {

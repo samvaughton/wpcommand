@@ -1,0 +1,16 @@
+POST http://localhost:8999/api/user?validate=yes
+Content-Type: application/json
+Token: {{token}}
+
+{
+  "Email": "member@rentivo.com",
+  "FirstName": "Test",
+  "LastName": "Member",
+  "Password": "password"
+}
+
+###
+
+POST http://localhost:8999/api/access?params=config,read
+Content-Type: application/json
+Token: {{token}}

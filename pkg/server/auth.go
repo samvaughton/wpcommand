@@ -6,23 +6,25 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
+	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
 	"net/http"
+	"strings"
 	"time"
 )
 
 const SecretKey = "ai9ufgh94873yh8t0924hgt0[84wghneo8ridvoiah93-"
 
-func GenerateJWT(userUuid string, accountUuid string) (string, error) {
+func GenerateJWT(account *types.UserAccount) (string, error) {
 	var signingKey = []byte(SecretKey)
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 
 	claims["authorized"] = true
-	claims["userUuid"] = userUuid
-	claims["accountUuid"] = accountUuid
+	claims["userAccountUuid"] = account.Uuid
+	claims["roles"] = strings.Join(account.Roles, ",")
 	claims["exp"] = time.Now().Add(time.Hour * 7 * 24).Unix()
 
 	tokenString, err := token.SignedString(signingKey)
@@ -47,6 +49,8 @@ func IsAuthorizedMiddleware(next http.Handler) http.Handler {
 
 			err := errors.New("token not found")
 			log.Error(err)
+
+			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(err)
 
 			return
@@ -70,17 +74,19 @@ func IsAuthorizedMiddleware(next http.Handler) http.Handler {
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			account := db.AccountGetByUuid(fmt.Sprintf("%s", claims["accountUuid"]))
 
-			if account != nil {
-				ctx := context.WithValue(r.Context(), "account", account)
+			userAccount := db.UserAccountGetByUuid(fmt.Sprintf("%s", claims["userAccountUuid"]))
+
+			if userAccount != nil {
+				ctx := context.WithValue(r.Context(), "account", userAccount.Account)
+				ctx = context.WithValue(ctx, "user", userAccount.User)
+				ctx = context.WithValue(ctx, "userAccount", userAccount)
+
 				r = r.WithContext(ctx)
 			}
 
-			user := db.UserGetByUuid(fmt.Sprintf("%s", claims["userUuid"]))
-
-			if user != nil {
-				ctx := context.WithValue(r.Context(), "user", user)
+			if claims["roles"] != nil {
+				ctx := context.WithValue(r.Context(), "roles", strings.Split(fmt.Sprintf("%s", claims["roles"]), ","))
 				r = r.WithContext(ctx)
 			}
 
@@ -90,7 +96,7 @@ func IsAuthorizedMiddleware(next http.Handler) http.Handler {
 		}
 
 		w.WriteHeader(http.StatusUnauthorized)
-		resErr := errors.New("unauthorized")
+		resErr := errors.New("unauthorized, could not locate valid claims")
 		log.Error(resErr)
 		json.NewEncoder(w).Encode(resErr)
 	})

@@ -57,7 +57,7 @@
             } else {
                 // redirect to website
                 resp.json().then(data => {
-                    //window.location = "/commands/" + data.CommandId + "/jobs/" + data.Id
+                    window.location = "/logs/" + data.Jobs[0].Uuid
                     isOpen = false;
                 });
             }

@@ -74,7 +74,7 @@ func CreateDefaultCommands() {
 	for key, _ := range CommandRegistry {
 		description := strings.Title(strings.ReplaceAll(key, "-", " "))
 
-		cmd, err := db.CommandCreateDefault(description, key, types.CommandTypeBuiltIn)
+		cmd, err := db.CommandCreateDefault(description, key, types.CommandTypeWpBuiltIn)
 
 		if err != nil {
 			log.Error(err)
