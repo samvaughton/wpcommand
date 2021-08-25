@@ -1,7 +1,7 @@
 <script>
     import {Link} from "svelte-routing";
 
-    import { userStore, hasAccess, logout } from '../store/user'
+    import { userStore, hasAccess, logout, AuthEnum } from '../store/user'
 
     function doLogout() {
         logout();
@@ -38,28 +38,29 @@
 
             <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
                 {#if $userStore}
-                    {#await hasAccess("site", "read")}
+                    {#await hasAccess(AuthEnum.ObjectSite, AuthEnum.ActionRead)}
                     {:then result}
                         <li>
                             <Link to="/" getProps="{getProps}">Sites</Link>
                         </li>
                     {/await}
 
-                    {#await hasAccess("command_job", "read")}
+                    {#await hasAccess(AuthEnum.ObjectCommandJob, AuthEnum.ActionRead)}
                     {:then result}
                         <li>
                             <Link to="/logs" getProps="{getProps}">Command Log</Link>
                         </li>
                     {/await}
 
-                    {#await hasAccess("blueprint", "read")}
+                    {#await hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionRead)}
                     {:then result}
                         <li>
                             <Link to="/blueprints" getProps="{getProps}">Blueprint Sets</Link>
                         </li>
                     {/await}
 
-                    {#await hasAccess("config", "read")}
+
+                    {#await hasAccess(AuthEnum.ObjectConfig, AuthEnum.ActionRead)}
                     {:then result}
                         <li>
                             <Link to="/config" getProps="{getProps}">Config</Link>

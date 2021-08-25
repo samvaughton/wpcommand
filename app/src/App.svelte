@@ -8,6 +8,8 @@
     import {userStore} from './store/user'
     import CommandJobs from "./routes/CommandJobs.svelte";
     import CommandJob from "./routes/CommandJob.svelte";
+    import Blueprints from "./routes/Blueprints.svelte";
+    import Blueprint from "./routes/Blueprint.svelte";
 
     export let url = "";
 
@@ -25,5 +27,7 @@
         <Route path="/logs"><CommandJobs /></Route>
         <Route path="/logs/:uuid" let:params><CommandJob uuid="{params.uuid}" /></Route>
         <Route path="/sites/:key" let:params><SiteDetails key="{params.key}" /></Route>
+        <Route path="/blueprints"><Blueprints /></Route>
+        <Route path="/blueprints/:uuid" let:params><Blueprint uuid="{params.uuid}" /></Route>
     </div>
 </Router>

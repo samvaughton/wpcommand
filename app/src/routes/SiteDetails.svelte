@@ -1,8 +1,10 @@
 <script>
 
-    import { Router } from "svelte-routing";
+    import {Router} from "svelte-routing";
     import {getSites} from "../store/site";
-    import { Modal, ModalHeader, ModalBody, ModalFooter } from 'sveltestrap';
+    import {hasAccess, AuthEnum} from "../store/user";
+    import {Modal, ModalHeader, ModalBody, ModalFooter} from 'sveltestrap';
+    import Enabled from "../components/Enabled.svelte";
 
     /*
      * Fetch site details
@@ -11,6 +13,7 @@
     export let key;
     let site = null;
     let runnableCommands = [];
+    let blueprintSets = [];
 
     fetch("/api/site/" + key).then(resp => resp.json()).then(data => {
         site = data;
@@ -18,6 +21,12 @@
         fetch("/api/site/" + key + "/command").then(resp => resp.json()).then(data => {
             runnableCommands = data;
         })
+
+        if (hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionRead)) {
+            fetch("/api/site/" + key + "/blueprint").then(resp => resp.json()).then(data => {
+                blueprintSets = data;
+            })
+        }
     });
 
     /*
@@ -30,7 +39,7 @@
     let mCommandId = 0;
 
     const toggle = () => (isOpen = !isOpen);
-    const onClose = function() {
+    const onClose = function () {
         warningMessage = "";
         loading = false;
         mCommandId = 0;
@@ -38,7 +47,7 @@
 
     getSites();
 
-    let submitModal = function() {
+    let submitModal = function () {
         loading = true;
         warningMessage = "";
         fetch("/api/command/job", {
@@ -136,7 +145,7 @@
                 <tbody>
                     <tr>
                         <th>Status</th>
-                        <td>{#if site.Enabled}<span class="badge bg-success">Enabled</span>{:else}<span class="badge bg-danger">Disabled</span>{/if}</td>
+                        <td><Enabled value="{site.Enabled}"/></td>
                     </tr>
                     <tr>
                         <th>Namespace</th>
@@ -150,6 +159,37 @@
             </table>
         </div>
     </div>
+    {#await hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionRead)}
+    {:then result}
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="d-flex bd-highlight">
+                    <div class="p-2 bd-highlight">
+                        <h3 class="float-start">Blueprints</h3>
+                    </div>
+                    <div class="ms-auto p-2 bd-highlight">
+
+                    </div>
+                </div>
+                <table class="table table-borderless table-striped">
+                    <thead>
+                    <tr>
+                        <th scope="col">Blueprint Set</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {#each blueprintSets as item, index}
+                    <tr>
+                        <td>{item.Name}</td>
+                        <td><Enabled value={item.Enabled} /></td>
+                    </tr>
+                    {/each}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {/await}
     {:else}
         <div class="spinner-border m-5" role="status">
             <span class="visually-hidden">Loading...</span>

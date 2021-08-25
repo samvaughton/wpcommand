@@ -38,7 +38,7 @@ type Site struct {
 	Namespace     string
 	SiteEmail     string
 	SiteUsername  string
-	SitePassword  string
+	SitePassword  string `casbin:"sitadwade,read_special"`
 	SiteConfig    string
 	Enabled       bool
 	TestMode      bool

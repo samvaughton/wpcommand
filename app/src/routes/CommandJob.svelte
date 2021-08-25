@@ -19,14 +19,14 @@
             events = data
 
             // also check if the last item is JOB_FINISHED, if so clear timer
-            if (data.length > 0 && data[data.length - 1].Type === "JOB_FINISHED") {
+            if (data.length > 0 && data[data.length - 1].Type === "JOB_FINISHED" && timer !== null) {
                 clearInterval(timer);
             }
         });
 
         currentTimeout++;
 
-        if (currentTimeout > maxTimeout) {
+        if (currentTimeout > maxTimeout && timer !== null) {
             clearInterval(timer);
         }
     }
@@ -35,7 +35,10 @@
         item = data;
 
         fetchEvents();
-        timer = setInterval(fetchEvents, 1000); // every second
+
+        if (data.status !== "SUCCESS" && data.status !== "FAILURE") {
+            timer = setInterval(fetchEvents, 1000); // every second
+        }
     });
 
 </script>

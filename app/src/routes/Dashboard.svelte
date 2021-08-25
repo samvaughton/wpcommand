@@ -1,8 +1,9 @@
 <script>
 
-    import { Router, Link, Route } from "svelte-routing";
-    import { getSites, siteStore } from '../store/site.js';
-    import { Modal, ModalHeader, ModalBody, ModalFooter } from 'sveltestrap';
+    import {Router, Link, Route} from "svelte-routing";
+    import {getSites, siteStore} from '../store/site.js';
+    import {Modal, ModalHeader, ModalBody, ModalFooter} from 'sveltestrap';
+    import Enabled from "../components/Enabled.svelte";
 
     let isOpen = false;
     let loading = false;
@@ -11,7 +12,7 @@
     let mLabelSelector = "";
 
     const toggle = () => (isOpen = !isOpen);
-    const onClose = function() {
+    const onClose = function () {
         warningMessage = "";
         loading = false;
         mNamespace = "";
@@ -20,7 +21,7 @@
 
     getSites();
 
-    let submitAddSite = function() {
+    let submitAddSite = function () {
         loading = true;
         warningMessage = "";
         fetch("/api/site", {
@@ -117,14 +118,14 @@
                 </tr>
                 </thead>
                 <tbody>
-                {#each $siteStore as site, index}
+                {#each $siteStore as item, index}
                 <tr>
                     <th scope="row">{index + 1}</th>
-                    <td>{site.Description}</td>
-                    <td>{#if site.Enabled}<span class="badge bg-success">Enabled</span>{:else}<span class="badge bg-danger">Disabled</span>{/if}</td>
-                    <td>{site.Namespace}</td>
-                    <td><code>{site.LabelSelector}</code></td>
-                    <td><Link to="/sites/{site.Key}">Details</Link></td>
+                    <td>{item.Description}</td>
+                    <td><Enabled value={item.Enabled} /></td>
+                    <td>{item.Namespace}</td>
+                    <td><code>{item.LabelSelector}</code></td>
+                    <td><Link to="/sites/{item.Key}">Details</Link></td>
                 </tr>
                 {/each}
                 </tbody>

@@ -37,7 +37,7 @@ func CommandGetByIdAccountSafe(id int64, accountId int64) (*types.Command, error
 	return item, nil
 }
 
-func CommandsGetForSite(siteId int64, accountId int64) ([]*types.Command, error) {
+func CommandsGetForSiteSafe(siteId int64, accountId int64) ([]*types.Command, error) {
 	items := make([]*types.Command, 0)
 
 	err := Db.

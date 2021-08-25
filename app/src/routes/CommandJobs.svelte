@@ -13,7 +13,7 @@
             <div class="d-flex bd-highlight mb-3">
                 <div class="p-2 bd-highlight">
                     <h1>Command Logs</h1>
-                    <p class="lead">Overview of all command run.</p>
+                    <p class="lead">Overview of all commands run.</p>
                 </div>
                 <div class="ms-auto p-2 bd-highlight">
 

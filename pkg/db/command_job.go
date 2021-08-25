@@ -80,7 +80,8 @@ func CommandJobsGetForAccount(accountId int64) ([]*types.CommandJob, error) {
 		Relation("Command").
 		Relation("RunByUser").
 		Where("\"site\".account_id = ?", accountId).
-		Order("created_at ASC").
+		Order("created_at DESC").
+		Limit(50).
 		Scan(context.Background())
 
 	if err != nil {

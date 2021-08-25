@@ -46,7 +46,7 @@ func loadSiteCommandsHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	commands, err := db.CommandsGetForSite(site.Id, account.Id)
+	commands, err := db.CommandsGetForSiteSafe(site.Id, account.Id)
 
 	if err != nil {
 		log.Error(err)
@@ -55,6 +55,33 @@ func loadSiteCommandsHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	json.NewEncoder(resp).Encode(commands)
+}
+
+func loadSiteBlueprintsHandler(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-Type", "application/json")
+
+	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
+
+	vars := mux.Vars(req)
+	key := vars["key"]
+
+	site, err := db.SiteGetByKey(key, userAccount.AccountId)
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	items, err := db.BlueprintsGetForSiteSafe(site.Id, userAccount.AccountId)
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	json.NewEncoder(resp).Encode(items)
 }
 
 func loadSitesHandler(resp http.ResponseWriter, req *http.Request) {

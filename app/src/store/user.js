@@ -5,7 +5,7 @@ const apiURL = "/auth";
 const storedUser = JSON.parse(localStorage.getItem("user"));
 let accessCache = JSON.parse(localStorage.getItem("accessCache"))
 
-const setAndSaveAccessCache = function(key, value) {
+const setAndSaveAccessCache = function (key, value) {
     accessCache[key] = value;
     localStorage.setItem("accessCache", JSON.stringify(accessCache));
 }
@@ -13,7 +13,7 @@ const setAndSaveAccessCache = function(key, value) {
 export let enforcer = null;
 export const userStore = writable(storedUser);
 
-export const hasAccess = async function(obj, action) {
+export const hasAccess = async function (obj, action) {
     // We need to cache these results into application storage
     if (accessCache === undefined || accessCache === null) {
         accessCache = {};
@@ -70,3 +70,27 @@ export function authenticate(account, email, password) {
         })
     });
 }
+
+export const AuthEnum = {
+    ObjectSite: "site",
+
+    ObjectCommand: "command",
+    ObjectCommandJob: "command_job",
+    ObjectCommandJobEvent: "command_job_event",
+
+    ObjectBlueprint: "blueprint",
+    ObjectBlueprintObject: "blueprint_object",
+
+    ObjectUser: "user",
+    ObjectAccount: "account",
+    ObjectConfig: "config",
+
+    ActionRead: "read",
+    ActionReadSpecial: "read_special",
+    ActionWrite: "write",
+    ActionWriteSpecial: "write_special",
+    ActionDelete: "delete",
+    ActionRun: "run",      // things like deploy site etc
+    ActionRunSpecial: "run_special", // things like setting up plugins/themes etc
+    ActionConfigure: "configure",
+};
