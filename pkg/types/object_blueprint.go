@@ -1,7 +1,12 @@
 package types
 
 import (
+	"encoding/json"
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/uptrace/bun"
+	"io/ioutil"
+	"net/http"
 	"time"
 )
 
@@ -30,4 +35,40 @@ type ObjectBlueprint struct {
 
 	CreatedAt time.Time
 	UpdatedAt bun.NullTime
+}
+
+func NewCreateObjectBlueprintPayloadFromHttpRequest(req *http.Request) (*CreateObjectBlueprintPayload, error) {
+	var item CreateObjectBlueprintPayload
+
+	bytes, err := ioutil.ReadAll(req.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(bytes, &item)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
+}
+
+type CreateObjectBlueprintPayload struct {
+	Type      string
+	Name      string
+	ExactName string
+	Version   string
+	Url       string
+}
+
+func (p CreateObjectBlueprintPayload) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Type, validation.Required, validation.In(ObjectBlueprintTypePlugin, ObjectBlueprintTypeTheme)),
+		validation.Field(&p.Name, validation.Required),
+		validation.Field(&p.ExactName, validation.Required),
+		validation.Field(&p.Version, validation.Required, is.Semver),
+		validation.Field(&p.Url, validation.Required, is.URL),
+	)
 }

@@ -24,10 +24,10 @@ type User struct {
 }
 
 type UserCreatePayload struct {
-	Email     string `validate:"required,email"`
-	FirstName string `validate:"required"`
-	LastName  string `validate:"required"`
-	Password  string `validate:"required,gt=8"`
+	Email     string
+	FirstName string
+	LastName  string
+	Password  string
 }
 
 func (p UserCreatePayload) Validate(uniqueCheck validation.Rule) error {

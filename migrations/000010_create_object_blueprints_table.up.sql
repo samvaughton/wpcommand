@@ -14,5 +14,5 @@ CREATE TABLE IF NOT EXISTS object_blueprints(
      enabled BOOLEAN,
      created_at TIMESTAMP,
      updated_at TIMESTAMP,
-     CONSTRAINT fk_blueprint_set_id FOREIGN KEY (blueprint_set_id) REFERENCES blueprint_sets (id)
+     CONSTRAINT fk_blueprint_set_id FOREIGN KEY (blueprint_set_id) REFERENCES blueprint_sets (id) ON DELETE CASCADE
 );
