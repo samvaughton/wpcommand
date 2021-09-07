@@ -1,13 +1,13 @@
 <script>
 
-    import { Label, FormGroup, FormText, Input } from 'sveltestrap';
     import {Router, Link} from "svelte-routing";
     import Enabled from "../components/Enabled.svelte";
-    import {Modal, ModalHeader, ModalBody, ModalFooter} from 'sveltestrap';
     import {AuthEnum, hasAccess} from "../store/user";
     import BlueprintObjectType from "../components/BlueprintObjectType.svelte";
     import DeleteModal from "../components/DeleteModal.svelte";
     import Loading from "../components/Loading.svelte";
+    import BlueprintObjectCreateUpdateModal from "../components/form/BlueprintObjectCreateUpdateModal.svelte";
+    import Active from "../components/Active.svelte";
 
     /*
      * Fetch site details
@@ -18,6 +18,7 @@
     let item = null;
     let objects = [];
     let isDeleteModalOpen = false;
+    let isAddObjectModalOpen = false;
 
     const fetchBlueprintData = function () {
         fetch("/api/blueprint/" + uuid).then(resp => resp.json()).then(data => {
@@ -29,174 +30,9 @@
         });
     };
 
-    let isOpen = false;
-    let loading = false;
-    let warningMessage = '';
-    let submitted = false;
-
-    const pristineObj = {
-        Type: {
-            value: '',
-            error: ''
-        },
-        Name: {
-            value: '',
-            error: ''
-        },
-        ExactName: {
-            value: '',
-            error: ''
-        },
-        Version: {
-            value: '',
-            error: ''
-        },
-        Url: {
-            value: '',
-            error: ''
-        },
-    };
-
-    const newObj = function () {
-        return JSON.parse(JSON.stringify(pristineObj));
-    }
-
-    const getValuesFromObj = function () {
-        let values = {};
-
-        for (let key in currentObj) {
-            values[key] = currentObj[key].value;
-        }
-
-        return values;
-    }
-
-    const clearErrors = function () {
-        submitted = false;
-        warningMessage = "";
-        for (let key in currentObj) {
-            currentObj[key].error = '';
-        }
-    }
-
-    const isValid = function(item) {
-        return submitted && item.error === '';
-    }
-
-    const isInvalid = function(item) {
-        return submitted && item.error !== '';
-    }
-
-    const hydrateErrorsFromValidationResponse = function (errors) {
-        for (let key in errors) {
-            if (currentObj[key] !== undefined) {
-                currentObj[key].error = errors[key];
-            }
-        }
-        submitted = true;
-    }
-
-    let currentObj = newObj();
-
-    const toggle = () => (isOpen = !isOpen);
-    const onClose = function () {
-        warningMessage = "";
-        loading = false;
-        currentObj = newObj();
-    };
-
-    let submitModal = function () {
-        loading = true;
-        clearErrors();
-        fetch("/api/blueprint/" + item.Uuid + "/object", {
-            method: "POST",
-            body: JSON.stringify(getValuesFromObj())
-        }).then(resp => {
-            loading = false;
-
-            if (resp.status !== 200) {
-                resp.json().then(data => {
-                    if (data.Status === "VALIDATION_ERRORS") {
-                        hydrateErrorsFromValidationResponse(data.Errors);
-                    } else {
-                        warningMessage = data.Message;
-                    }
-                });
-            } else {
-                fetchBlueprintData()
-            }
-        });
-    };
-
     fetchBlueprintData();
 
 </script>
-
-
-<Modal isOpen={isOpen} {toggle} on:close={onClose}>
-    <form on:submit|preventDefault={submitModal}>
-        <ModalHeader>Add Object</ModalHeader>
-        <ModalBody>
-            {#if warningMessage !== ""}
-                <div class="row">
-                    <div class="col-12">
-                        <div class="alert alert-warning" role="alert">
-                            {warningMessage}
-                        </div>
-                    </div>
-                </div>
-            {/if}
-            <div class="row">
-                <div class="col-12">
-                    <FormGroup>
-                        <Label>Type</Label>
-                        <Input type="select" bind:value={currentObj.Type.value} valid={isValid(currentObj.Type)} invalid={isInvalid(currentObj.Type)} feedback={currentObj.Type.error}>
-                            <option>Select type</option>
-                            <option value="PLUGIN">Plugin</option>
-                            <option value="THEME">Theme</option>
-                        </Input>
-                    </FormGroup>
-
-                    <FormGroup>
-                        <Label>Name</Label>
-                        <Input type="text" bind:value={currentObj.Name.value} valid={isValid(currentObj.Name)} invalid={isInvalid(currentObj.Name)} feedback={currentObj.Name.error} />
-                    </FormGroup>
-
-                    <FormGroup>
-                        <Label>Exact Name</Label>
-                        <Input type="text" bind:value={currentObj.ExactName.value} valid={isValid(currentObj.ExactName)} invalid={isInvalid(currentObj.ExactName)} feedback={currentObj.ExactName.error} />
-                        <FormText color="muted">
-                            What the theme or plugin calls itself, ie Advanced Custom Fields might be <code>acf</code>
-                        </FormText>
-                    </FormGroup>
-
-                    <FormGroup>
-                        <Label>Version</Label>
-                        <Input type="text" bind:value={currentObj.Version.value} valid={isValid(currentObj.Version)} invalid={isInvalid(currentObj.Version)} feedback={currentObj.Version.error} />
-                        <FormText color="muted">
-                            The version of the theme or plugin eg `3.1.2`
-                        </FormText>
-                    </FormGroup>
-
-                    <FormGroup>
-                        <Label>Zip File Url</Label>
-                        <Input type="text" bind:value={currentObj.Url.value} valid={isValid(currentObj.Url)} invalid={isInvalid(currentObj.Url)} feedback={currentObj.Url.error} />
-                        <FormText color="muted">
-                            URL of the zip file
-                        </FormText>
-                    </FormGroup>
-                </div>
-            </div>
-        </ModalBody>
-        <ModalFooter>
-            <button type="submit" class="btn btn-primary" disabled={loading}>
-                {#if loading}<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>{/if}
-                Add Object
-            </button>
-            <button type="button" class="btn btn-secondary" on:click={toggle}>Cancel</button>
-        </ModalFooter>
-    </form>
-</Modal>
 
 
 <Router>
@@ -211,7 +47,8 @@
                         {#await hasAccess(AuthEnum.ObjectBlueprintObject, AuthEnum.ActionWrite)}
                             <Loading />
                         {:then result}
-                            <button on:click={toggle} class="btn btn-primary">Add Object</button>
+                            <button on:click={() => isAddObjectModalOpen = !isAddObjectModalOpen} class="btn btn-primary">Add Object</button>
+                            <BlueprintObjectCreateUpdateModal bind:isOpen={isAddObjectModalOpen} blueprint={item} fetchData={fetchBlueprintData} formType={"CREATE"} />
                         {/await}
                     </div>
                 </div>
@@ -277,7 +114,7 @@
                         <th scope="col">Name</th>
                         <th scope="col">Version</th>
                         <th scope="col">Rev. ID</th>
-                        <th scope="col">Enabled</th>
+                        <th scope="col"></th>
                         <th scope="col"></th>
                     </tr>
                     </thead>
@@ -292,7 +129,7 @@
                                 <td>{oItem.Name}</td>
                                 <td>{oItem.Version}</td>
                                 <td>{oItem.RevisionId}</td>
-                                <td><Enabled value={oItem.Enabled} /></td>
+                                <td><Active value={oItem.Active} /></td>
                                 <td>
                                     <Link to="/blueprints/{item.Uuid}/object/{oItem.Uuid}/revision/{oItem.RevisionId}">Details</Link>
                                 </td>

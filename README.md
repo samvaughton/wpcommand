@@ -14,8 +14,8 @@ We use https://github.com/golang-migrate/migrate
 
 Example usage:
 
-- Create a migration file: `bin/migrate.sh create -ext sql -dir ./db/migrations -seq create_foo_table`
-- Run migrations: `bin/migrate.sh -path ./db/migrations up`
+- Create a migration file: `bin/migrate.sh create -ext sql -dir ./migrations -seq create_foo_table`
+- Run migrations: `bin/migrate.sh -path ./migrations up`
 
 ## Plugin/Theme Sync Architecture
 

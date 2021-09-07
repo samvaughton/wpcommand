@@ -1,176 +1,45 @@
 <script>
 
     import {Router, Link} from "svelte-routing";
-    import Enabled from "../components/Enabled.svelte";
+    import Active from "../components/Active.svelte";
     import {Modal, ModalHeader, ModalBody, ModalFooter} from 'sveltestrap';
     import {AuthEnum, hasAccess} from "../store/user";
     import BlueprintObjectType from "../components/BlueprintObjectType.svelte";
     import DeleteModal from "../components/DeleteModal.svelte";
     import Loading from "../components/Loading.svelte";
-
-    /*
-     * Fetch site details
-     */
+    import BlueprintObjectCreateUpdateModal from "../components/form/BlueprintObjectCreateUpdateModal.svelte";
+    import BlueprintObjectUpdateVersionModal from "../components/form/BlueprintObjectUpdateVersionModal.svelte";
 
     export let blueprintUuid;
     export let objectUuid;
     export let revisionId;
 
+    console.log(`loaded bp ${blueprintUuid} obj ${objectUuid} rev ${revisionId}`);
+
     let item = null;
     let revisions = [];
-    let isDeleteModalOpen = false;
+    let isDeleteRevisionModalOpen = false;
+    let isDeleteObjectModalOpen = false;
+    let isObjectModalOpen = false;
+    let isObjectVersionModalOpen = false;
 
-    const fetchBlueprintData = function () {
+    const fetchBlueprintObjectData = function () {
         fetch("/api/blueprint/" + blueprintUuid + "/object/" + objectUuid + "/revision/" + revisionId).then(resp => resp.json()).then(data => {
             item = data;
         });
 
-        fetch("/api/blueprint/" + blueprintUuid + "/object/" + objectUuid + "/" + revisionId + "/revision").then(resp => resp.json()).then(data => {
+        fetch("/api/blueprint/" + blueprintUuid + "/object/" + objectUuid + "/revision").then(resp => resp.json()).then(data => {
             revisions = data;
         });
     };
 
-    let isOpen = false;
-    let loading = false;
-    let warningMessage = "";
+    fetchBlueprintObjectData();
 
-    const pristineObj = {
-        Type: {
-            value: '',
-            error: ''
-        },
-        Name: {
-            value: '',
-            error: ''
-        },
-        ExactName: {
-            value: '',
-            error: ''
-        },
-        Version: {
-            value: '',
-            error: ''
-        },
-        Url: {
-            value: '',
-            error: ''
-        },
-    };
-
-    const newObj = function () {
-        return JSON.parse(JSON.stringify(pristineObj));
+    const viewRevision = function(uuid, revId) {
+        window.location = `/blueprints/${item.BlueprintSet.Uuid}/object/${uuid}/revision/${revId}`
     }
-
-    const getValuesFromObj = function () {
-        let values = {};
-
-        for (let key in currentObj) {
-            values[key] = currentObj[key].value;
-        }
-
-        return values;
-    }
-
-    let currentObj = newObj();
-
-    const toggle = () => (isOpen = !isOpen);
-    const onClose = function () {
-        warningMessage = "";
-        loading = false;
-        currentObj = newObj();
-    };
-
-    let submitModal = function () {
-        loading = true;
-        warningMessage = "";
-        fetch("/api/blueprint/" + item.Uuid + "/object", {
-            method: "POST",
-            body: JSON.stringify(getValuesFromObj())
-        }).then(resp => {
-            loading = false;
-
-            if (resp.status !== 200) {
-                resp.json().then(data => {
-                    warningMessage = data.Message;
-                });
-            } else {
-                fetchBlueprintData()
-            }
-        });
-    };
-
-    fetchBlueprintData();
 
 </script>
-
-
-<Modal isOpen={isOpen} {toggle} on:close={onClose}>
-    <form on:submit|preventDefault={submitModal}>
-        <ModalHeader>Add Object</ModalHeader>
-        <ModalBody>
-            {#if warningMessage !== ""}
-                <div class="row">
-                    <div class="col-12">
-                        <div class="alert alert-warning" role="alert">
-                            {warningMessage}
-                        </div>
-                    </div>
-                </div>
-            {/if}
-            <div class="row mb-3">
-                <div class="col-12">
-                    <label for="type" class="form-label">Type</label>
-                    <select bind:value={currentObj.Type.value} required id="type" class="form-control" aria-describedby="typeHelp">
-                        <option>Select type</option>
-                        <option value="PLUGIN">Plugin</option>
-                        <option value="THEME">Theme</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-12">
-                    <label for="name" class="form-label">Name</label>
-                    <input bind:value={currentObj.Name.value} required type="text" id="name" class="form-control" aria-describedby="nameHelp">
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-12">
-                    <label for="exactName" class="form-label">Exact Name</label>
-                    <input bind:value={currentObj.ExactName.value} required type="text" id="exactName" class="form-control" aria-describedby="exactNameHelp">
-                    <div id="exactNameHelp" class="form-text">
-                        What the theme or plugin calls itself, ie Advanced Custom Fields might be <code>acf</code>
-                    </div>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-12">
-                    <label for="version" class="form-label">Version</label>
-                    <input bind:value={currentObj.Version.value} required type="text" id="version" class="form-control" aria-describedby="versionHelp">
-                    <div id="versionHelp" class="form-text">
-                        The version of the theme or plugin eg `3.1.2`
-                    </div>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-12">
-                    <label for="url" class="form-label">Zip File Url</label>
-                    <input bind:value={currentObj.Url.value} required type="text" id="url" class="form-control" aria-describedby="urlHelp">
-                    <div id="urlHelp" class="form-text">
-                        URL of the zip file
-                    </div>
-                </div>
-            </div>
-        </ModalBody>
-        <ModalFooter>
-            <button type="submit" class="btn btn-primary" disabled={loading}>
-                {#if loading}<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>{/if}
-                Add Object
-            </button>
-            <button type="button" class="btn btn-secondary" on:click={toggle}>Cancel</button>
-        </ModalFooter>
-    </form>
-</Modal>
-
 
 <Router>
     {#if item}
@@ -178,13 +47,21 @@
             <div class="col-12">
                 <div class="d-flex bd-highlight">
                     <div class="p-2 bd-highlight">
-                        <h3 class="float-start">Blueprint #{item.Id}</h3>
+                        <h3 class="float-start">Blueprint Object #{item.Id} - <small class="text-muted">for set</small> {item.BlueprintSet.Name}</h3>
                     </div>
                     <div class="ms-auto p-2 bd-highlight">
                         {#await hasAccess(AuthEnum.ObjectBlueprintObject, AuthEnum.ActionWrite)}
                             <Loading />
                         {:then result}
-                            <button on:click={toggle} class="btn btn-primary">Add Object</button>
+                            <button on:click={() => isObjectModalOpen = !isObjectModalOpen} class="btn btn-info">Edit</button>
+                            <BlueprintObjectCreateUpdateModal bind:isOpen={isObjectModalOpen} bind:item={item} blueprint={item.BlueprintSet} fetchData={fetchBlueprintObjectData} formType={"UPDATE"} />
+                        {/await}
+
+                        {#await hasAccess(AuthEnum.ObjectBlueprintObject, AuthEnum.ActionWriteSpecial)}
+                            <Loading />
+                        {:then result}
+                            <button on:click={() => isObjectVersionModalOpen = !isObjectVersionModalOpen} class="btn btn-primary">Update Version</button>
+                            <BlueprintObjectUpdateVersionModal bind:isOpen={isObjectVersionModalOpen} bind:item={item} blueprint={item.BlueprintSet} fetchData={fetchBlueprintObjectData} />
                         {/await}
                     </div>
                 </div>
@@ -202,16 +79,32 @@
                         <td>{item.Uuid}</td>
                     </tr>
                     <tr>
+                        <th>Revision</th>
+                        <td>{item.RevisionId}</td>
+                    </tr>
+                    <tr>
                         <th>Name</th>
                         <td>{item.Name}</td>
                     </tr>
                     <tr>
-                        <th>Enabled</th>
-                        <td><Enabled value={item.Enabled} /></td>
+                        <th>Exact Name</th>
+                        <td><code>{item.ExactName}</code></td>
+                    </tr>
+                    <tr>
+                        <th>Active</th>
+                        <td><Active value={item.Active} /></td>
                     </tr>
                     <tr>
                         <th>Created</th>
                         <td>{item.CreatedAt}</td>
+                    </tr>
+                    <tr>
+                        <th>Set Order</th>
+                        <td>{item.SetOrder}</td>
+                    </tr>
+                    <tr>
+                        <th>URL</th>
+                        <td><a href={item.OriginalObjectUrl}>Original Object URL</a> - <span class="text-muted">Depending on how you store plugins, this url may not reflect the version that is stored on this object.</span></td>
                     </tr>
                     </tbody>
                 </table>
@@ -221,8 +114,10 @@
                         {#await hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionDelete)}
                             <Loading />
                         {:then result}
-                            <button on:click={() => isDeleteModalOpen = !isDeleteModalOpen} class="btn btn-sm btn-danger">Delete Blueprint</button>
-                            <DeleteModal isOpen={isDeleteModalOpen} onClose="{() => isDeleteModalOpen = false}" name="Blueprint" endpoint={"/api/blueprint/" + item.Uuid} redirectTo="/blueprints" />
+                            <button on:click={() => isDeleteRevisionModalOpen = !isDeleteRevisionModalOpen} class="btn btn-sm btn-warning">Delete Revision</button>
+                            <DeleteModal isOpen={isDeleteRevisionModalOpen} onClose="{() => isDeleteRevisionModalOpen = false}" name="Revision" endpoint={"/api/blueprint/" + item.BlueprintSet.Uuid + "/object/" + item.Uuid + "/revision/" + item.RevisionId} redirectTo={"/blueprints/" + item.BlueprintSet.Uuid} />
+                            <button on:click={() => isDeleteObjectModalOpen = !isDeleteObjectModalOpen} class="btn btn-sm btn-danger">Delete Object</button>
+                            <DeleteModal isOpen={isDeleteObjectModalOpen} onClose="{() => isDeleteObjectModalOpen = false}" name="Object" endpoint={"/api/blueprint/" + item.BlueprintSet.Uuid + "/object/" + item.Uuid} redirectTo={"/blueprints/" + item.BlueprintSet.Uuid} />
                         {/await}
                     </div>
                 </div>
@@ -232,46 +127,52 @@
             <div class="col-12">
                 <div class="d-flex bd-highlight">
                     <div class="p-2 bd-highlight">
-                        <h3 class="float-start">Objects</h3>
+                        <h3 class="float-start">All Revisions</h3>
                     </div>
                     <div class="ms-auto p-2 bd-highlight">
 
                     </div>
                 </div>
                 <div class="d-flex bd-highlight">
-                    <p class="p-2">Set order runs from lowest to highest.</p>
+                    <p class="p-2">All revisions including the one currently being viewed.</p>
                 </div>
                 <table class="table table-borderless table-striped">
                     <thead>
                     <tr>
+                        <th scope="col">Rev. ID</th>
                         <th scope="col">Set Order</th>
                         <th scope="col">Type</th>
                         <th scope="col">Name</th>
                         <th scope="col">Version</th>
-                        <th scope="col">Rev. ID</th>
-                        <th scope="col">Enabled</th>
+                        <th scope="col">Status</th>
                         <th scope="col"></th>
                     </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td colspan="7"><span class="badge bg-success">First</span></td>
+                            <td colspan="7"><span class="badge bg-success">Newest</span></td>
                         </tr>
-                        {#each objects as oItem, index}
+                        {#each revisions as oItem, index}
                             <tr>
+                                <td>{oItem.RevisionId}</td>
                                 <td>{oItem.SetOrder}</td>
                                 <td><BlueprintObjectType value={oItem.Type} /></td>
                                 <td>{oItem.Name}</td>
                                 <td>{oItem.Version}</td>
-                                <td>{oItem.RevisionId}</td>
-                                <td><Enabled value={oItem.Enabled} /></td>
                                 <td>
-                                    <Link to="/blueprints/{item.Uuid}/object/{oItem.Uuid}/{oItem.RevisionId}">Details</Link>
+                                    <Active value={oItem.Active} />
+                                </td>
+                                <td>
+                                    {#if oItem.RevisionId === item.RevisionId}
+                                        <span class="badge bg-info">Viewing</span>
+                                    {:else}
+                                        <a href="#" on:click={viewRevision(oItem.Uuid, oItem.RevisionId)}>Details</a>
+                                    {/if}
                                 </td>
                             </tr>
                         {/each}
                         <tr>
-                            <td colspan="7"><span class="badge bg-danger">Last</span></td>
+                            <td colspan="7"><span class="badge bg-danger">Oldest</span></td>
                         </tr>
                     </tbody>
                 </table>

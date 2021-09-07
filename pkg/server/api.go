@@ -37,6 +37,7 @@ func AuthWrapper(obj string, act string, handler func(resp http.ResponseWriter, 
 
 func SetupApi(router *mux.Router) {
 	router.HandleFunc("/auth", authHandler).Methods("POST")
+	router.HandleFunc("/storage/{hash}", loadFileFromHashHandler).Methods("GET")
 
 	api := NewAuthorizedApi("/api", router)
 
@@ -59,13 +60,22 @@ func SetupApi(router *mux.Router) {
 
 	api.HandleFunc("/command/job/{uuid}/events", AuthWrapper(types.AuthObjectCommandJobEvent, types.AuthActionRead, getCommandJobEventsHandler)).Methods("GET")
 
-	api.HandleFunc("/blueprint", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionRead, loadBlueprintsHandler)).Methods("GET")
-	api.HandleFunc("/blueprint", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionWrite, createBlueprintHandler)).Methods("POST")
-	api.HandleFunc("/blueprint/{uuid}", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionRead, loadBlueprintHandler)).Methods("GET")
-	api.HandleFunc("/blueprint/{uuid}", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionDelete, deleteBlueprintHandler)).Methods("DELETE")
+	api.HandleFunc("/blueprint/{bpUuid}/object/{objUuid}/revision/{revId}/file", AuthWrapper(types.AuthObjectBlueprintObject, types.AuthActionRead, loadBlueprintObjectFileHandler)).Methods("GET")
+	api.HandleFunc("/blueprint/{bpUuid}/object/{objUuid}/revision/{revId}/version", AuthWrapper(types.AuthObjectBlueprintObject, types.AuthActionRead, createBlueprintObjectRevisionHandler)).Methods("POST")
+	api.HandleFunc("/blueprint/{bpUuid}/object/{objUuid}/revision/{revId}", AuthWrapper(types.AuthObjectBlueprintObject, types.AuthActionRead, loadBlueprintObjectHandler)).Methods("GET")
+	api.HandleFunc("/blueprint/{bpUuid}/object/{objUuid}/revision/{revId}", AuthWrapper(types.AuthObjectBlueprintObject, types.AuthActionDelete, deleteBlueprintObjectRevisionHandler)).Methods("DELETE")
+	api.HandleFunc("/blueprint/{bpUuid}/object/{objUuid}/revision", AuthWrapper(types.AuthObjectBlueprintObject, types.AuthActionRead, loadBlueprintObjectRevisionsHandler)).Methods("GET")
+	api.HandleFunc("/blueprint/{bpUuid}/object/{objUuid}", AuthWrapper(types.AuthObjectBlueprintObject, types.AuthActionDelete, deleteBlueprintObjectHandler)).Methods("DELETE")
+	api.HandleFunc("/blueprint/{bpUuid}/object/{objUuid}", AuthWrapper(types.AuthObjectBlueprintObject, types.AuthActionWrite, updateBlueprintObjectHandler)).Methods("PUT")
+
 	api.HandleFunc("/blueprint/{uuid}/object", AuthWrapper(types.AuthObjectBlueprintObject, types.AuthActionRead, loadBlueprintObjectsHandler)).Methods("GET")
 	api.HandleFunc("/blueprint/{uuid}/object", AuthWrapper(types.AuthObjectBlueprintObject, types.AuthActionWrite, createBlueprintObjectHandler)).Methods("POST")
-	//api.HandleFunc("/blueprint/{uuid}", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionWrite, updateBlueprintSetHandler)).Methods("POST")
+
+	api.HandleFunc("/blueprint/{uuid}", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionRead, loadBlueprintHandler)).Methods("GET")
+	api.HandleFunc("/blueprint/{uuid}", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionDelete, deleteBlueprintHandler)).Methods("DELETE")
+
+	api.HandleFunc("/blueprint", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionRead, loadBlueprintsHandler)).Methods("GET")
+	api.HandleFunc("/blueprint", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionWrite, createBlueprintHandler)).Methods("POST")
 
 	api.HandleFunc("/config", AuthWrapper(types.AuthObjectConfig, types.AuthActionRead, configHandler)).Methods("GET")
 }

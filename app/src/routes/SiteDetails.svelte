@@ -1,6 +1,6 @@
 <script>
 
-    import {Router} from "svelte-routing";
+    import {Router, Link} from "svelte-routing";
     import {getSites} from "../store/site";
     import {hasAccess, AuthEnum} from "../store/user";
     import {Modal, ModalHeader, ModalBody, ModalFooter} from 'sveltestrap';
@@ -176,6 +176,7 @@
                     <tr>
                         <th scope="col">Blueprint Set</th>
                         <th scope="col">Status</th>
+                        <th scope="col"></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -183,6 +184,7 @@
                     <tr>
                         <td>{item.Name}</td>
                         <td><Enabled value={item.Enabled} /></td>
+                        <td><Link to="/blueprints/{item.Uuid}">Details</Link></td>
                     </tr>
                     {/each}
                     </tbody>

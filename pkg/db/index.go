@@ -2,13 +2,13 @@ package db
 
 import (
 	"context"
-	"database/sql"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
-	"github.com/uptrace/bun/driver/pgdriver"
 	"time"
 )
 
@@ -26,11 +26,21 @@ func (h *QueryHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
 }
 
 func InitDbConnection() {
-	sqlDb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(config.Config.DatabaseDsn)))
+
+	dbConfig, err := pgx.ParseConfig(config.Config.DatabaseDsn)
+	if err != nil {
+		panic(err)
+	}
+
+	dbConfig.PreferSimpleProtocol = true
+	sqlDb := stdlib.OpenDB(*dbConfig)
+
+	//sqlDb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(config.Config.DatabaseDsn)))
 
 	Db = bun.NewDB(sqlDb, pgdialect.New())
 
 	Db.AddQueryHook(&QueryHook{})
 
 	Db.RegisterModel((*types.SiteBlueprintSet)(nil))
+	Db.RegisterModel((*types.ObjectBlueprintStorageRelation)(nil))
 }

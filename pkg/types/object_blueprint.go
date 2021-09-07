@@ -20,18 +20,19 @@ type ObjectBlueprint struct {
 	BlueprintSetId int64
 	BlueprintSet   *BlueprintSet `bun:"rel:belongs-to"`
 
+	ObjectBlueprintStorage []*ObjectBlueprintStorage `bun:"m2m:object_blueprint_storage_relations"`
+
 	Uuid     string
 	SetOrder int
 	Type     string
 	Name     string
-	Enabled  bool
+
+	Active bool
 
 	Version   string
 	ExactName string
 
-	OriginalObjectUrl   string
-	VersionedObjectUrl  string
-	VersionedObjectHash string
+	OriginalObjectUrl string
 
 	CreatedAt time.Time
 	UpdatedAt bun.NullTime
@@ -55,12 +56,69 @@ func NewCreateObjectBlueprintPayloadFromHttpRequest(req *http.Request) (*CreateO
 	return &item, nil
 }
 
+func NewUpdateObjectBlueprintPayloadFromHttpRequest(req *http.Request) (*UpdateObjectBlueprintPayload, error) {
+	var item UpdateObjectBlueprintPayload
+
+	bytes, err := ioutil.ReadAll(req.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(bytes, &item)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
+}
+
+func NewUpdatedVersionObjectBlueprintPayloadFromHttpRequest(req *http.Request) (*UpdatedVersionObjectBlueprintPayload, error) {
+	var item UpdatedVersionObjectBlueprintPayload
+
+	bytes, err := ioutil.ReadAll(req.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(bytes, &item)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
+}
+
+type UpdateObjectBlueprintPayload struct {
+	Name string
+}
+
 type CreateObjectBlueprintPayload struct {
 	Type      string
 	Name      string
 	ExactName string
 	Version   string
 	Url       string
+}
+
+type UpdatedVersionObjectBlueprintPayload struct {
+	Version string
+	Url     string
+}
+
+func (p UpdateObjectBlueprintPayload) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Name, validation.Required),
+	)
+}
+
+func (p UpdatedVersionObjectBlueprintPayload) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Version, validation.Required, is.Semver),
+	)
 }
 
 func (p CreateObjectBlueprintPayload) Validate() error {

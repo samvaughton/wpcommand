@@ -9,10 +9,14 @@ CREATE TABLE IF NOT EXISTS object_blueprints(
      exact_name TEXT NOT NULL,
      version TEXT NOT NULL,
      original_object_url TEXT NOT NULL,
-     versioned_object_url TEXT NULL,
-     versioned_object_hash TEXT NULL,
-     enabled BOOLEAN,
+     active BOOLEAN DEFAULT FALSE,
      created_at TIMESTAMP,
      updated_at TIMESTAMP,
      CONSTRAINT fk_blueprint_set_id FOREIGN KEY (blueprint_set_id) REFERENCES blueprint_sets (id) ON DELETE CASCADE
 );
+
+create unique index object_blueprints_uuid_revision_id_uindex
+    on object_blueprints (uuid, revision_id);
+
+create unique index object_blueprints_uuid_version_uindex
+    on object_blueprints (uuid, version);

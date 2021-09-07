@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
+	"github.com/samvaughton/wpcommand/v2/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -55,7 +56,7 @@ func deleteBlueprintHandler(resp http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
+		util.HttpErrorEncode(resp, util.HttpStatusContentMalformed, "Could not decode payload.", util.HttpEmptyErrors())
 		return
 	}
 
@@ -63,7 +64,7 @@ func deleteBlueprintHandler(resp http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
+		util.HttpErrorEncode(resp, util.HttpStatusInternalServerError, "Something went wrong.", util.HttpEmptyErrors())
 		return
 	}
 
@@ -104,7 +105,7 @@ func createBlueprintHandler(resp http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
+		util.HttpErrorEncode(resp, util.HttpStatusContentMalformed, "Could not decode payload.", util.HttpEmptyErrors())
 		return
 	}
 
@@ -113,49 +114,9 @@ func createBlueprintHandler(resp http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(resp).Encode(map[string]string{
-			"Status":  "COULD_NOT_CREATE",
-			"Message": "Something went wrong when creating.",
-		})
+		util.HttpErrorEncode(resp, util.HttpStatusInternalServerError, "Something went wrong when creating.", util.HttpEmptyErrors())
 		return
 	}
 
 	json.NewEncoder(resp).Encode(blueprint)
-}
-
-func createBlueprintObjectHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/json")
-
-	payload, err := types.NewCreateObjectBlueprintPayloadFromHttpRequest(req)
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	validationErrors := payload.Validate()
-
-	if validationErrors != nil {
-		resp.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(resp).Encode(map[string]interface{}{"Status": "VALIDATION_ERRORS", "Errors": validationErrors})
-
-		return
-	}
-
-	account := req.Context().Value("account").(*types.Account)
-	object, err := db.BlueprintObjectCreateFromPayload(payload, account.Id)
-
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(resp).Encode(map[string]string{
-			"Status":  "COULD_NOT_CREATE",
-			"Message": "Something went wrong creating the object.",
-		})
-		return
-	}
-
-	json.NewEncoder(resp).Encode(object)
 }
