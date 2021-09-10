@@ -1,5 +1,5 @@
 import {writable} from 'svelte/store';
-import {register, TYPE_REQUEST} from "../fetch/fetchm";
+import {register, TYPE_REQUEST, TYPE_RESPONSE} from "../fetch/fetchm";
 
 const apiURL = "/auth";
 const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -50,6 +50,15 @@ userStore.subscribe(value => {
             reqOpts.headers = {...(reqOpts.headers ?? {}), ...{"Token": value.Token}};
             reqOpts.headers = {...(reqOpts.headers ?? {}), ...{"Content-Type": "application/json"}};
         })
+
+        register(TYPE_RESPONSE, 'session_expired', (promise) => {
+            promise.then(resp => {
+                if (resp.status === 401) {
+                    logout();
+                    window.location = '/login';
+                }
+            });
+        });
     }
 });
 

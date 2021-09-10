@@ -7,9 +7,14 @@ const windowImpl = window.fetch;
 let middlewares = [];
 
 export const TYPE_REQUEST = 'REQUEST';
+export const TYPE_RESPONSE = 'RESPONSE';
 
 function preRequestFilter(item) {
    return item.type === TYPE_REQUEST;
+}
+
+function postResponseFilter(item) {
+    return item.type === TYPE_RESPONSE;
 }
 
 /**
@@ -43,5 +48,11 @@ export function fetchm(url, reqOpts) {
         item.fn(url, reqOpts)
     });
 
-    return windowImpl(url, reqOpts)
+    let prom = windowImpl(url, reqOpts);
+
+    middlewares.filter(postResponseFilter).forEach(item => {
+       item.fn(prom);
+    });
+
+    return prom;
 }
