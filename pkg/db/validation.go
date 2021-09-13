@@ -3,14 +3,21 @@ package db
 import "github.com/pkg/errors"
 
 type UserUniqueEmailRule struct {
+	IgnoreUserId int64
 }
 
 func (r UserUniqueEmailRule) Validate(value interface{}) error {
 	email, _ := value.(string)
 
-	if UserExists(email) {
-		return errors.New("a user with that email already exists")
+	user := UserGetByEmail(email)
+
+	if user == nil {
+		return nil
 	}
 
-	return nil
+	if r.IgnoreUserId > 0 && user.Id == r.IgnoreUserId {
+		return nil
+	}
+
+	return errors.New("user already exists")
 }

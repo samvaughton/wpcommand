@@ -19,26 +19,29 @@ export const hasAccess = async function (obj, action) {
         accessCache = {};
     }
 
-    const key = obj + "," + action;
-    return new Promise((resolve, reject) => {
-        if (accessCache[key] === undefined) {
-            fetch("/api/access?params=" + key, {method: "POST"}).then(resp => {
-                if (resp.status === 200) {
-                    setAndSaveAccessCache(key, true);
+    // only start caching if storedUser is not null...
+    if (storedUser !== null) {
+        const key = obj + "," + action;
+        return new Promise((resolve, reject) => {
+            if (accessCache[key] === undefined) {
+                fetch("/api/access?params=" + key, {method: "POST"}).then(resp => {
+                    if (resp.status === 200) {
+                        setAndSaveAccessCache(key, true);
+                        resolve();
+                    } else {
+                        setAndSaveAccessCache(key, false);
+                        reject();
+                    }
+                });
+            } else {
+                if (accessCache[key]) {
                     resolve();
                 } else {
-                    setAndSaveAccessCache(key, false);
                     reject();
                 }
-            });
-        } else {
-            if (accessCache[key]) {
-                resolve();
-            } else {
-                reject();
             }
-        }
-    });
+        });
+    }
 };
 
 userStore.subscribe(value => {
@@ -63,6 +66,8 @@ userStore.subscribe(value => {
 });
 
 export function logout() {
+    // clear access cache
+    localStorage.setItem("accessCache", JSON.stringify({}));
     userStore.set(null);
 }
 

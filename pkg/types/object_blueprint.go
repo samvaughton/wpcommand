@@ -20,7 +20,7 @@ type ObjectBlueprint struct {
 	BlueprintSetId int64
 	BlueprintSet   *BlueprintSet `bun:"rel:belongs-to"`
 
-	ObjectBlueprintStorage []*ObjectBlueprintStorage `bun:"m2m:object_blueprint_storage_relations"`
+	ObjectBlueprintStorage []*ObjectBlueprintStorage `bun:"m2m:object_blueprint_storage_relations" json:"-"`
 
 	Uuid     string
 	SetOrder int

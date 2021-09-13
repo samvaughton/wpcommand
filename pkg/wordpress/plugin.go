@@ -3,12 +3,15 @@ package wordpress
 import (
 	"fmt"
 	"github.com/Masterminds/semver/v3"
+	"github.com/pkg/errors"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/execution"
+	"github.com/samvaughton/wpcommand/v2/pkg/object_blueprint"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"reflect"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -25,17 +28,28 @@ func GetSitePluginStatuses(siteId int64, executor execution.CommandExecutor) (ty
 		return types.PluginActionSet{}, err
 	}
 
-	actionSet := ComputePluginActionSet(pluginList, db.GetLatestObjectBlueprintsForSiteAndType(siteId, types.ObjectBlueprintTypePlugin))
+	latestObjs := db.GetLatestObjectBlueprintsForSiteAndType(siteId, types.ObjectBlueprintTypePlugin)
+
+	actionSet := ComputePluginActionSet(pluginList, latestObjs)
 
 	return types.PluginActionSet{Items: actionSet}, nil
 }
 
 func RunPluginActionOnSet(executor execution.CommandExecutor, set []types.PluginActionItem, actionToRun types.PluginAction) error {
+	var errs []string
 	for _, action := range set {
 		// action to run is so we can run grouped actions per list
 		if action.Action != actionToRun {
 			continue
 		}
+
+		objectUrl, err := object_blueprint.GenerateStorageAccessUrl(action.Object)
+
+		if err != nil {
+			return errors.New(fmt.Sprintf("could not generate file access hash url for plugin: %v, error: %s", action.Name, err))
+		}
+
+		err = nil // clear
 
 		// execute action
 		switch action.Action {
@@ -43,27 +57,35 @@ func RunPluginActionOnSet(executor execution.CommandExecutor, set []types.Plugin
 			log.Debug("plugin action none")
 			break
 		case types.PluginActionEnum.Install:
-			actionStr := fmt.Sprintf("wp plugin install %s --activate --force --insecure", action.Object.OriginalObjectUrl)
-			executor.ExecuteCommand([]string{actionStr})
+			actionStr := fmt.Sprintf("wp plugin install %s --activate --force --insecure", objectUrl)
+			_, err = executor.ExecuteCommand([]string{actionStr})
 			break
 		case types.PluginActionEnum.Upgrade:
-			actionStr := fmt.Sprintf("wp plugin install %s --activate --force --insecure", action.Object.OriginalObjectUrl)
+			actionStr := fmt.Sprintf("wp plugin install %s --activate --force --insecure", objectUrl)
 			log.Infoln(actionStr)
-			executor.ExecuteCommand([]string{actionStr})
+			_, err = executor.ExecuteCommand([]string{actionStr})
 			break
 		case types.PluginActionEnum.Downgrade:
-			actionStr := fmt.Sprintf("wp plugin install %s --activate --force --insecure", action.Object.OriginalObjectUrl)
-			executor.ExecuteCommand([]string{actionStr})
+			actionStr := fmt.Sprintf("wp plugin install %s --activate --force --insecure", objectUrl)
+			_, err = executor.ExecuteCommand([]string{actionStr})
 			break
 		case types.PluginActionEnum.Uninstall:
 			actionStr := fmt.Sprintf("wp plugin uninstall --deactivate %s", action.Name)
-			executor.ExecuteCommand([]string{actionStr})
+			_, err = executor.ExecuteCommand([]string{actionStr})
 			break
 		default:
 			log.Fatal("default switch statement on plugin sync command should not be reached")
 		}
 
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+
 		time.Sleep(time.Millisecond * 250) // wait 250ms before each command
+	}
+
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, ", "))
 	}
 
 	return nil
@@ -96,27 +118,29 @@ func ComputePluginActionSet(plugins []types.Plugin, objects []types.ObjectBluepr
 	for _, plugin := range plugins {
 		if dbPlugin, exists := pluginNameMap[plugin.Name]; exists {
 
-			dbSemver := semver.MustParse(dbPlugin.Version)
-			currentSemver := semver.MustParse(plugin.Version)
+			cpDbPlugin := dbPlugin
+
+			dbSemver := semver.MustParse(cpDbPlugin.Version)
+			currentSemver := semver.MustParse(cpDbPlugin.Version)
 
 			// the server version must match the manifest version
 			if currentSemver.Equal(dbSemver) {
 				actionSet[sortSet[plugin.Name]] = types.PluginActionItem{
-					Name:   dbPlugin.ExactName,
+					Name:   cpDbPlugin.ExactName,
 					Action: types.PluginActionEnum.None,
-					Object: &dbPlugin,
+					Object: &cpDbPlugin,
 				}
 			} else if currentSemver.GreaterThan(dbSemver) {
 				actionSet[sortSet[plugin.Name]] = types.PluginActionItem{
-					Name:   dbPlugin.ExactName,
+					Name:   cpDbPlugin.ExactName,
 					Action: types.PluginActionEnum.Downgrade,
-					Object: &dbPlugin,
+					Object: &cpDbPlugin,
 				}
 			} else if currentSemver.LessThan(dbSemver) {
 				actionSet[sortSet[plugin.Name]] = types.PluginActionItem{
-					Name:   dbPlugin.ExactName,
+					Name:   cpDbPlugin.ExactName,
 					Action: types.PluginActionEnum.Upgrade,
-					Object: &dbPlugin,
+					Object: &cpDbPlugin,
 				}
 			}
 
@@ -135,10 +159,13 @@ func ComputePluginActionSet(plugins []types.Plugin, objects []types.ObjectBluepr
 	// loop through manifest plugins, if they don't exist in the plugin set then we need to install them
 	for _, dbPlugin := range objects {
 
+		// make a copy to prevent dbPlugin ref from being modified
+		cpDbPlugin := dbPlugin
+
 		pluginExists := false
 
 		for _, sPlugin := range plugins {
-			if sPlugin.Name == dbPlugin.ExactName {
+			if sPlugin.Name == cpDbPlugin.ExactName {
 				pluginExists = true
 				break
 			}
@@ -147,10 +174,11 @@ func ComputePluginActionSet(plugins []types.Plugin, objects []types.ObjectBluepr
 		// if plugin exists is true, then we have already handled it in the above loop,
 		// this loop is purely to handle the single case of the manifest plugin existing only
 		if pluginExists == false {
+
 			actionSet[sortSet[dbPlugin.ExactName]] = types.PluginActionItem{
-				Name:   dbPlugin.ExactName,
+				Name:   cpDbPlugin.ExactName,
 				Action: types.PluginActionEnum.Install,
-				Object: &dbPlugin,
+				Object: &cpDbPlugin,
 			}
 		}
 	}

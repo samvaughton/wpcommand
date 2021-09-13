@@ -1,10 +1,12 @@
 package wordpress
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Masterminds/semver/v3"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/execution"
+	"github.com/samvaughton/wpcommand/v2/pkg/object_blueprint"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"reflect"
@@ -37,22 +39,28 @@ func RunThemeActionOnSet(executor execution.CommandExecutor, set []types.ThemeAc
 			continue
 		}
 
+		objectUrl, err := object_blueprint.GenerateStorageAccessUrl(action.Object)
+
+		if err != nil {
+			return errors.New(fmt.Sprintf("could not generate access hash for object id: %v, error: %s", action.Object.Id, err))
+		}
+
 		// execute action
 		switch action.Action {
 		case types.ThemeActionEnum.None:
 			log.Debug("theme action none")
 			break
 		case types.ThemeActionEnum.Install:
-			actionStr := fmt.Sprintf("wp theme install %s --activate --force --insecure", action.Object.OriginalObjectUrl)
+			actionStr := fmt.Sprintf("wp theme install %s --activate --force --insecure", objectUrl)
 			executor.ExecuteCommand([]string{actionStr})
 			break
 		case types.ThemeActionEnum.Upgrade:
-			actionStr := fmt.Sprintf("wp theme install %s --activate --force --insecure", action.Object.OriginalObjectUrl)
+			actionStr := fmt.Sprintf("wp theme install %s --activate --force --insecure", objectUrl)
 			log.Infoln(actionStr)
 			executor.ExecuteCommand([]string{actionStr})
 			break
 		case types.ThemeActionEnum.Downgrade:
-			actionStr := fmt.Sprintf("wp theme install %s --activate --force --insecure", action.Object.OriginalObjectUrl)
+			actionStr := fmt.Sprintf("wp theme install %s --activate --force --insecure", objectUrl)
 			executor.ExecuteCommand([]string{actionStr})
 			break
 		case types.ThemeActionEnum.Uninstall:
@@ -96,27 +104,30 @@ func ComputeThemeActionSet(themes []types.Theme, objects []types.ObjectBlueprint
 	for _, theme := range themes {
 		if dbTheme, exists := themeNameMap[theme.Name]; exists {
 
-			dbSemver := semver.MustParse(dbTheme.Version)
+			// make a copy to prevent dbPlugin ref from being modified
+			cpDbTheme := dbTheme
+
+			dbSemver := semver.MustParse(cpDbTheme.Version)
 			currentSemver := semver.MustParse(theme.Version)
 
 			// the server version must match the manifest version
 			if currentSemver.Equal(dbSemver) {
 				actionSet[sortSet[theme.Name]] = types.ThemeActionItem{
-					Name:   dbTheme.ExactName,
+					Name:   cpDbTheme.ExactName,
 					Action: types.ThemeActionEnum.None,
-					Object: &dbTheme,
+					Object: &cpDbTheme,
 				}
 			} else if currentSemver.GreaterThan(dbSemver) {
 				actionSet[sortSet[theme.Name]] = types.ThemeActionItem{
-					Name:   dbTheme.ExactName,
+					Name:   cpDbTheme.ExactName,
 					Action: types.ThemeActionEnum.Downgrade,
-					Object: &dbTheme,
+					Object: &cpDbTheme,
 				}
 			} else if currentSemver.LessThan(dbSemver) {
 				actionSet[sortSet[theme.Name]] = types.ThemeActionItem{
-					Name:   dbTheme.ExactName,
+					Name:   cpDbTheme.ExactName,
 					Action: types.ThemeActionEnum.Upgrade,
-					Object: &dbTheme,
+					Object: &cpDbTheme,
 				}
 			}
 
@@ -135,10 +146,13 @@ func ComputeThemeActionSet(themes []types.Theme, objects []types.ObjectBlueprint
 	// loop through manifest themes, if they don't exist in the theme set then we need to install them
 	for _, dbTheme := range objects {
 
+		// make a copy to prevent dbPlugin ref from being modified
+		cpDbTheme := dbTheme
+
 		themeExists := false
 
 		for _, sTheme := range themes {
-			if sTheme.Name == dbTheme.ExactName {
+			if sTheme.Name == cpDbTheme.ExactName {
 				themeExists = true
 				break
 			}
@@ -147,10 +161,10 @@ func ComputeThemeActionSet(themes []types.Theme, objects []types.ObjectBlueprint
 		// if theme exists is true, then we have already handled it in the above loop,
 		// this loop is purely to handle the single case of the manifest theme existing only
 		if themeExists == false {
-			actionSet[sortSet[dbTheme.ExactName]] = types.ThemeActionItem{
-				Name:   dbTheme.ExactName,
+			actionSet[sortSet[cpDbTheme.ExactName]] = types.ThemeActionItem{
+				Name:   cpDbTheme.ExactName,
 				Action: types.ThemeActionEnum.Install,
-				Object: &dbTheme,
+				Object: &cpDbTheme,
 			}
 		}
 	}

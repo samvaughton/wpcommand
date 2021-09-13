@@ -33,8 +33,10 @@ type Config struct {
 		SpecificPod string
 	} `json:"-"`
 
-	Environment string `yaml:"environment" envconfig:"ENVIRONMENT" json:"environment"`
-	DatabaseDsn string `yaml:"databaseDsn" envconfig:"DATABASE_DSN" json:"-"`
+	StorageHost   string `yaml:"storageHost" envconfig:"STORAGE_HOST" json:"storageHost"`
+	ServerAddress string `yaml:"serverAddress" envconfig:"SERVER_ADDRESS" json:"serverAddress"`
+	Environment   string `yaml:"environment" envconfig:"ENVIRONMENT" json:"environment"`
+	DatabaseDsn   string `yaml:"databaseDsn" envconfig:"DATABASE_DSN" json:"-"`
 
 	K8 struct {
 		LabelSelector string `yaml:"labelSelector" envconfig:"K8_LABEL_SELECTOR" json:"labelSelector"`

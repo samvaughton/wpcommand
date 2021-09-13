@@ -111,3 +111,27 @@ func UserCreate(bdb bun.IDB, email string, firstName string, lastName string, pa
 
 	return user, nil
 }
+
+func UserUpdate(bdb bun.IDB, user *types.User, passwordPlain string) error {
+
+	// check if we need to set the password
+	if passwordPlain != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordPlain), 10)
+
+		if err != nil {
+			log.Error("could not update user, an error occurred with password hashing", err)
+		}
+
+		user.Password = string(hashedPassword)
+	}
+
+	_, err := bdb.NewUpdate().Model(user).Where("id = ?", user.Id).Returning("*").Exec(context.Background())
+
+	if err != nil {
+		log.Error("could not update account", err)
+
+		return err
+	}
+
+	return nil
+}

@@ -1,3 +1,5 @@
+serverAddress: ":8999"
+storageHost: "http://5b0e-82-12-154-226.ngrok.io"
 environment: dev
 databaseDsn: postgres://app:password@localhost:5444/app?sslmode=disable
 manifest: https://raw.githubusercontent.com/aptenex/k8-store/main/manifest.yaml

@@ -67,6 +67,20 @@ func loadBlueprintObjectHandler(resp http.ResponseWriter, req *http.Request) {
 
 	obj, err := db.BlueprintObjectGetByUuidAndRevisionSafe(vars["objUuid"], revId, bp.Id)
 
+	// now we can allow the file to be downloaded
+	var sItem *types.ObjectBlueprintStorage
+
+	// pluck the version one
+	for _, storage := range obj.ObjectBlueprintStorage {
+		sItem = storage
+		break
+	}
+
+	if sItem == nil {
+		// storage dont exist, attempt a pull
+		go flow.VerifyAndStoreObjectFile(obj)
+	}
+
 	if err != nil {
 		log.Error(err)
 		resp.WriteHeader(http.StatusNotFound)

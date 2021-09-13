@@ -38,7 +38,7 @@ func hasAccessHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	if allowed == false {
-		resp.WriteHeader(http.StatusUnauthorized)
+		resp.WriteHeader(http.StatusForbidden)
 
 		return
 	}
@@ -119,7 +119,7 @@ func authHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	if CheckPasswordHash(authPayload.Password, user.Password) == false {
-		resp.WriteHeader(http.StatusUnauthorized)
+		resp.WriteHeader(http.StatusForbidden)
 		return
 	}
 

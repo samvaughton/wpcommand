@@ -15,6 +15,8 @@ import (
 
 var (
 	Config          *types.Config
+	ServerAddress   string
+	StorageHost     string
 	Environment     string
 	LoggingLevel    string
 	DisableManifest bool
@@ -53,6 +55,16 @@ func InitConfig() {
 	}
 
 	// Override config based on passed flags
+	if StorageHost != "" {
+		config.StorageHost = StorageHost
+		log.Info("storage-host=", StorageHost)
+	}
+
+	if ServerAddress != "" {
+		config.ServerAddress = ServerAddress
+		log.Info("server-address=", ServerAddress)
+	}
+
 	if Environment != "" {
 		config.Environment = Environment
 		log.Info("environment=", Environment)

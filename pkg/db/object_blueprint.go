@@ -104,6 +104,8 @@ func GetLatestObjectBlueprintsForSiteAndType(siteId int64, bpType string) []type
 	err = Db.
 		NewSelect().
 		Model(&items).
+		Relation("ObjectBlueprintStorage").
+		Relation("BlueprintSet").
 		Join("JOIN blueprint_sets AS bs ON \"object_blueprint\".blueprint_set_id = bs.id").
 		Join("JOIN sites_blueprint_sets AS sbs ON bs.id = sbs.blueprint_set_id").
 		Where("\"object_blueprint\".type = ?", bpType).

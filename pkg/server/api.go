@@ -26,7 +26,7 @@ func AuthWrapper(obj string, act string, handler func(resp http.ResponseWriter, 
 		}
 
 		if allowed == false {
-			resp.WriteHeader(http.StatusUnauthorized)
+			resp.WriteHeader(http.StatusForbidden)
 
 			return
 		}
@@ -45,7 +45,14 @@ func SetupApi(router *mux.Router) {
 	api.HandleFunc("/access", notImplemented).Methods("GET")
 	api.HandleFunc("/access", hasAccessHandler).Methods("POST")
 
-	api.HandleFunc("/account", notImplemented)
+	api.HandleFunc("/account/{accUuid}", AuthWrapper(types.AuthObjectAccount, types.AuthActionReadSpecial, loadAccountHandler)).Methods("GET")
+	api.HandleFunc("/account/{accUuid}", AuthWrapper(types.AuthObjectAccount, types.AuthActionWriteSpecial, updateAccountHandler)).Methods("PUT")
+	api.HandleFunc("/account/{accUuid}/user/{userUuid}", AuthWrapper(types.AuthObjectUser, types.AuthActionReadSpecial, loadAccountUserApiItemHandler)).Methods("GET")
+	api.HandleFunc("/account/{accUuid}/user/{userUuid}", AuthWrapper(types.AuthObjectUser, types.AuthActionWriteSpecial, updateAccountUserHandler)).Methods("PUT")
+	api.HandleFunc("/account/{accUuid}/user", AuthWrapper(types.AuthObjectUser, types.AuthActionReadSpecial, loadAccountUserApiItemsHandler)).Methods("GET")
+	api.HandleFunc("/account/{accUuid}/user", AuthWrapper(types.AuthObjectUser, types.AuthActionWriteSpecial, createAccountUserHandler)).Methods("POST")
+	api.HandleFunc("/account", AuthWrapper(types.AuthObjectAccount, types.AuthActionReadSpecial, loadAccountsHandler)).Methods("GET")
+	api.HandleFunc("/account", AuthWrapper(types.AuthObjectAccount, types.AuthActionWriteSpecial, createAccountHandler)).Methods("POST")
 
 	api.HandleFunc("/site", AuthWrapper(types.AuthObjectSite, types.AuthActionWrite, createSiteHandler)).Methods("POST")
 	api.HandleFunc("/site", AuthWrapper(types.AuthObjectSite, types.AuthActionRead, loadSitesHandler)).Methods("GET")

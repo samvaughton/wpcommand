@@ -11,6 +11,9 @@
     import Blueprints from "./routes/Blueprints.svelte";
     import Blueprint from "./routes/Blueprint.svelte";
     import BlueprintObject from "./routes/BlueprintObject.svelte";
+    import Accounts from "./routes/Accounts.svelte";
+    import Account from "./routes/Account.svelte";
+    import User from "./routes/User.svelte";
 
     export let url = "";
 
@@ -35,5 +38,9 @@
 
         <Route path="/blueprints/:uuid" let:params><Blueprint uuid="{params.uuid}" /></Route>
         <Route path="/blueprints"><Blueprints /></Route>
+
+        <Route path="/accounts/:accUuid/users/:userUuid" let:params><User accUuid="{params.accUuid}" userUuid="{params.userUuid}" /></Route>
+        <Route path="/accounts/:accUuid" let:params><Account uuid="{params.accUuid}" /></Route>
+        <Route path="/accounts" let:params><Accounts /></Route>
     </div>
 </Router>

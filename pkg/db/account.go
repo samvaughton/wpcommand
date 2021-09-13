@@ -27,16 +27,16 @@ func AccountsGetAll() ([]types.Account, error) {
 	return items, nil
 }
 
-func AccountGetByUuid(uuid string) *types.Account {
+func AccountGetByUuid(uuid string) (*types.Account, error) {
 	account := new(types.Account)
 
 	err := Db.NewSelect().Model(account).Where("uuid = ?", uuid).Scan(context.Background())
 
 	if err != nil {
-		return nil // not found
+		return nil, err // not found
 	}
 
-	return account
+	return account, nil
 }
 
 func AccountGetByKey(key string) *types.Account {
@@ -70,4 +70,16 @@ func AccountCreate(bdb bun.IDB, name string, key string) (*types.Account, error)
 	}
 
 	return account, nil
+}
+
+func AccountUpdate(bdb bun.IDB, account *types.Account) error {
+	_, err := bdb.NewUpdate().Model(account).Where("id = ?", account.Id).Returning("*").Exec(context.Background())
+
+	if err != nil {
+		log.Error("could not update account", err)
+
+		return err
+	}
+
+	return nil
 }

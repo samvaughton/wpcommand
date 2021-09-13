@@ -59,6 +59,12 @@
                         </li>
                     {/await}
 
+                    {#await hasAccess(AuthEnum.ObjectAccount, AuthEnum.ActionReadSpecial)}
+                    {:then result}
+                        <li>
+                            <Link to="/accounts" getProps="{getProps}">Accounts</Link>
+                        </li>
+                    {/await}
 
                     {#await hasAccess(AuthEnum.ObjectConfig, AuthEnum.ActionRead)}
                     {:then result}
