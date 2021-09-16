@@ -1,2 +1,5 @@
 .idea
 *.iml
+*.local.*
+config.local.yaml
+wpcommand
