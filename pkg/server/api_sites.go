@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/samvaughton/wpcommand/v2/pkg/auth"
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/execution"
@@ -33,12 +34,12 @@ func loadSiteHandler(resp http.ResponseWriter, req *http.Request) {
 func loadSiteCommandsHandler(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
 
-	account := req.Context().Value("account").(*types.Account)
+	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
 
 	vars := mux.Vars(req)
 	key := vars["key"]
 
-	site, err := db.SiteGetByKey(key, account.Id)
+	site, err := db.SiteGetByKey(key, userAccount.AccountId)
 
 	if err != nil {
 		log.Error(err)
@@ -46,7 +47,7 @@ func loadSiteCommandsHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	commands, err := db.CommandsGetForSiteSafe(site.Id, account.Id)
+	commands, err := db.CommandsGetForSiteSafe(site.Id, userAccount.AccountId)
 
 	if err != nil {
 		log.Error(err)
@@ -54,7 +55,7 @@ func loadSiteCommandsHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	json.NewEncoder(resp).Encode(commands)
+	json.NewEncoder(resp).Encode(auth.CommandListFilter(userAccount, commands))
 }
 
 func loadSiteBlueprintsHandler(resp http.ResponseWriter, req *http.Request) {

@@ -50,7 +50,7 @@ func CreateObjectBlueprintFromCreatePayload(payload *types.CreateObjectBlueprint
 
 	// file all looks ok
 
-	object, err := db.BlueprintObjectCreateFromPayload(payload, blueprintSetId)
+	object, err := db.BlueprintObjectCreateFromPayload(tx, payload, blueprintSetId)
 
 	if err != nil {
 		tx.Rollback()
@@ -59,7 +59,7 @@ func CreateObjectBlueprintFromCreatePayload(payload *types.CreateObjectBlueprint
 	}
 
 	// now we need to store the object
-	_, err = object_blueprint.StoreObjectFile(object.Id, data)
+	_, err = object_blueprint.StoreObjectFile(tx, object.Id, data, false)
 
 	err = tx.Commit()
 
@@ -84,7 +84,7 @@ func CreateObjectBlueprintRevisionFromNewVersionPayload(object *types.ObjectBlue
 
 	// file all looks ok
 	// before we create set all revisions as inactive as the new revision will be the active one
-	_, err = db.Db.Query("UPDATE object_blueprints SET active = false WHERE uuid = ?", object.Uuid)
+	_, err = tx.Query("UPDATE object_blueprints SET active = false WHERE uuid = ?", object.Uuid)
 
 	if err != nil {
 		log.Error(err)
@@ -93,7 +93,7 @@ func CreateObjectBlueprintRevisionFromNewVersionPayload(object *types.ObjectBlue
 		return nil, err
 	}
 
-	newObj, err := db.BlueprintObjectCreateNewRevisionFromPayload(object.Uuid, payload)
+	newObj, err := db.BlueprintObjectCreateNewRevisionFromPayload(tx, object.Uuid, payload)
 
 	if err != nil {
 		tx.Rollback()
@@ -102,10 +102,16 @@ func CreateObjectBlueprintRevisionFromNewVersionPayload(object *types.ObjectBlue
 	}
 
 	// now we need to store the object
-	_, err = object_blueprint.StoreObjectFile(newObj.Id, data)
+	_, err = object_blueprint.StoreObjectFile(tx, newObj.Id, data, true)
 
 	if err != nil {
-		tx.Rollback()
+		err2 := tx.Rollback()
+
+		if err2 != nil {
+			log.Error(err2)
+
+			return nil, err
+		}
 
 		return nil, err
 	}
@@ -129,5 +135,5 @@ func VerifyAndStoreObjectFile(object *types.ObjectBlueprint) {
 		return
 	}
 
-	object_blueprint.StoreObjectFile(object.Id, data)
+	object_blueprint.StoreObjectFile(db.Db, object.Id, data, false)
 }

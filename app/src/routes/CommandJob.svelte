@@ -15,13 +15,19 @@
     let maxTimeout = 300;
 
     let fetchEvents = () => {
-        fetch("/api/command/job/" + uuid + "/events").then(resp => resp.json()).then(data => {
+        fetch("/api/command/job/" + uuid + "/event").then(resp => resp.json()).then(data => {
             events = data
 
             // also check if the last item is JOB_FINISHED, if so clear timer
             if (data.length > 0 && data[data.length - 1].Type === "JOB_FINISHED" && timer !== null) {
                 clearInterval(timer);
             }
+
+            data.forEach(item => {
+                if (item.Type === 'DATA') {
+
+                }
+            });
         });
 
         currentTimeout++;
@@ -124,31 +130,36 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {#each events as item, index}
+                    {#each events as eItem, index}
                         <tr>
-                            <td>{item.ExecutedAt}</td>
+                            <td>{eItem.ExecutedAt}</td>
                             <td>
-                                {#if item.Type === "INFO"}
+                                {#if eItem.Type === "INFO"}
                                     <span class="badge bg-info">Info</span>
-                                {:else if item.Type === "DATA"}
+                                {:else if eItem.Type === "DATA"}
                                     <span class="badge bg-primary">Data</span>
-                                {:else if item.Type === "JOB_STARTED"}
+                                {:else if eItem.Type === "JOB_STARTED"}
                                     <span class="badge bg-secondary">Job Started</span>
-                                {:else if item.Type === "JOB_FINISHED"}
+                                {:else if eItem.Type === "JOB_FINISHED"}
                                     <span class="badge bg-secondary">Job Finished</span>
                                 {/if}
                             </td>
                             <td>
-                                {#if item.Status === "SKIPPED"}
+                                {#if eItem.Status === "SKIPPED"}
                                     <span class="badge bg-warning">Skipped</span>
-                                {:else if item.Status === "SUCCESS"}
+                                {:else if eItem.Status === "SUCCESS"}
                                     <span class="badge bg-success">Success</span>
-                                {:else if item.Status === "FAILURE"}
+                                {:else if eItem.Status === "FAILURE"}
                                     <span class="badge bg-danger">Failure</span>
                                 {/if}
                             </td>
-                            <td><code>{item.Command}</code></td>
-                            <td></td>
+                            <td><code>{eItem.Command}</code></td>
+                            <td>
+                                <a target="_blank" href="/public/command/job/{item.Uuid}/event/{eItem.Uuid}">Details</a>
+                                {#if eItem.MetaData !== "{}"}
+                                <a target="_blank" href="/public/command/job/{item.Uuid}/event/{eItem.Uuid}?metadata=yes">Metadata</a>
+                                {/if}
+                            </td>
                         </tr>
                     {/each}
                     </tbody>

@@ -37,6 +37,26 @@ func CreateCommandJobEvent(jobId int64, rType string, status string, command str
 	return job, nil
 }
 
+func CommandJobEventGetByUuidSafe(uuid string, jobId int64) (*types.CommandJobEventLog, error) {
+	event := new(types.CommandJobEventLog)
+
+	err := Db.
+		NewSelect().
+		Model(event).
+		Relation("CommandJob.Site").
+		Relation("CommandJob.Command").
+		Relation("CommandJob.RunByUser").
+		Where("\"command_job_event_log\".uuid = ?", uuid).
+		Where("\"command_job_event_log\".command_job_id = ?", jobId).
+		Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return event, nil
+}
+
 func CommandJobEventLogGetByJob(jobId int64) ([]*types.CommandJobEventLog, error) {
 	var err error
 	items := make([]*types.CommandJobEventLog, 0)

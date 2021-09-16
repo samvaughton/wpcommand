@@ -1,29 +1,25 @@
 package server
 
 import (
+	"embed"
 	"github.com/gorilla/mux"
+	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	log "github.com/sirupsen/logrus"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 )
 
-// spaHandler implements the http.Handler interface, so we can use it
-// to respond to HTTP requests. The path to the static directory and
-// path to the index file within that static directory are used to
-// serve the SPA in the given static directory.
-type spaHandler struct {
-	staticPath string
-	indexPath  string
+type SpaHandler struct {
+	IndexPath  string
+	StaticPath string
+	Embedded   *embed.FS
 }
 
-// ServeHTTP inspects the URL path to locate a file within the static dir
-// on the SPA handler. If a file is found, it will be served. If not, the
-// file located at the index path on the SPA handler will be served. This
-// is suitable behavior for serving an SPA (single page application).
-func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h SpaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// get the absolute path to prevent directory traversal
-	path, err := filepath.Abs(r.URL.Path)
+	urlAbs, err := filepath.Abs(r.URL.Path)
 	if err != nil {
 		// if we failed to get the absolute path respond with a 400 bad request
 		// and stop
@@ -32,27 +28,72 @@ func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// prepend the path with the path to the static directory
-	path = filepath.Join(h.staticPath, path)
+	path := filepath.Join(h.StaticPath, urlAbs)
 
-	// check whether a file exists at the given path
-	_, err = os.Stat(path)
-	if os.IsNotExist(err) {
-		// file does not exist, serve index.html
-		http.ServeFile(w, r, filepath.Join(h.staticPath, h.indexPath))
-		return
-	} else if err != nil {
-		// if we got an error (that wasn't that the file doesn't exist) stating the
-		// file, return a 500 internal server error and stop
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if h.Embedded == nil {
+
+		// live spa
+
+		// check whether a file exists at the given path
+		_, err = os.Stat(path)
+		if os.IsNotExist(err) {
+			// file does not exist, serve index.html
+			http.ServeFile(w, r, filepath.Join(h.StaticPath, h.IndexPath))
+			return
+		} else if err != nil {
+			// if we got an error (that wasn't that the file doesn't exist) stating the
+			// file, return a 500 internal server error and stop
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// otherwise, use http.FileServer to serve the static dir
+		http.FileServer(http.Dir(h.StaticPath)).ServeHTTP(w, r)
+
+	} else {
+
+		// embedded spa
+		fsys, err := fs.Sub(h.Embedded, h.StaticPath)
+		if err != nil {
+			panic(err)
+		}
+
+		var staticFS = http.FS(fsys)
+		httpFs := http.FileServer(staticFS)
+
+		file, err := staticFS.Open(urlAbs)
+
+		if err != nil {
+			log.Debug(err)
+		}
+
+		// no file found serve from index.html
+		if file == nil {
+			data, err := fs.ReadFile(fsys, h.IndexPath)
+
+			_, err = w.Write(data)
+
+			if err != nil {
+				panic("could not serve index file via embedded FS")
+			}
+
+			return
+		}
+
+		// serve static files now
+		httpFs.ServeHTTP(w, r)
 	}
 
-	// otherwise, use http.FileServer to serve the static dir
-	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
 }
 
-func SetupSpa(router *mux.Router) {
+func SetupSpa(router *mux.Router, staticFiles *embed.FS) {
 	log.Info("serving ui at /")
-	spa := spaHandler{staticPath: "app/public", indexPath: "index.html"}
+
+	spa := SpaHandler{StaticPath: "app/public", IndexPath: "index.html"}
+
+	if config.Config.EmbedStaticFiles {
+		spa = SpaHandler{StaticPath: "app/public", Embedded: staticFiles, IndexPath: "index.html"}
+	}
+
 	router.PathPrefix("/").Handler(spa)
 }

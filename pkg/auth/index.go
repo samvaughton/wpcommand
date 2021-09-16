@@ -3,6 +3,7 @@ package auth
 import (
 	sqladapter "github.com/Blank-Xu/sql-adapter"
 	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v2/model"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
@@ -10,7 +11,7 @@ import (
 
 var Enforcer *casbin.Enforcer
 
-func InitAuth() {
+func InitAuth(authData string) {
 	db := db.Db.DB
 
 	adapter, err := sqladapter.NewAdapter(db, "postgres", "casbin")
@@ -19,7 +20,9 @@ func InitAuth() {
 		log.Fatalf("could not instantiate enforcer: %s", err)
 	}
 
-	e, err := casbin.NewEnforcer("casbin/model.conf", adapter)
+	m, _ := model.NewModelFromString(authData)
+
+	e, err := casbin.NewEnforcer(m, adapter)
 
 	if err != nil {
 		log.Fatalf("could not instantiate enforcer: %s", err)
@@ -41,6 +44,7 @@ func InitAuth() {
 		e.AddPolicies([][]string{
 			{types.RoleAdmin, types.AuthObjectSite, "*"},
 			{types.RoleAdmin, types.AuthObjectCommand, "*"},
+			{types.RoleAdmin, types.AuthObjectCommandRunType, "*"},
 			{types.RoleAdmin, types.AuthObjectCommandJob, "*"},
 			{types.RoleAdmin, types.AuthObjectCommandJobEvent, "*"},
 			{types.RoleAdmin, types.AuthObjectBlueprint, "*"},
@@ -51,6 +55,7 @@ func InitAuth() {
 
 			{types.RoleMember, types.AuthObjectSite, "read"},
 			{types.RoleMember, types.AuthObjectCommand, "run"},
+			{types.RoleMember, types.AuthObjectCommandRunType, types.CommandTypeHttpCall}, // just http calls
 			{types.RoleMember, types.AuthObjectCommandJob, "read"},
 			{types.RoleMember, types.AuthObjectCommandJobEvent, "read"},
 			{types.RoleMember, types.AuthObjectUser, "read"},

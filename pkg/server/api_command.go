@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/samvaughton/wpcommand/v2/pkg/auth"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/registry"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
+	"github.com/samvaughton/wpcommand/v2/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -72,6 +74,46 @@ func getCommandJobEventsHandler(resp http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(resp).Encode(events)
 }
 
+func getCommandJobEventHandler(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-Type", "application/json")
+
+	vars := mux.Vars(req)
+	jobUuid := vars["jobUuid"]
+	eventUuid := vars["eventUuid"]
+
+	job, err := db.CommandJobGetByUuid(jobUuid)
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	event, err := db.CommandJobEventGetByUuidSafe(eventUuid, job.Id)
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if req.URL.Query().Get("metadata") != "" {
+		var data interface{}
+
+		err = json.Unmarshal([]byte(event.MetaData), &data)
+
+		if err != nil {
+			log.Error(err)
+		}
+
+		json.NewEncoder(resp).Encode(data)
+
+		return
+	}
+
+	json.NewEncoder(resp).Encode(event)
+}
+
 func createCommandJobHandler(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
 
@@ -83,18 +125,19 @@ func createCommandJobHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	account := req.Context().Value("account").(*types.Account)
-	user := req.Context().Value("user").(*types.User)
+	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
 
 	// check database
-	command, err := db.CommandGetByIdAccountSafe(jobReq.CommandId, account.Id)
+	command, err := db.CommandGetByIdAccountSafe(jobReq.CommandId, userAccount.AccountId)
 
 	if err != nil {
 		log.Error(err)
-		resp.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(resp).Encode(map[string]interface{}{
-			"Status": "COMMAND_NOT_FOUND",
-		})
+		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "Command not found", util.HttpEmptyErrors())
+		return
+	}
+
+	if auth.CommandCanRun(userAccount, command) == false {
+		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "Command not found", util.HttpEmptyErrors())
 		return
 	}
 
@@ -107,7 +150,7 @@ func createCommandJobHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	sites, err := db.SelectSites(jobReq.Selector, account.Id)
+	sites, err := db.SelectSites(jobReq.Selector, userAccount.AccountId)
 
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
@@ -126,7 +169,7 @@ func createCommandJobHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// create command job
-	jobs := db.CreateCommandJobs(command, sites, user.Id)
+	jobs := db.CreateCommandJobs(command, sites, userAccount.UserId)
 
 	if len(jobs) == 0 {
 		log.Error(fmt.Sprintf("something went wrong creating jobs. command=%s selector=%s", command.Key, jobReq.Selector))

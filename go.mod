@@ -8,12 +8,15 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/casbin/casbin/v2 v2.36.2
+	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/evalphobia/logrus_sentry v0.8.2 // indirect
 	github.com/georgysavva/scany v0.2.9 // indirect
+	github.com/getsentry/raven-go v0.2.0 // indirect
+	github.com/getsentry/sentry-go v0.11.0 // indirect
 	github.com/go-logr/logr v1.1.0 // indirect
 	github.com/go-openapi/spec v0.19.3 // indirect
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
-	github.com/go-redis/redis/v7 v7.4.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
@@ -27,6 +30,7 @@ require (
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.10.2 // indirect
+	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1

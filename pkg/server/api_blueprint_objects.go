@@ -314,10 +314,11 @@ func updateBlueprintObjectHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	obj.Name = payload.Name // assign
+	obj.Name = payload.Name         // assign
+	obj.SetOrder = payload.SetOrder // assign
 
 	// we want to update all objects with the same uuid for this
-	res, err := db.Db.NewUpdate().Model(obj).Where("uuid = ?", obj.Uuid).Exec(context.Background())
+	res, err := db.Db.NewUpdate().Column("name", "set_order").Model(obj).Where("uuid = ?", obj.Uuid).Exec(context.Background())
 
 	if err != nil {
 		log.Error(err)
@@ -327,7 +328,7 @@ func updateBlueprintObjectHandler(resp http.ResponseWriter, req *http.Request) {
 
 	ra, err := res.RowsAffected()
 
-	if err != nil || ra != 1 {
+	if err != nil || ra == 0 {
 		log.Error(err)
 		util.HttpErrorEncode(resp, util.HttpStatusInternalServerError, "Something went wrong.", util.HttpEmptyErrors())
 		return

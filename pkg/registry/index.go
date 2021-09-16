@@ -33,6 +33,8 @@ const CmdWpSyncLazyblocks = "lazyblocks-sync"
 const CmdWpDataUrlTransfers = "data-url-transfers"
 const CmdWpUpdateSiteConfig = "update-site-config"
 
+const CmdHttpCall = "http-call"
+
 var CommandRegistry = map[string]func(site *types.Site) pipeline.SiteCommand{
 	CmdWpThemesSync:       GetThemesSyncCommand,
 	CmdWpThemesStatus:     GetThemesStatusCommand,

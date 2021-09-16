@@ -91,6 +91,10 @@
                         <td><code>{item.ExactName}</code></td>
                     </tr>
                     <tr>
+                        <th>Version</th>
+                        <td>{item.Version}</td>
+                    </tr>
+                    <tr>
                         <th>Active</th>
                         <td><Active value={item.Active} /></td>
                     </tr>

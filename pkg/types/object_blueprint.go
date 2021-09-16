@@ -93,7 +93,8 @@ func NewUpdatedVersionObjectBlueprintPayloadFromHttpRequest(req *http.Request) (
 }
 
 type UpdateObjectBlueprintPayload struct {
-	Name string
+	Name     string
+	SetOrder int
 }
 
 type CreateObjectBlueprintPayload struct {
@@ -101,6 +102,7 @@ type CreateObjectBlueprintPayload struct {
 	Name      string
 	ExactName string
 	Version   string
+	SetOrder  int
 	Url       string
 }
 
@@ -112,12 +114,13 @@ type UpdatedVersionObjectBlueprintPayload struct {
 func (p UpdateObjectBlueprintPayload) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Name, validation.Required),
+		validation.Field(&p.SetOrder, validation.Required),
 	)
 }
 
 func (p UpdatedVersionObjectBlueprintPayload) Validate() error {
 	return validation.ValidateStruct(&p,
-		validation.Field(&p.Version, validation.Required, is.Semver),
+		validation.Field(&p.Version, validation.Required),
 	)
 }
 
@@ -126,7 +129,8 @@ func (p CreateObjectBlueprintPayload) Validate() error {
 		validation.Field(&p.Type, validation.Required, validation.In(ObjectBlueprintTypePlugin, ObjectBlueprintTypeTheme)),
 		validation.Field(&p.Name, validation.Required),
 		validation.Field(&p.ExactName, validation.Required),
-		validation.Field(&p.Version, validation.Required, is.Semver),
+		validation.Field(&p.Version, validation.Required),
 		validation.Field(&p.Url, validation.Required, is.URL),
+		validation.Field(&p.SetOrder, validation.Required),
 	)
 }

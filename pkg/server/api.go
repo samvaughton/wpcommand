@@ -58,14 +58,14 @@ func SetupApi(router *mux.Router) {
 	api.HandleFunc("/site", AuthWrapper(types.AuthObjectSite, types.AuthActionRead, loadSitesHandler)).Methods("GET")
 	api.HandleFunc("/site/{key}", AuthWrapper(types.AuthObjectSite, types.AuthActionRead, loadSiteHandler)).Methods("GET")
 
-	api.HandleFunc("/site/{key}/command", AuthWrapper(types.AuthObjectCommand, types.AuthActionRead, loadSiteCommandsHandler)).Methods("GET")
+	api.HandleFunc("/site/{key}/command", AuthWrapper(types.AuthObjectCommand, types.AuthActionRun, loadSiteCommandsHandler)).Methods("GET")
 	api.HandleFunc("/site/{key}/blueprint", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionRead, loadSiteBlueprintsHandler)).Methods("GET")
 
 	api.HandleFunc("/command/job", AuthWrapper(types.AuthObjectCommandJob, types.AuthActionWrite, createCommandJobHandler)).Methods("POST")
 	api.HandleFunc("/command/job", AuthWrapper(types.AuthObjectCommandJob, types.AuthActionRead, getCommandJobsHandler)).Methods("GET")
 	api.HandleFunc("/command/job/{uuid}", AuthWrapper(types.AuthObjectCommandJob, types.AuthActionRead, getCommandJobHandler)).Methods("GET")
 
-	api.HandleFunc("/command/job/{uuid}/events", AuthWrapper(types.AuthObjectCommandJobEvent, types.AuthActionRead, getCommandJobEventsHandler)).Methods("GET")
+	api.HandleFunc("/command/job/{uuid}/event", AuthWrapper(types.AuthObjectCommandJobEvent, types.AuthActionRead, getCommandJobEventsHandler)).Methods("GET")
 
 	api.HandleFunc("/blueprint/{bpUuid}/object/{objUuid}/revision/{revId}/file", AuthWrapper(types.AuthObjectBlueprintObject, types.AuthActionRead, loadBlueprintObjectFileHandler)).Methods("GET")
 	api.HandleFunc("/blueprint/{bpUuid}/object/{objUuid}/revision/{revId}/version", AuthWrapper(types.AuthObjectBlueprintObject, types.AuthActionRead, createBlueprintObjectRevisionHandler)).Methods("POST")

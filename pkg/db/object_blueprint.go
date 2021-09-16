@@ -142,7 +142,7 @@ func GetLatestBlueprintObjectsForBlueprintSetId(blueprintSetId int64) ([]*types.
 	return items, nil
 }
 
-func BlueprintObjectCreateFromPayload(payload *types.CreateObjectBlueprintPayload, blueprintSetId int64) (*types.ObjectBlueprint, error) {
+func BlueprintObjectCreateFromPayload(tx bun.IDB, payload *types.CreateObjectBlueprintPayload, blueprintSetId int64) (*types.ObjectBlueprint, error) {
 	ob := &types.ObjectBlueprint{
 		Uuid:              uuid.New().String(),
 		CreatedAt:         time.Now(),
@@ -155,14 +155,15 @@ func BlueprintObjectCreateFromPayload(payload *types.CreateObjectBlueprintPayloa
 		ExactName:         payload.ExactName,
 		Version:           payload.Version,
 		OriginalObjectUrl: payload.Url,
+		SetOrder:          payload.SetOrder,
 	}
 
-	_, err := Db.NewInsert().Model(ob).Returning("*").Exec(context.Background())
+	_, err := tx.NewInsert().Model(ob).Returning("*").Exec(context.Background())
 
 	return ob, err
 }
 
-func BlueprintObjectCreateNewRevisionFromPayload(objectUuid string, payload *types.UpdatedVersionObjectBlueprintPayload) (*types.ObjectBlueprint, error) {
+func BlueprintObjectCreateNewRevisionFromPayload(tx bun.IDB, objectUuid string, payload *types.UpdatedVersionObjectBlueprintPayload) (*types.ObjectBlueprint, error) {
 	// we need to get the latest object for this uuid
 	latest, err := BlueprintObjectGetLatestRevisionByUuid(objectUuid)
 
@@ -190,7 +191,7 @@ func BlueprintObjectCreateNewRevisionFromPayload(objectUuid string, payload *typ
 		OriginalObjectUrl: url,
 	}
 
-	_, err = Db.NewInsert().Model(ob).Returning("*").Exec(context.Background())
+	_, err = tx.NewInsert().Model(ob).Returning("*").Exec(context.Background())
 
 	return ob, err
 }

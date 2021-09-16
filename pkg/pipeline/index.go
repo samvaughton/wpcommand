@@ -1,7 +1,6 @@
 package pipeline
 
 import (
-	"fmt"
 	"github.com/samvaughton/wpcommand/v2/pkg/execution"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 )
@@ -66,7 +65,6 @@ func iterateAndExecute(pipeline *SiteCommandPipeline, commands []SiteCommand) er
 		result, err := command.Execute(pipeline)
 
 		if err != nil {
-			fmt.Println("exec", err)
 			pipeline.errors = append(pipeline.errors, err)
 		}
 
@@ -78,7 +76,6 @@ func iterateAndExecute(pipeline *SiteCommandPipeline, commands []SiteCommand) er
 			}
 		} else {
 			if err != nil {
-				fmt.Println("hook", err)
 				for _, hook := range pipeline.Hooks.PostError {
 					hook(command, result, err)
 				}
@@ -92,7 +89,6 @@ func iterateAndExecute(pipeline *SiteCommandPipeline, commands []SiteCommand) er
 		}
 
 		if err != nil {
-			fmt.Println("last check", err)
 			return err // always break on an error
 		}
 

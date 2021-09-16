@@ -22,11 +22,11 @@
             runnableCommands = data;
         })
 
-        if (hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionRead)) {
+        hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionRead).then(() => {
             fetch("/api/site/" + key + "/blueprint").then(resp => resp.json()).then(data => {
                 blueprintSets = data;
             })
-        }
+        });
     });
 
     /*

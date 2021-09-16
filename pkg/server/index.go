@@ -1,6 +1,7 @@
 package server
 
 import (
+	"embed"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/samvaughton/wpcommand/v2/pkg/auth"
@@ -15,12 +16,12 @@ import (
 	"time"
 )
 
-func Start() {
-	config.InitConfig()
+func Start(staticFiles *embed.FS, configData string, authData string) {
+	config.InitConfig(configData)
 	db.InitDbConnection()
 	util.SetupLogging()
 
-	auth.InitAuth()
+	auth.InitAuth(authData)
 
 	flow.CreateDefaultAccountAndUser()
 
@@ -33,8 +34,7 @@ func Start() {
 
 	SetupApi(router)
 	SetupPublic(router)
-
-	SetupSpa(router)
+	SetupSpa(router, staticFiles)
 
 	srv := &http.Server{
 		Handler:      router,

@@ -2,9 +2,11 @@ package object_blueprint
 
 import (
 	"encoding/hex"
+	"github.com/pkg/errors"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"github.com/uptrace/bun"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -12,7 +14,7 @@ import (
  * Takes in the objectId and the url, attempting to create or retrieve a record in object storage
  * and attach it to that object
  */
-func StoreObjectFile(objectId int64, data []byte) (*types.ObjectBlueprintStorage, error) {
+func StoreObjectFile(tx bun.IDB, objectId int64, data []byte, rejectIfExists bool) (*types.ObjectBlueprintStorage, error) {
 	// we have our zip file in "bytes", now we need to hash these bytes and check if it already exists or not
 	hasher := sha3.New256()
 	hasher.Write(data)
@@ -23,13 +25,15 @@ func StoreObjectFile(objectId int64, data []byte) (*types.ObjectBlueprintStorage
 
 	if item == nil {
 		// does not exist we can create
-		item, err = db.BlueprintObjectStorageCreateFromBytes(hash, data)
+		item, err = db.BlueprintObjectStorageCreateFromBytes(tx, hash, data)
 
 		if err != nil {
 			log.Error(err)
 
 			return nil, err
 		}
+	} else if rejectIfExists {
+		return nil, errors.New("provided file already exists, maybe the url does not have the latest version yet")
 	}
 
 	relationExists := false

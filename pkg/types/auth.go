@@ -6,6 +6,8 @@ const RoleMember = "member"
 const AuthObjectSite = "site"
 
 const AuthObjectCommand = "command"
+const AuthObjectCommandRunType = "command_run_type"
+
 const AuthObjectCommandJob = "command_job"
 const AuthObjectCommandJobEvent = "command_job_event"
 

@@ -67,9 +67,7 @@ func Start() {
 
 					log.Infof("dispatching job %s to pool", item.Uuid)
 
-					commands := []pipeline.SiteCommand{
-						registry.CommandRegistry[local.Key](local.Site),
-					}
+					commands := GetCommandsFromJob(local)
 
 					AddPipelineTask(pipeline.SiteCommandPipeline{
 						Site:     local.Site,
@@ -127,7 +125,7 @@ func Start() {
 
 										if result.Data != nil {
 											jType = types.EventLogTypeData
-											meta["data"] = result.Data
+											meta["Data"] = result.Data
 										}
 									}
 
@@ -157,7 +155,7 @@ func Start() {
 
 										if result.Data != nil {
 											jType = types.EventLogTypeData
-											meta["data"] = result.Data
+											meta["Data"] = result.Data
 										}
 									}
 
@@ -179,7 +177,7 @@ func Start() {
 									if result != nil {
 										if result.Data != nil {
 											jType = types.EventLogTypeData
-											meta["data"] = result.Data
+											meta["Data"] = result.Data
 										}
 									}
 
@@ -201,4 +199,22 @@ func Start() {
 			}
 		}
 	}()
+}
+
+func GetCommandsFromJob(job types.CommandJob) []pipeline.SiteCommand {
+	commands := make([]pipeline.SiteCommand, 0)
+
+	switch job.Command.Type {
+	case types.CommandTypeWpBuiltIn:
+		commands = []pipeline.SiteCommand{
+			registry.CommandRegistry[job.Key](job.Site),
+		}
+		break
+	case types.CommandTypeHttpCall:
+		commands = []pipeline.SiteCommand{
+			registry.GetHttpCallCommand(job),
+		}
+	}
+
+	return commands
 }

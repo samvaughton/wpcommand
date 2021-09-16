@@ -16,7 +16,7 @@
 
     let form = new Form(
         formType,
-        formType === 'UPDATE' ? ['Name'] : ['Type', 'Name', 'ExactName', 'Version', 'Url'],
+        formType === 'UPDATE' ? ['Name', 'SetOrder'] : ['Type', 'Name', 'ExactName', 'SetOrder', 'Version', 'Url'],
         item
     );
 
@@ -119,6 +119,16 @@
                             What the theme or plugin calls itself, ie Advanced Custom Fields might be <code>acf</code>
                         </FormText>
                     </FormGroup>
+                    {/if}
+
+                    {#if form.current.SetOrder !== undefined}
+                        <FormGroup>
+                            <Label>Set Order</Label>
+                            <Input type="number" bind:value={form.current.SetOrder.value} valid={form.isValid(form.current.SetOrder)} invalid={form.isInvalid(form.current.SetOrder)} feedback={form.current.SetOrder.error} />
+                            <FormText color="muted">
+                                The order in which this object runs, running from lowest to highest.
+                            </FormText>
+                        </FormGroup>
                     {/if}
 
                     {#if form.current.Version !== undefined}
