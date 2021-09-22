@@ -1,9 +1,9 @@
 FROM golang:1.16.7
 
-COPY . /go/src/github.com/samvaugton/wpcommand
-WORKDIR /go/src/github.com/samvaugton/wpcommand
+COPY . /var/www
+WORKDIR /var/www
 RUN make build-binaries
 
-ENTRYPOINT ["/go/src/github.com/samvaughton/wpcommand/wpcmd", "--config=config.docker.yaml"]
+ENTRYPOINT ["/var/www/release/v2-linux-amd64", "-config=/var/www/config.docker.yaml"]
 
-EXPOSE 80
+EXPOSE 8999

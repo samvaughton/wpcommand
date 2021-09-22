@@ -57,6 +57,7 @@ func InitAuth(authData string) {
 			{types.RoleMember, types.AuthObjectCommand, "run"},
 			{types.RoleMember, types.AuthObjectCommandRunType, types.CommandTypeHttpCall}, // just http calls
 			{types.RoleMember, types.AuthObjectCommandJob, "read"},
+			{types.RoleMember, types.AuthObjectCommandJob, "write"},
 			{types.RoleMember, types.AuthObjectCommandJobEvent, "read"},
 			{types.RoleMember, types.AuthObjectUser, "read"},
 			{types.RoleMember, types.AuthObjectAccount, "read"},

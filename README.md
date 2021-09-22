@@ -26,3 +26,8 @@ matched against the sites wordpress installation and synced.
 Once an object has been created it will be versioned according to its version number provided. If a blueprint set
 deployment goes wrong (ie updating an object to the next version and then apply the set) then the deployment set
 can rollback the blueprint objects to the previous version.
+
+## Connect
+export POSTGRES_PASSWORD=$(kubectl get secret --namespace wpcommand wpcommand-db-postgresql -o jsonpath="{.data.postgresql-password}" | base64 --decode)
+kubectl port-forward --namespace wpcommand svc/wpcommand-db-postgresql 5432:5432 &
+PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 -U postgres -d postgres -p 5432

@@ -9,7 +9,7 @@ LDFLAGS		+= -X github.com/samvaughton/wpcommand/version.BuildDate=$(JOBDATE)
 
 build-binaries:
 	go get github.com/mitchellh/gox
-	gox -verbose -output="release/wpcmd-{{.Dir}}-{{.OS}}-{{.Arch}}" \
+	gox -verbose -output="release/{{.Dir}}-{{.OS}}-{{.Arch}}" \
 		-ldflags "$(LDFLAGS)" -osarch="linux/amd64"
 
 test:
@@ -24,8 +24,8 @@ install:
 	GOOS=linux go install -ldflags "$(LDFLAGS)" github.com/samvaughton/wpcommand/cmd/wpcmd
 
 image:
-	docker build -t samvaughton/wpcommand:$(VERSION) -f Dockerfile .
+	docker build -t samrentivo/wpcommand:$(VERSION) -f Dockerfile .
 
 run:
-	go install github.com/samvaughton/wpcommand/wpcmd
+	go install github.com/samrentivo/wpcommand/wpcmd
 	wpcmd

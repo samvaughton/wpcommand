@@ -1,0 +1,10 @@
+bin
+docs
+migrations
+docker
+k8
+config.local.yaml
+.idea
+wpcommand.iml
+wpcommand
+README.md

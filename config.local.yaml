@@ -3,8 +3,8 @@ storageHost: wpcmd.k8.rentivo.com
 environment: dev
 embedStaticFiles: false
 useInClusterConfig: false
-sentryDsn:
-databaseDsn:
+sentryDsn: https://0b5bb19136ee423783dd3c2b48ab3594@o58538.ingest.sentry.io/5960484
+databaseDsn: postgres://app:password@localhost:5444/app?sslmode=disable
 manifest: https://raw.githubusercontent.com/aptenex/k8-store/main/manifest.yaml
 kubernetes:
   labelSelector: app.kubernetes.io/name=wordpress

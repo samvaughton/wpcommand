@@ -1,1 +1,2 @@
-INSERT INTO public.blueprint_sets (id, uuid, name, enabled, created_at, updated_at) VALUES (1, '25d188cf-8c71-4d61-803f-089d678734dd', 'default', true, '2021-08-09 10:27:15.000000', '2021-08-09 10:27:16.000000');
+-- This isnt valid anymore as blueprint sets need to be associated to an account_id
+-- INSERT INTO public.blueprint_sets (id, uuid, name, enabled, created_at, updated_at) VALUES (1, '25d188cf-8c71-4d61-803f-089d678734dd', 'default', true, '2021-08-09 10:27:15.000000', '2021-08-09 10:27:16.000000');

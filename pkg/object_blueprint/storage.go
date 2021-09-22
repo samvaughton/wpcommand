@@ -5,7 +5,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
-	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 	"golang.org/x/crypto/sha3"
 )
@@ -28,8 +27,6 @@ func StoreObjectFile(tx bun.IDB, objectId int64, data []byte, rejectIfExists boo
 		item, err = db.BlueprintObjectStorageCreateFromBytes(tx, hash, data)
 
 		if err != nil {
-			log.Error(err)
-
 			return nil, err
 		}
 	} else if rejectIfExists {
