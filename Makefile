@@ -23,6 +23,9 @@ install:
 	# CGO_ENABLED=0 GOOS=linux go install -ldflags "$(LDFLAGS)" github.com/samvaughton/wpcommand/wpcmd
 	GOOS=linux go install -ldflags "$(LDFLAGS)" github.com/samvaughton/wpcommand/cmd/wpcmd
 
+push-image:
+	docker push samrentivo/wpcommand:$(VERSION)
+
 image:
 	docker build -t samrentivo/wpcommand:$(VERSION) -f Dockerfile .
 
