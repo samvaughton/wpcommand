@@ -4,8 +4,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/samvaughton/wpcommand/v2/pkg/auth"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
+	"github.com/samvaughton/wpcommand/v2/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"time"
 )
 
 var notImplemented = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +39,7 @@ func AuthWrapper(obj string, act string, handler func(resp http.ResponseWriter, 
 
 func SetupApi(router *mux.Router) {
 	router.HandleFunc("/auth", authHandler).Methods("POST")
-	router.HandleFunc("/storage/{hash}", loadFileFromHashHandler).Methods("GET")
+	router.Handle("/storage/{hash}", http.TimeoutHandler(util.HttpWrapHandlerFn(loadFileFromHashHandler), 120*time.Second, "timeout")).Methods("GET")
 
 	api := NewAuthorizedApi("/api", router)
 

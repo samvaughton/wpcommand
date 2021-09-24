@@ -2,6 +2,7 @@ package registry
 
 import (
 	"fmt"
+	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/pipeline"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 )
@@ -14,7 +15,7 @@ func GetWpUpdateSiteConfigCommand(site *types.Site) pipeline.SiteCommand {
 				Name: fmt.Sprintf("%s.%s", CmdWpUpdateSiteConfig, "download"),
 				Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {
 					// this actually needs to be a live endpoint
-					scUrl := fmt.Sprintf("http://00e9a9271f0d.ngrok.io/public/site/%s/config", site.Uuid)
+					scUrl := fmt.Sprintf("%s/public/site/%s/config", config.Config.StorageHost, site.Uuid)
 
 					downloadCmd := fmt.Sprintf("curl %s --output /opt/bitnami/siteConfig.json", scUrl)
 					result, err := pipeline.Executor.ExecuteCommand([]string{downloadCmd})

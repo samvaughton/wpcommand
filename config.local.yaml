@@ -1,5 +1,5 @@
 serverAddress: ":8999"
-storageHost: wpcmd.k8.rentivo.com
+storageHost: http://wpcmd.k8.rentivo.com
 environment: dev
 embedStaticFiles: false
 useInClusterConfig: false

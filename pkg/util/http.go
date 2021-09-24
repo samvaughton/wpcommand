@@ -13,6 +13,12 @@ const HttpStatusInvalidPayload = "INVALID_PAYLOAD"
 const HttpStatusValidationErrors = "VALIDATION_ERRORS"
 const HttpStatusInternalServerError = "INTERNAL_SERVER_ERROR"
 
+type WrappedHandler http.Handler
+
+func HttpWrapHandlerFn(handler func(resp http.ResponseWriter, req *http.Request)) http.HandlerFunc {
+	return handler
+}
+
 func HttpEmptyErrors() map[string]string {
 	return map[string]string{}
 }

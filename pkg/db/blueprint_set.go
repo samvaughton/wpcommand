@@ -60,7 +60,7 @@ func BlueprintsGetForSiteSafe(siteId int64, accountId int64) ([]*types.Blueprint
 		NewSelect().
 		Model(&items).
 		Relation("Sites").
-		Join("JOIN sites_blueprint_sets AS sbs ON \"blueprint_set\".\"id\" = sbs.site_id").
+		Join("JOIN sites_blueprint_sets AS sbs ON \"blueprint_set\".\"id\" = sbs.blueprint_set_id").
 		Where("account_id = ? and sbs.site_id = ?", accountId, siteId).
 		Order("name ASC").
 		Scan(context.Background())
