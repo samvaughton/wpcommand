@@ -41,6 +41,18 @@ func SiteGetByUuid(uuid string) (*types.Site, error) {
 	return site, nil
 }
 
+func SiteGetByUuidSafe(uuid string, accountInt int64) (*types.Site, error) {
+	site := new(types.Site)
+
+	err := Db.NewSelect().Model(site).Where("uuid = ? and account_id = ?", uuid, accountInt).Scan(context.Background())
+
+	if err != nil {
+		return nil, err // not found
+	}
+
+	return site, nil
+}
+
 func SelectSites(siteSelector string, accountId int64) ([]*types.Site, error) {
 	var err error
 	var sites = make([]*types.Site, 0)

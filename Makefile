@@ -32,3 +32,9 @@ image:
 run:
 	go install github.com/samrentivo/wpcommand/wpcmd
 	wpcmd
+
+docker-kill-all:
+	docker kill $(docker ps -q)
+
+db-prod-pf:
+	kubectl port-forward -n wpcommand pod/wpcommand-db-postgresql-0 5432:5432

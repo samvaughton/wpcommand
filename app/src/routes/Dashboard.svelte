@@ -109,7 +109,6 @@
             <table class="table table-borderless table-striped">
                 <thead>
                 <tr>
-                    <th scope="col">#</th>
                     <th scope="col">Description</th>
                     <th scope="col">Enabled</th>
                     <th scope="col">Namespace</th>
@@ -120,7 +119,6 @@
                 <tbody>
                 {#each $siteStore as item, index}
                 <tr>
-                    <th scope="row">{index + 1}</th>
                     <td>{item.Description}</td>
                     <td><Enabled value={item.Enabled} /></td>
                     <td>{item.Namespace}</td>

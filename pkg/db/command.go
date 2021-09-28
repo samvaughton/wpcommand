@@ -37,13 +37,30 @@ func CommandGetByIdAccountSafe(id int64, accountId int64) (*types.Command, error
 	return item, nil
 }
 
-func CommandsGetForSiteSafe(siteId int64, accountId int64) ([]*types.Command, error) {
+func CommandsGetRunnableForSiteSafe(siteId int64, accountId int64) ([]*types.Command, error) {
 	items := make([]*types.Command, 0)
 
 	err := Db.
 		NewSelect().
 		Model(&items).
 		Where("(account_id IS NULL and site_id IS NULL) OR (site_id = ?) OR (account_id = ?)", siteId, accountId).
+		Order("description ASC").
+		Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func CommandsGetAttachedForSiteSafe(siteId int64) ([]*types.Command, error) {
+	items := make([]*types.Command, 0)
+
+	err := Db.
+		NewSelect().
+		Model(&items).
+		Where("site_id = ?", siteId, siteId).
 		Order("description ASC").
 		Scan(context.Background())
 

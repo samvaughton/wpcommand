@@ -1,8 +1,9 @@
 class Form {
 
-    constructor(formType, fields, existingObject) {
+    constructor(formType, fields, existingObject, fieldsTypeMap) {
         this.formType = formType;
         this.fields = fields;
+        this.fieldsTypeMap = fieldsTypeMap || {};
         this.existingObject = existingObject;
         this.submitted = false;
         this.errorMessage = '';
@@ -21,6 +22,14 @@ class Form {
 
         this.fields.forEach(field => {
             let value = '';
+
+            if (this.fieldsTypeMap[field] !== undefined) {
+                const type = this.fieldsTypeMap[field] !== undefined;
+
+                if (type === 'bool') {
+                    value = false;
+                }
+            }
 
             if (
                 this.formType === 'UPDATE' &&
@@ -46,6 +55,8 @@ class Form {
         for (let key in this.current) {
             values[key] = this.current[key].value;
         }
+
+        console.log(this.current);
 
         return Object.assign(values, extra);
     }

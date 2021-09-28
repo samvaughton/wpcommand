@@ -1,33 +1,57 @@
 <script>
 
     import {Router, Link} from "svelte-routing";
-    import {getSites} from "../store/site";
     import {hasAccess, AuthEnum} from "../store/user";
     import {Modal, ModalHeader, ModalBody, ModalFooter} from 'sveltestrap';
     import Enabled from "../components/Enabled.svelte";
+    import Loading from "../components/Loading.svelte";
+    import SiteUpdateModal from "../components/form/SiteUpdateModal.svelte";
+    import CommandCreateUpdateModal from "../components/form/CommandCreateUpdateModal.svelte";
 
     /*
      * Fetch site details
      */
 
     export let key;
-    let site = null;
+    let item = null;
     let runnableCommands = [];
     let blueprintSets = [];
+    let itemSpecificCommands = [];
 
-    fetch("/api/site/" + key).then(resp => resp.json()).then(data => {
-        site = data;
+    function fetchData() {
+        fetch("/api/site/" + key).then(resp => resp.json()).then(data => {
+            item = data;
 
-        fetch("/api/site/" + key + "/command").then(resp => resp.json()).then(data => {
-            runnableCommands = data;
-        })
-
-        hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionRead).then(() => {
-            fetch("/api/site/" + key + "/blueprint").then(resp => resp.json()).then(data => {
-                blueprintSets = data;
+            fetch("/api/site/" + key + "/command?type=runnable").then(resp => resp.json()).then(data => {
+                runnableCommands = data;
             })
+
+            fetch("/api/site/" + key + "/command?type=attached").then(resp => resp.json()).then(data => {
+                itemSpecificCommands = data;
+            })
+
+            hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionRead).then(() => {
+                fetch("/api/site/" + key + "/blueprint").then(resp => resp.json()).then(data => {
+                    blueprintSets = data;
+                })
+            });
         });
-    });
+    }
+
+    /*
+     * Site update modal
+     */
+    let isUpdateSiteModalOpen = false;
+
+    /*
+     * Command update modal
+     */
+    let isUpdateCommandModalOpen = false;
+
+    /*
+    * Command create modal
+    */
+    let isAddCommandModalOpen = false;
 
     /*
      * Run command modal
@@ -45,8 +69,6 @@
         mCommandId = 0;
     };
 
-    getSites();
-
     let submitModal = function () {
         loading = true;
         warningMessage = "";
@@ -54,7 +76,7 @@
             method: "POST",
             body: JSON.stringify({
                 CommandId: mCommandId,
-                Selector: site.Key,
+                Selector: item.Key,
             })
         }).then(resp => {
             loading = false;
@@ -73,6 +95,7 @@
         });
     };
 
+    fetchData();
 
 </script>
 
@@ -117,81 +140,135 @@
 </Modal>
 
 <Router>
-    {#if site}
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex bd-highlight mb-3">
-                <div class="p-2 bd-highlight">
-                    <h1 class="float-start">{site.Description}</h1>
-                </div>
-                <div class="ms-auto p-2 bd-highlight">
-                    <div class="btn-group" role="group" aria-label="Site Actions">
-                        <button type="button" class="btn btn-primary" on:click={toggle}>Run Command</button>
-                    </div>
-                </div>
-            </div>
+    {#if item}
 
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-12">
-            <table class="table table-borderless table-striped">
-                <thead>
-                <tr>
-                    <th scope="col"></th>
-                    <th scope="col"></th>
-                </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th>Status</th>
-                        <td><Enabled value="{site.Enabled}"/></td>
-                    </tr>
-                    <tr>
-                        <th>Namespace</th>
-                        <td>{site.Namespace}</td>
-                    </tr>
-                    <tr>
-                        <th>Label Selector</th>
-                        <td>{site.LabelSelector}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {#await hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionRead)}
-    {:then result}
-        <div class="row mt-5">
+        <div class="row">
             <div class="col-12">
-                <div class="d-flex bd-highlight">
+                <div class="d-flex bd-highlight mb-3">
                     <div class="p-2 bd-highlight">
-                        <h3 class="float-start">Blueprints</h3>
+                        <h1 class="float-start">{item.Description}</h1>
                     </div>
                     <div class="ms-auto p-2 bd-highlight">
-
+                        <div class="btn-group" role="group" aria-label="Site Actions">
+                            <button type="button" class="btn btn-primary" on:click={toggle}>Run Command</button>
+                        </div>
+                        {#await hasAccess(AuthEnum.ObjectSite, AuthEnum.ActionWrite)}
+                            <Loading />
+                        {:then result}
+                            <button on:click={() => isUpdateSiteModalOpen = !isUpdateSiteModalOpen} class="btn btn-info">Edit</button>
+                            <SiteUpdateModal bind:isOpen={isUpdateSiteModalOpen} bind:item={item} fetchData={fetchData} formType={"UPDATE"} />
+                        {/await}
                     </div>
                 </div>
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
                 <table class="table table-borderless table-striped">
                     <thead>
                     <tr>
-                        <th scope="col">Blueprint Set</th>
-                        <th scope="col">Status</th>
+                        <th scope="col"></th>
                         <th scope="col"></th>
                     </tr>
                     </thead>
                     <tbody>
-                    {#each blueprintSets as item, index}
-                    <tr>
-                        <td>{item.Name}</td>
-                        <td><Enabled value={item.Enabled} /></td>
-                        <td><Link to="/blueprints/{item.Uuid}">Details</Link></td>
-                    </tr>
-                    {/each}
+                        <tr>
+                            <th>Status</th>
+                            <td><Enabled value="{item.Enabled}"/></td>
+                        </tr>
+                        <tr>
+                            <th>Namespace</th>
+                            <td>{item.Namespace}</td>
+                        </tr>
+                        <tr>
+                            <th>Label Selector</th>
+                            <td>{item.LabelSelector}</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-    {/await}
+        {#await hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionRead)}
+        {:then result}
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="d-flex bd-highlight">
+                        <div class="p-2 bd-highlight">
+                            <h3 class="float-start">Blueprints</h3>
+                        </div>
+                        <div class="ms-auto p-2 bd-highlight">
+
+                        </div>
+                    </div>
+                    <table class="table table-borderless table-striped">
+                        <thead>
+                        <tr>
+                            <th scope="col">Blueprint Set</th>
+                            <th scope="col">Status</th>
+                            <th scope="col"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {#each blueprintSets as item, index}
+                        <tr>
+                            <td>{item.Name}</td>
+                            <td><Enabled value={item.Enabled} /></td>
+                            <td><Link to="/blueprints/{item.Uuid}">Details</Link></td>
+                        </tr>
+                        {/each}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {/await}
+
+        {#await hasAccess(AuthEnum.ObjectCommand, AuthEnum.ActionRead)}
+        {:then result}
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="d-flex bd-highlight">
+                        <div class="p-2 bd-highlight">
+                            <h3 class="float-start">{item.Description} specific commands</h3>
+                        </div>
+                        <div class="ms-auto p-2 bd-highlight">
+                            {#await hasAccess(AuthEnum.ObjectCommand, AuthEnum.ActionWrite)}
+                                <Loading />
+                            {:then result}
+                                <button on:click={() => isAddCommandModalOpen = !isAddCommandModalOpen} class="btn btn-sm btn-primary">Create Command</button>
+                                <CommandCreateUpdateModal bind:isOpen={isAddCommandModalOpen} bind:site={item} fetchData={fetchData} formType={"CREATE"} />
+                            {/await}
+                        </div>
+                    </div>
+                    <table class="table table-borderless table-striped">
+                        <thead>
+                        <tr>
+                            <th scope="col">Description</th>
+                            <th scope="col">Type</th>
+                            <th scope="col"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {#each itemSpecificCommands as cmd, index}
+                            <tr>
+                                <td>{cmd.Description}</td>
+                                <td>{cmd.Type}</td>
+                                <td>
+                                    {#await hasAccess(AuthEnum.ObjectCommand, AuthEnum.ActionWrite)}
+                                        <Loading />
+                                    {:then result}
+                                        <button on:click={() => isUpdateCommandModalOpen = !isUpdateCommandModalOpen} class="btn btn-sm btn-primary">Update</button>
+                                        <CommandCreateUpdateModal bind:isOpen={isUpdateCommandModalOpen} bind:site={item} bind:item={cmd} fetchData={fetchData} formType={"UPDATE"} />
+                                    {/await}
+                                </td>
+                            </tr>
+                        {/each}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {/await}
+
     {:else}
         <div class="spinner-border m-5" role="status">
             <span class="visually-hidden">Loading...</span>

@@ -59,8 +59,10 @@ func SetupApi(router *mux.Router) {
 	api.HandleFunc("/site", AuthWrapper(types.AuthObjectSite, types.AuthActionWrite, createSiteHandler)).Methods("POST")
 	api.HandleFunc("/site", AuthWrapper(types.AuthObjectSite, types.AuthActionRead, loadSitesHandler)).Methods("GET")
 	api.HandleFunc("/site/{key}", AuthWrapper(types.AuthObjectSite, types.AuthActionRead, loadSiteHandler)).Methods("GET")
+	api.HandleFunc("/site/{siteUuid}", AuthWrapper(types.AuthObjectSite, types.AuthActionWrite, updateSiteHandler)).Methods("PUT")
 
 	api.HandleFunc("/site/{key}/command", AuthWrapper(types.AuthObjectCommand, types.AuthActionRun, loadSiteCommandsHandler)).Methods("GET")
+	api.HandleFunc("/site/{key}/command", AuthWrapper(types.AuthObjectCommand, types.AuthActionWrite, createSiteCommandHandler)).Methods("POST")
 	api.HandleFunc("/site/{key}/blueprint", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionRead, loadSiteBlueprintsHandler)).Methods("GET")
 
 	api.HandleFunc("/command/job", AuthWrapper(types.AuthObjectCommandJob, types.AuthActionWrite, createCommandJobHandler)).Methods("POST")
