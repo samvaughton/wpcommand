@@ -28,6 +28,10 @@
 
             fetch("/api/site/" + key + "/command?type=attached").then(resp => resp.json()).then(data => {
                 itemSpecificCommands = data;
+
+                itemSpecificCommands.forEach(cmd => {
+                    isUpdateCommandModalOpen[cmd.Uuid] = false;
+                });
             })
 
             hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionRead).then(() => {
@@ -44,9 +48,9 @@
     let isUpdateSiteModalOpen = false;
 
     /*
-     * Command update modal
+     * Command update modal map
      */
-    let isUpdateCommandModalOpen = false;
+    let isUpdateCommandModalOpen = {};
 
     /*
     * Command create modal
@@ -257,11 +261,13 @@
                                     {#await hasAccess(AuthEnum.ObjectCommand, AuthEnum.ActionWrite)}
                                         <Loading />
                                     {:then result}
-                                        <button on:click={() => isUpdateCommandModalOpen = !isUpdateCommandModalOpen} class="btn btn-sm btn-primary">Update</button>
-                                        <CommandCreateUpdateModal bind:isOpen={isUpdateCommandModalOpen} bind:site={item} bind:item={cmd} fetchData={fetchData} formType={"UPDATE"} />
+                                        <a href="javascript:;" on:click={() => isUpdateCommandModalOpen[cmd.Uuid] = !isUpdateCommandModalOpen[cmd.Uuid]} style="cursor: pointer;">Update</a>
+                                        <CommandCreateUpdateModal bind:isOpen={isUpdateCommandModalOpen[cmd.Uuid]} bind:site={item} bind:item={cmd} fetchData={fetchData} formType={"UPDATE"} />
                                     {/await}
                                 </td>
                             </tr>
+                        {:else}
+                            <tr><td colspan="3">No commands found</td></tr>
                         {/each}
                         </tbody>
                     </table>

@@ -123,7 +123,8 @@ func createSiteCommandHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	cmd := &types.Command{
-		SiteId: null.NewInt(site.Id, true),
+		SiteId:    null.NewInt(site.Id, true),
+		AccountId: null.NewInt(userAccount.AccountId, true),
 	}
 
 	payload.HydrateCommand(cmd)
@@ -146,7 +147,72 @@ func createSiteCommandHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	json.NewEncoder(resp).Encode(site)
+	json.NewEncoder(resp).Encode(cmd)
+}
+
+func updateSiteCommandHandler(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-Type", "application/json")
+
+	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
+
+	vars := mux.Vars(req)
+	siteUuid := vars["siteUuid"]
+	cmdUuid := vars["cmdUuid"]
+
+	site, err := db.SiteGetByUuidSafe(siteUuid, userAccount.AccountId)
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	cmd, err := db.CommandGetByUuidAccountSafe(cmdUuid, site.AccountId)
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	payload, err := types.NewUpdateCommandPayloadFromHttpRequest(req)
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	validationErrors := payload.Validate()
+
+	if validationErrors != nil {
+		resp.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(resp).Encode(map[string]interface{}{"Status": "VALIDATION_ERRORS", "Errors": validationErrors})
+
+		return
+	}
+
+	payload.HydrateCommand(cmd)
+	cmd.Key = util.Slug(payload.Description)
+
+	// we want to update all objects with the same uuid for this
+	res, err := db.Db.NewUpdate().Model(cmd).WherePK().Exec(context.Background())
+
+	if err != nil {
+		log.Error(err)
+		util.HttpErrorEncode(resp, util.HttpStatusInternalServerError, "Something went wrong.", util.HttpEmptyErrors())
+		return
+	}
+
+	ra, err := res.RowsAffected()
+
+	if err != nil || ra == 0 {
+		log.Error(err)
+		util.HttpErrorEncode(resp, util.HttpStatusInternalServerError, "Something went wrong.", util.HttpEmptyErrors())
+		return
+	}
+
+	json.NewEncoder(resp).Encode(cmd)
 }
 
 func loadSiteCommandsHandler(resp http.ResponseWriter, req *http.Request) {

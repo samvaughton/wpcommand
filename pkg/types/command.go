@@ -88,3 +88,56 @@ func NewCreateCommandPayloadFromHttpRequest(req *http.Request) (*CreateCommandPa
 
 	return &item, nil
 }
+
+type UpdateCommandPayload struct {
+	Type        string
+	Description string
+	HttpMethod  string
+	HttpUrl     string
+	HttpHeaders string
+	HttpBody    string
+	Public      bool
+}
+
+func (p UpdateCommandPayload) HydrateCommand(command *Command) {
+	command.Type = p.Type
+	command.Uuid = uuid.New().String()
+	command.Description = p.Description
+	command.HttpMethod = p.HttpMethod
+	command.HttpUrl = p.HttpUrl
+	command.HttpHeaders = p.HttpHeaders
+	command.HttpBody = p.HttpBody
+	command.Public = p.Public
+
+	if command.HttpHeaders == "" {
+		command.HttpHeaders = "{}"
+	}
+}
+
+func (p UpdateCommandPayload) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Type, validation.Required),
+		validation.Field(&p.Description, validation.Required),
+		validation.Field(&p.HttpUrl, validation.Required, is.URL),
+		validation.Field(&p.HttpMethod, validation.Required),
+		validation.Field(&p.HttpHeaders, is.JSON),
+	)
+}
+
+func NewUpdateCommandPayloadFromHttpRequest(req *http.Request) (*UpdateCommandPayload, error) {
+	var item UpdateCommandPayload
+
+	bytes, err := ioutil.ReadAll(req.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(bytes, &item)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
+}

@@ -31,7 +31,23 @@ func CommandGetByIdAccountSafe(id int64, accountId int64) (*types.Command, error
 	}
 
 	if item.IsDefault() == false && item.AccountId.Int64 != accountId {
-		return nil, errors.New("not found")
+		return nil, errors.New("command not found via id")
+	}
+
+	return item, nil
+}
+
+func CommandGetByUuidAccountSafe(uuid string, accountId int64) (*types.Command, error) {
+	item := new(types.Command)
+
+	err := Db.NewSelect().Model(item).Where("uuid = ?", uuid).Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	if item.IsDefault() == false && item.AccountId.Int64 != accountId {
+		return nil, errors.New("command not found via uuid")
 	}
 
 	return item, nil
