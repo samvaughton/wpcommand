@@ -59,7 +59,8 @@ func CommandsGetRunnableForSiteSafe(siteId int64, accountId int64) ([]*types.Com
 	err := Db.
 		NewSelect().
 		Model(&items).
-		Where("(account_id IS NULL and site_id IS NULL) OR (site_id = ?) OR (account_id = ?)", siteId, accountId).
+		// first clause covers site specific, second clause covers account wide, and third clause covers global
+		Where("(site_id = ? AND account_id = ?) OR (site_id IS NULL AND account_id = ?) OR (site_id IS NULL AND account_id IS NULL)", siteId, accountId, accountId).
 		Order("description ASC").
 		Scan(context.Background())
 
