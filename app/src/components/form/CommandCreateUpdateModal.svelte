@@ -79,11 +79,6 @@
                     form.initWithNewData(data);
 
                     form = form; // trigger update
-
-                    if (formType === 'CREATE') {
-                        window.location = '/api/site/' + site.Uuid + '/command/' + item.Uuid;
-                    }
-
                 });
 
                 toggle();
