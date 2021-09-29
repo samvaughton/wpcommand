@@ -45,9 +45,16 @@
 
         loading = true;
         form.clearErrors();
+
+        let values = form.getValuesFromObj();
+
+        if (values['Public'] === '' || values['Public'] === undefined) {
+            values['Public'] = false;
+        }
+
         fetch(endpoint, {
             method: method,
-            body: JSON.stringify(form.getValuesFromObj())
+            body: JSON.stringify(values)
         }).then(resp => {
             loading = false;
 
