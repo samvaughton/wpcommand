@@ -54,6 +54,9 @@ type UpdateSitePayload struct {
 	Namespace     string
 	Enabled       bool
 	SiteConfig    string
+	SiteUsername  string
+	SiteEmail     string
+	SitePassword  string
 }
 
 func (p UpdateSitePayload) HydrateSite(site *Site) {
@@ -62,6 +65,9 @@ func (p UpdateSitePayload) HydrateSite(site *Site) {
 	site.LabelSelector = p.LabelSelector
 	site.Enabled = p.Enabled
 	site.SiteConfig = p.SiteConfig
+	site.SiteUsername = p.SiteUsername
+	site.SiteEmail = p.SiteEmail
+	site.SitePassword = p.SitePassword
 }
 
 func (p UpdateSitePayload) Validate() error {
@@ -70,6 +76,7 @@ func (p UpdateSitePayload) Validate() error {
 		validation.Field(&p.LabelSelector, validation.Required),
 		validation.Field(&p.Namespace, validation.Required),
 		validation.Field(&p.SiteConfig, is.JSON),
+		validation.Field(&p.SiteEmail, is.Email),
 	)
 }
 
