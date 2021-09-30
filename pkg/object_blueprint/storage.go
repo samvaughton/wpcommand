@@ -1,6 +1,7 @@
 package object_blueprint
 
 import (
+	"context"
 	"encoding/hex"
 	"github.com/pkg/errors"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
@@ -20,7 +21,7 @@ func StoreObjectFile(tx bun.IDB, objectId int64, data []byte, rejectIfExists boo
 
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
-	item, err := db.BlueprintObjectStorageGetByHash(hash)
+	item, err := db.BlueprintObjectStorageGetByHash(tx, hash)
 
 	if item == nil {
 		// does not exist we can create
@@ -33,6 +34,11 @@ func StoreObjectFile(tx bun.IDB, objectId int64, data []byte, rejectIfExists boo
 		return nil, errors.New("provided file already exists, maybe the url does not have the latest version yet")
 	}
 
+	if item == nil {
+		// to stop ide checks
+		return nil, errors.New("item var within StoreObjectFile is still nil")
+	}
+
 	relationExists := false
 	for _, op := range item.ObjectBlueprints {
 		if op.Id == objectId {
@@ -43,14 +49,18 @@ func StoreObjectFile(tx bun.IDB, objectId int64, data []byte, rejectIfExists boo
 
 	if relationExists == false {
 		// item now exists we can attach
-		_, err = db.Db.Query("INSERT INTO object_blueprint_storage_relations (object_blueprint_id, object_blueprint_storage_id) VALUES (?, ?)", objectId, item.Id)
+		ob := &types.ObjectBlueprintStorageRelation{
+			ObjectBlueprintId:        objectId,
+			ObjectBlueprintStorageId: item.Id,
+		}
+		_, err := tx.NewInsert().Model(ob).Returning("*").Exec(context.Background())
 
 		if err != nil {
 			return nil, err
 		}
 
 		// now refresh with relations
-		item, err = db.BlueprintObjectStorageGetByHash(hash)
+		item, err = db.BlueprintObjectStorageGetByHash(tx, hash)
 
 		if err != nil {
 			return nil, err

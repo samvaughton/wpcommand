@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-func BlueprintObjectStorageGetByHash(hash string) (*types.ObjectBlueprintStorage, error) {
+func BlueprintObjectStorageGetByHash(tx bun.IDB, hash string) (*types.ObjectBlueprintStorage, error) {
 	item := new(types.ObjectBlueprintStorage)
 
-	err := Db.
+	err := tx.
 		NewSelect().
 		Model(item).
 		Relation("ObjectBlueprints").

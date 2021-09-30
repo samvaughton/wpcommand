@@ -41,14 +41,13 @@ func DownloadAndVerifyZip(url string) ([]byte, error) {
 func CreateObjectBlueprintFromCreatePayload(payload *types.CreateObjectBlueprintPayload, blueprintSetId int64) (*types.ObjectBlueprint, error) {
 	tx, err := db.Db.BeginTx(context.Background(), nil)
 
-	// first we need to download the object
 	data, err := DownloadAndVerifyZip(payload.Url)
 
 	if err != nil {
+		tx.Rollback()
+
 		return nil, err
 	}
-
-	// file all looks ok
 
 	object, err := db.BlueprintObjectCreateFromPayload(tx, payload, blueprintSetId)
 
@@ -58,8 +57,13 @@ func CreateObjectBlueprintFromCreatePayload(payload *types.CreateObjectBlueprint
 		return nil, err
 	}
 
-	// now we need to store the object
 	_, err = object_blueprint.StoreObjectFile(tx, object.Id, data, false)
+
+	if err != nil {
+		tx.Rollback()
+
+		return nil, err
+	}
 
 	err = tx.Commit()
 

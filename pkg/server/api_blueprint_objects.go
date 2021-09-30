@@ -202,7 +202,7 @@ func loadBlueprintObjectFileHandler(resp http.ResponseWriter, req *http.Request)
 func loadFileFromHashHandler(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 
-	file, err := db.BlueprintObjectStorageGetByHash(vars["hash"])
+	file, err := db.BlueprintObjectStorageGetByHash(db.Db, vars["hash"])
 
 	if err != nil {
 		log.Error(err)
