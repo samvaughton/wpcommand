@@ -20,9 +20,15 @@ const CmdWpPolylangSetup = "polylang-setup"
 const CmdWpPolylangCliInstall = "polylang-cli-install"
 const CmdWpPolylangConfigure = "polylang-configure"
 
-const CmdWpUserSetup = "user-setup"
-const CmdWpUserCheck = "user-check"
-const CmdWpUserCreate = "user-create"
+const CmdWpSiteUserSetup = "site-user-setup"
+const CmdWpSiteUserCheck = "site-user-check"
+const CmdWpSiteUserCreate = "site-user-create"
+
+const CmdWpSiteUserSync = "wp-user-sync"
+const CmdWpUserList = "wp-user-list"
+const CmdWpUserDelete = "wp-user-delete"
+const CmdWpUserCreate = "wp-user-create"
+const CmdWpUserUpdate = "wp-user-update"
 
 const CmdWpHousecleaning = "wp-housecleaning"
 
@@ -44,7 +50,9 @@ var CommandRegistry = map[string]func(site *types.Site) pipeline.SiteCommand{
 	CmdWpSyncLazyblocks:   GetLazyblocksSyncCommand,
 	CmdWpDataUrlTransfers: GetWpDataUrlTransferCommand,
 
-	CmdWpUserSetup:         GetUserSetupCommand,
+	CmdWpSiteUserSetup: GetUserSetupCommand,
+	CmdWpSiteUserSync:  GetUserSyncCommand,
+
 	CmdWpHousecleaning:     GetHousecleaningCommand,
 	CmdWpSetDefaultOptions: GetSetDefaultOptionsCommand,
 	CmdWpPolylangSetup:     GetPolylangSetupCommand,
@@ -59,21 +67,13 @@ func CommandExists(key string) bool {
 }
 
 func CreateDefaultCommands() {
-	commands, err := db.CommandsGetDefault()
-
-	if err != nil {
-		log.Error(err)
-
-		return
-	}
-
-	if len(commands) > 0 {
-		log.Info("default commands exist, skipping")
-
-		return
-	}
-
 	for key, _ := range CommandRegistry {
+		existingCmd, err := db.CommandGetByKey(key)
+
+		if existingCmd != nil {
+			continue
+		}
+
 		description := strings.Title(strings.ReplaceAll(key, "-", " "))
 
 		cmd, err := db.CommandCreateDefault(description, key, types.CommandTypeWpBuiltIn)

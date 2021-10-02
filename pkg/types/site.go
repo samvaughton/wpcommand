@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 	"io/ioutil"
 	"net/http"
@@ -24,10 +25,41 @@ type Site struct {
 	SiteUsername  string
 	SitePassword  string `casbin:"sitadwade,read_special"`
 	SiteConfig    string
+	WpCachedData  string
 	Enabled       bool
 	TestMode      bool
 	CreatedAt     time.Time
 	UpdatedAt     bun.NullTime
+}
+
+func (s *Site) GetWpCachedData() (WpCachedData, error) {
+	var data WpCachedData
+
+	err := json.Unmarshal([]byte(s.WpCachedData), &data)
+
+	if err != nil {
+		log.Errorf("failed decoding wp cached data: %s", err)
+
+		return data, err
+	}
+
+	return data, nil
+}
+
+func (s *Site) SetWpCachedData(data *WpCachedData) error {
+	bytes, err := json.Marshal(data)
+
+	if err != nil {
+		return err
+	}
+
+	s.WpCachedData = string(bytes)
+
+	return nil
+}
+
+type WpCachedData struct {
+	UserList []WpUser `json:"UserList"`
 }
 
 func NewSiteFromHttpRequest(req *http.Request) (*Site, error) {

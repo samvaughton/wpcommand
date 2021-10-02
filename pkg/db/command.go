@@ -21,6 +21,18 @@ func CommandGetByUuid(uuid string) (*types.Command, error) {
 	return item, nil
 }
 
+func CommandGetByKey(key string) (*types.Command, error) {
+	item := new(types.Command)
+
+	err := Db.NewSelect().Model(item).Where("key = ?", key).Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return item, nil
+}
+
 func CommandGetByIdAccountSafe(id int64, accountId int64) (*types.Command, error) {
 	item := new(types.Command)
 

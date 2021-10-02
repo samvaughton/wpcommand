@@ -12,7 +12,7 @@
 
     let loading = false;
 
-    const fields = ['Description', 'LabelSelector', 'Namespace', 'Enabled', 'SiteConfig'];
+    const fields = ['Description', 'LabelSelector', 'Namespace', 'Enabled', 'SiteConfig', 'SiteEmail', 'SiteUsername', 'SitePassword'];
 
     let form = new Form(
         formType,
@@ -115,8 +115,29 @@
 
                     {#if form.current.SiteConfig !== undefined}
                         <FormGroup>
-                            <Label>SiteConfig</Label>
+                            <Label>Site Config</Label>
                             <Input type="textarea" bind:value={form.current.SiteConfig.value} valid={form.isValid(form.current.SiteConfig)} invalid={form.isInvalid(form.current.SiteConfig)} feedback={form.current.SiteConfig.error} />
+                        </FormGroup>
+                    {/if}
+
+                    {#if form.current.SiteUsername !== undefined}
+                        <FormGroup>
+                            <Label>Site Username</Label>
+                            <Input type="text" bind:value={form.current.SiteUsername.value} valid={form.isValid(form.current.SiteUsername)} invalid={form.isInvalid(form.current.SiteUsername)} feedback={form.current.SiteUsername.error} />
+                        </FormGroup>
+                    {/if}
+
+                    {#if form.current.SiteEmail !== undefined}
+                        <FormGroup>
+                            <Label>Site Email</Label>
+                            <Input type="text" bind:value={form.current.SiteEmail.value} valid={form.isValid(form.current.SiteEmail)} invalid={form.isInvalid(form.current.SiteEmail)} feedback={form.current.SiteEmail.error} />
+                        </FormGroup>
+                    {/if}
+
+                    {#if form.current.SitePassword !== undefined}
+                        <FormGroup>
+                            <Label>Site Config</Label>
+                            <Input type="text" bind:value={form.current.SitePassword.value} valid={form.isValid(form.current.SitePassword)} invalid={form.isInvalid(form.current.SitePassword)} feedback={form.current.SitePassword.error} />
                         </FormGroup>
                     {/if}
                 </div>

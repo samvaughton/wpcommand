@@ -94,7 +94,7 @@ func RunPluginActionOnSet(executor execution.CommandExecutor, set []types.Plugin
 /*
  * This will iterate through the retrieved set and decide which action to take based on the desired set
  */
-func ComputePluginActionSet(plugins []types.Plugin, objects []types.ObjectBlueprint) []types.PluginActionItem {
+func ComputePluginActionSet(plugins []types.WpPlugin, objects []types.ObjectBlueprint) []types.PluginActionItem {
 
 	sortSet := make(map[string]int)
 	actionSet := make(map[int]types.PluginActionItem)

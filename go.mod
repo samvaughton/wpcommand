@@ -7,6 +7,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
+	github.com/asim/go-micro/v3 v3.6.0 // indirect
 	github.com/casbin/casbin/v2 v2.36.2
 	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -14,6 +15,7 @@ require (
 	github.com/georgysavva/scany v0.2.9 // indirect
 	github.com/getsentry/raven-go v0.2.0 // indirect
 	github.com/getsentry/sentry-go v0.11.0 // indirect
+	github.com/githubnemo/CompileDaemon v1.4.0 // indirect
 	github.com/go-logr/logr v1.1.0 // indirect
 	github.com/go-openapi/spec v0.19.3 // indirect
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
@@ -32,18 +34,20 @@ require (
 	github.com/lib/pq v1.10.2 // indirect
 	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	github.com/oiime/logrusbun v0.1.1 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/robfig/cron v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.4.0 // indirect
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0 // indirect
-	github.com/uptrace/bun v1.0.2
+	github.com/uptrace/bun v1.0.9
 	github.com/uptrace/bun/dialect/pgdialect v1.0.2
 	github.com/uptrace/bun/driver/pgdriver v0.3.9 // indirect
+	github.com/uptrace/bun/extra/bundebug v1.0.9 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
-	golang.org/x/sys v0.0.0-20210903071746-97244b99971b // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect

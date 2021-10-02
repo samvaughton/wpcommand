@@ -29,6 +29,7 @@ func Start(staticFiles *embed.FS, configData string, authData string) {
 
 	scheduler.Init(time.Second*5, 2)
 	scheduler.Start()
+	scheduler.SetupCron()
 
 	router := mux.NewRouter()
 

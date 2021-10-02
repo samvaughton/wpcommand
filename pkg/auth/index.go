@@ -30,7 +30,7 @@ func InitAuth(authData string) {
 
 	var count int64
 
-	row := db.QueryRow("select count(*) as count from casbin")
+	row := db.QueryRow("select count(*) as count from casbin where p_type = 'p'")
 	err = row.Scan(&count)
 
 	if err != nil {
@@ -51,6 +51,7 @@ func InitAuth(authData string) {
 			{types.RoleAdmin, types.AuthObjectBlueprintObject, "*"},
 			{types.RoleAdmin, types.AuthObjectUser, "*"},
 			{types.RoleAdmin, types.AuthObjectAccount, "*"},
+			{types.RoleAdmin, types.AuthObjectWordpressUser, "*"},
 			{types.RoleAdmin, types.AuthObjectConfig, "read"},
 
 			{types.RoleMember, types.AuthObjectSite, "read"},
@@ -61,6 +62,8 @@ func InitAuth(authData string) {
 			{types.RoleMember, types.AuthObjectCommandJobEvent, "read"},
 			{types.RoleMember, types.AuthObjectUser, "read"},
 			{types.RoleMember, types.AuthObjectAccount, "read"},
+			{types.RoleMember, types.AuthObjectWordpressUser, "read"},
+			{types.RoleMember, types.AuthObjectWordpressUser, "write"},
 		})
 
 		log.Info("default casbin policies added")

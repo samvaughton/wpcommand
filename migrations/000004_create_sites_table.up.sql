@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS sites(
     site_username TEXT DEFAULT '',
     site_password TEXT DEFAULT '',
     site_config JSON DEFAULT '{}',
+    wp_cached_data JSON DEFAULT '{}',
     test_mode BOOL DEFAULT FALSE NOT NULL,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,

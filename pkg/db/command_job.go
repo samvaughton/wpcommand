@@ -94,12 +94,17 @@ func CommandJobsGetForAccount(accountId int64) ([]*types.CommandJob, error) {
 func CreateCommandJobs(command *types.Command, sites []*types.Site, runByUserId int64) []*types.CommandJob {
 	var jobs []*types.CommandJob
 
+	runBy := null.NewInt(0, false)
+	if runByUserId > 0 {
+		runBy = null.IntFrom(runByUserId)
+	}
+
 	for _, site := range sites {
 		job := &types.CommandJob{
 			Uuid:        uuid.New().String(),
 			SiteId:      site.Id,
 			CommandId:   command.Id,
-			RunByUserId: null.IntFrom(runByUserId),
+			RunByUserId: runBy,
 			Key:         command.Key,
 			Status:      types.CommandJobStatusCreated,
 			Description: fmt.Sprintf("job created via api"),

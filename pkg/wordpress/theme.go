@@ -80,7 +80,7 @@ func RunThemeActionOnSet(executor execution.CommandExecutor, set []types.ThemeAc
 /*
  * This will iterate through the retrieved set and decide which action to take based on the desired set
  */
-func ComputeThemeActionSet(themes []types.Theme, objects []types.ObjectBlueprint) []types.ThemeActionItem {
+func ComputeThemeActionSet(themes []types.WpTheme, objects []types.ObjectBlueprint) []types.ThemeActionItem {
 
 	sortSet := make(map[string]int)
 	actionSet := make(map[int]types.ThemeActionItem)

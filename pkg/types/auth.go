@@ -18,6 +18,8 @@ const AuthObjectUser = "user"
 const AuthObjectAccount = "account"
 const AuthObjectConfig = "config"
 
+const AuthObjectWordpressUser = "wp_user"
+
 const AuthActionRead = "read"
 const AuthActionReadSpecial = "read_special"
 const AuthActionWrite = "write"

@@ -1,6 +1,17 @@
 package types
 
-type Plugin struct {
+type WpUser struct {
+	ID             int    `json:"ID"`
+	Roles          string `json:"roles"`
+	DisplayName    string `json:"display_name"`
+	UserLogin      string `json:"user_login"`
+	UserEmail      string `json:"user_email"`
+	UserStatus     string `json:"user_status"`
+	UserPassword   string `json:"user_pass"`
+	UserRegistered string `json:"user_registered"`
+}
+
+type WpPlugin struct {
 	Name    string `json:"name" yaml:"name"`
 	Status  string `json:"status" yaml:"status"`
 	Update  string `json:"update" yaml:"update"`
@@ -8,7 +19,7 @@ type Plugin struct {
 	Url     string `json:"url" yaml:"url"`
 }
 
-type Theme struct {
+type WpTheme struct {
 	Name    string `json:"name" yaml:"name"`
 	Status  string `json:"status" yaml:"status"`
 	Update  string `json:"update" yaml:"update"`
@@ -16,7 +27,7 @@ type Theme struct {
 	Url     string `json:"url" yaml:"url"`
 }
 
-type Post struct {
+type WpPost struct {
 	Id     int    `json:"ID"`
 	Title  string `json:"post_title"`
 	Name   string `json:"post_name"`

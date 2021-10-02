@@ -17,6 +17,18 @@ func SiteExists(key string, accountId int64) bool {
 	return err != nil
 }
 
+func SiteGetAllEnabled() ([]*types.Site, error) {
+	var sites = make([]*types.Site, 0)
+
+	err := Db.NewSelect().Model(&sites).Where("enabled = ?", true).Scan(context.Background())
+
+	if err != nil {
+		return sites, err
+	}
+
+	return sites, nil
+}
+
 func SiteGetByKey(key string, accountId int64) (*types.Site, error) {
 	site := new(types.Site)
 
@@ -126,4 +138,16 @@ func SiteCreate(key string, accountId int64, description string) *types.Site {
 	}
 
 	return site
+}
+
+func SiteUpdate(site *types.Site) error {
+	_, err := Db.NewUpdate().Model(site).WherePK().Returning("*").Exec(context.Background())
+
+	if err != nil {
+		log.Error("could not update site", err)
+
+		return err
+	}
+
+	return nil
 }

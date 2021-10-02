@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/oiime/logrusbun"
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
@@ -39,7 +40,8 @@ func InitDbConnection() {
 
 	Db = bun.NewDB(sqlDb, pgdialect.New())
 
-	Db.AddQueryHook(&QueryHook{})
+	//Db.AddQueryHook(&QueryHook{})
+	Db.AddQueryHook(logrusbun.NewQueryHook(logrusbun.QueryHookOptions{Logger: log.StandardLogger()}))
 
 	Db.RegisterModel((*types.SiteBlueprintSet)(nil))
 	Db.RegisterModel((*types.ObjectBlueprintStorageRelation)(nil))
