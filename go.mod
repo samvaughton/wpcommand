@@ -7,11 +7,12 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
+	github.com/asim/go-micro/cmd/protoc-gen-micro/v3 v3.0.0-20211002121322-2ef523a7eb0c // indirect
 	github.com/asim/go-micro/v3 v3.6.0 // indirect
 	github.com/casbin/casbin/v2 v2.36.2
 	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/evalphobia/logrus_sentry v0.8.2 // indirect
+	github.com/evalphobia/logrus_sentry v0.8.2
 	github.com/georgysavva/scany v0.2.9 // indirect
 	github.com/getsentry/raven-go v0.2.0 // indirect
 	github.com/getsentry/sentry-go v0.11.0 // indirect
@@ -25,7 +26,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.4.2
-	github.com/hibiken/asynq v0.18.2 // indirect
+	github.com/hibiken/asynq v0.12.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jackc/pgx v3.6.2+incompatible // indirect
 	github.com/jackc/pgx/v4 v4.13.0
@@ -34,9 +35,10 @@ require (
 	github.com/lib/pq v1.10.2 // indirect
 	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
-	github.com/oiime/logrusbun v0.1.1 // indirect
+	github.com/oiime/logrusbun v0.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0 // indirect
+	github.com/robfig/cron/v3 v3.0.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.4.0 // indirect
 	github.com/spf13/cobra v1.1.3
@@ -52,6 +54,8 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20211001223012-bfb93cce50d9 // indirect
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/guregu/null.v3 v3.5.0
 	gopkg.in/yaml.v2 v2.4.0
