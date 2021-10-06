@@ -4,18 +4,6 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-type ConfigSite struct {
-	Name          string `yaml:"name" json:"name"`
-	Enabled       bool   `yaml:"enabled" json:"enabled"`
-	LabelSelector string `yaml:"labelSelector" json:"labelSelector"`
-	Namespace     string `yaml:"namespace" json:"namespace"`
-	User          struct {
-		Email    string `yaml:"email" json:"name"`
-		Username string `yaml:"username" json:"username"`
-		Password string `yaml:"password" json:"password"`
-	} `yaml:"user" json:"user"`
-}
-
 type DataUrl struct {
 	Name string `yaml:"name" json:"name"`
 	Path string `yaml:"path" json:"path"`
