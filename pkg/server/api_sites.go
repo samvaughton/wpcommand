@@ -245,7 +245,7 @@ func loadSiteCommandsHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	json.NewEncoder(resp).Encode(auth.CommandListFilter(userAccount, commands))
+	json.NewEncoder(resp).Encode(auth.FilterCommandList(userAccount, commands))
 }
 
 func loadSiteBlueprintsHandler(resp http.ResponseWriter, req *http.Request) {

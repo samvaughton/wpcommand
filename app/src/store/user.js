@@ -99,6 +99,8 @@ export const AuthEnum = {
     ObjectAccount: "account",
     ObjectConfig: "config",
 
+    ObjectWordpressUser: "wp_user",
+
     ActionRead: "read",
     ActionReadSpecial: "read_special",
     ActionWrite: "write",

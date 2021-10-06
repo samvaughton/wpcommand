@@ -6,7 +6,7 @@ import (
 )
 
 func GetSiteUserList(siteId int64, executor execution.CommandExecutor) ([]types.WpUser, error) {
-	result, err := executor.ExecuteCommand([]string{"wp user list --format=json --fields=ID,user_login,display_name,user_email,user_registered,roles,user_pass,user_status"})
+	result, err := executor.ExecuteCommand([]string{"wp user list --format=json --fields=ID,user_login,display_name,user_email,user_registered,roles,user_status"})
 
 	if err != nil {
 		return []types.WpUser{}, err

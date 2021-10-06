@@ -169,7 +169,7 @@ func createCommandJobHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// create command job
-	jobs := db.CreateCommandJobs(command, sites, userAccount.UserId)
+	jobs := db.CreateCommandJobs(command, sites, userAccount.UserId, fmt.Sprintf("job created via api"))
 
 	if len(jobs) == 0 {
 		log.Error(fmt.Sprintf("something went wrong creating jobs. command=%s selector=%s", command.Key, jobReq.Selector))

@@ -1,5 +1,13 @@
 package types
 
+import (
+	"encoding/json"
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
+	"io/ioutil"
+	"net/http"
+)
+
 type WpUser struct {
 	ID             int    `json:"ID"`
 	Roles          string `json:"roles"`
@@ -7,8 +15,75 @@ type WpUser struct {
 	UserLogin      string `json:"user_login"`
 	UserEmail      string `json:"user_email"`
 	UserStatus     string `json:"user_status"`
-	UserPassword   string `json:"user_pass"`
 	UserRegistered string `json:"user_registered"`
+}
+
+type UpdateWpUserPayload struct {
+	Id       int
+	Email    string
+	Password string
+	Role     string
+}
+
+func (p UpdateWpUserPayload) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Id, validation.Required),
+		validation.Field(&p.Email, validation.Required, is.Email),
+		validation.Field(&p.Password, validation.Length(6, 256)),
+		validation.Field(&p.Role, validation.Required, validation.In("owner")),
+	)
+}
+
+func NewUpdateWpUserPayloadFromHttpRequest(req *http.Request) (*UpdateWpUserPayload, error) {
+	var item UpdateWpUserPayload
+
+	bytes, err := ioutil.ReadAll(req.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(bytes, &item)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
+}
+
+type CreateWpUserPayload struct {
+	Username string
+	Email    string
+	Password string
+	Role     string
+}
+
+func (p CreateWpUserPayload) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Email, validation.Required, is.Email),
+		validation.Field(&p.Username, validation.Required),
+		validation.Field(&p.Password, validation.Required, validation.Length(6, 256)),
+		validation.Field(&p.Role, validation.Required, validation.In("owner")),
+	)
+}
+
+func NewCreateWpUserPayloadFromHttpRequest(req *http.Request) (*CreateWpUserPayload, error) {
+	var item CreateWpUserPayload
+
+	bytes, err := ioutil.ReadAll(req.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(bytes, &item)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
 }
 
 type WpPlugin struct {

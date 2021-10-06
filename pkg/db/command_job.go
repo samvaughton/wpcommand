@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
@@ -91,7 +90,7 @@ func CommandJobsGetForAccount(accountId int64) ([]*types.CommandJob, error) {
 	return items, nil
 }
 
-func CreateCommandJobs(command *types.Command, sites []*types.Site, runByUserId int64) []*types.CommandJob {
+func CreateCommandJobs(command *types.Command, sites []*types.Site, runByUserId int64, description string) []*types.CommandJob {
 	var jobs []*types.CommandJob
 
 	runBy := null.NewInt(0, false)
@@ -107,7 +106,7 @@ func CreateCommandJobs(command *types.Command, sites []*types.Site, runByUserId 
 			RunByUserId: runBy,
 			Key:         command.Key,
 			Status:      types.CommandJobStatusCreated,
-			Description: fmt.Sprintf("job created via api"),
+			Description: description,
 			CreatedAt:   time.Now(),
 		}
 

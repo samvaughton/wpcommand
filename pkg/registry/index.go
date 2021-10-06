@@ -26,9 +26,11 @@ const CmdWpSiteUserCreate = "site-user-create"
 
 const CmdWpSiteUserSync = "wp-user-sync"
 const CmdWpUserList = "wp-user-list"
-const CmdWpUserDelete = "wp-user-delete"
-const CmdWpUserCreate = "wp-user-create"
-const CmdWpUserUpdate = "wp-user-update"
+
+// currently done manually
+//const CmdWpUserDelete = "wp-user-delete"
+//const CmdWpUserCreate = "wp-user-create"
+//const CmdWpUserUpdate = "wp-user-update"
 
 const CmdWpHousecleaning = "wp-housecleaning"
 

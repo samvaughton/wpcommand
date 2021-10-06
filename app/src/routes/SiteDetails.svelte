@@ -7,6 +7,7 @@
     import Loading from "../components/Loading.svelte";
     import SiteUpdateModal from "../components/form/SiteUpdateModal.svelte";
     import CommandCreateUpdateModal from "../components/form/CommandCreateUpdateModal.svelte";
+    import WpUserCreateUpdateModal from "../components/form/WpUserCreateUpdateModal.svelte";
 
     /*
      * Fetch site details
@@ -17,6 +18,7 @@
     let runnableCommands = [];
     let blueprintSets = [];
     let itemSpecificCommands = [];
+    let wpUsers = [];
 
     function fetchData() {
         fetch("/api/site/" + key).then(resp => resp.json()).then(data => {
@@ -39,6 +41,12 @@
                     blueprintSets = data;
                 })
             });
+
+            hasAccess(AuthEnum.ObjectWordpressUser, AuthEnum.ActionRead).then(() => {
+                fetch("/api/site/" + item.Uuid + "/wp/user").then(resp => resp.json()).then(data => {
+                    wpUsers = data;
+                })
+            });
         });
     }
 
@@ -56,6 +64,16 @@
     * Command create modal
     */
     let isAddCommandModalOpen = false;
+
+    /*
+    * WpUser update modal map
+    */
+    let isUpdateWpUserModalOpen = {};
+
+    /*
+     * WpUser create modal
+     */
+    let isAddWpUserModalOpen = false;
 
     /*
      * Run command modal
@@ -274,6 +292,55 @@
                 </div>
             </div>
         {/await}
+
+        {#await hasAccess(AuthEnum.ObjectWordpressUser, AuthEnum.ActionRead)}
+        {:then result}
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="d-flex bd-highlight">
+                        <div class="p-2 bd-highlight">
+                            <h3 class="float-start">Wordpress Users</h3>
+                        </div>
+                        <div class="ms-auto p-2 bd-highlight">
+                            {#await hasAccess(AuthEnum.ObjectWordpressUser, AuthEnum.ActionWrite)}
+                                <Loading />
+                            {:then result}
+                                <button on:click={() => isAddWpUserModalOpen = !isAddWpUserModalOpen} class="btn btn-sm btn-primary">Create User</button>
+                                <WpUserCreateUpdateModal bind:isOpen={isAddWpUserModalOpen} bind:site={item} fetchData={fetchData} formType={"CREATE"} />
+                            {/await}
+                        </div>
+                    </div>
+                    <table class="table table-borderless table-striped">
+                        <thead>
+                        <tr>
+                            <th scope="col">Username</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Roles</th>
+                            <th scope="col"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {#each wpUsers as wpUser, index}
+                            <tr>
+                                <td>{wpUser['user_login']}</td>
+                                <td>{wpUser['user_email']}</td>
+                                <td>{wpUser['roles']}</td>
+                                <td>
+                                    {#await hasAccess(AuthEnum.ObjectWordpressUser, AuthEnum.ActionWrite)}
+                                        <Loading />
+                                    {:then result}
+                                        <a href="javascript:;" on:click={() => isUpdateWpUserModalOpen[wpUser['ID']] = !isUpdateWpUserModalOpen[wpUser['ID']]} style="cursor: pointer;">Update</a>
+                                        <WpUserCreateUpdateModal bind:isOpen={isUpdateWpUserModalOpen[wpUser['ID']]} bind:site={item} bind:item={wpUser} fetchData={fetchData} formType={"UPDATE"} />
+                                    {/await}
+                                </td>
+                            </tr>
+                        {/each}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {/await}
+
 
     {:else}
         <div class="spinner-border m-5" role="status">
