@@ -163,9 +163,9 @@ func BlueprintObjectCreateFromPayload(tx bun.IDB, payload *types.CreateObjectBlu
 	return ob, err
 }
 
-func BlueprintObjectCreateNewRevisionFromPayload(tx bun.IDB, objectUuid string, payload *types.UpdatedVersionObjectBlueprintPayload) (*types.ObjectBlueprint, error) {
+func BlueprintObjectCreateNewRevisionFromPayload(tx bun.IDB, originalObject *types.ObjectBlueprint, payload *types.UpdatedVersionObjectBlueprintPayload) (*types.ObjectBlueprint, error) {
 	// we need to get the latest object for this uuid
-	latest, err := BlueprintObjectGetLatestRevisionByUuid(objectUuid)
+	latest, err := BlueprintObjectGetLatestRevisionByUuid(originalObject.Uuid)
 
 	if err != nil {
 		return nil, err
@@ -188,6 +188,7 @@ func BlueprintObjectCreateNewRevisionFromPayload(tx bun.IDB, objectUuid string, 
 		Name:              latest.Name,
 		ExactName:         latest.ExactName,
 		Version:           payload.Version,
+		SetOrder:          originalObject.SetOrder,
 		OriginalObjectUrl: url,
 	}
 

@@ -97,7 +97,7 @@ func CreateObjectBlueprintRevisionFromNewVersionPayload(object *types.ObjectBlue
 		return nil, err
 	}
 
-	newObj, err := db.BlueprintObjectCreateNewRevisionFromPayload(tx, object.Uuid, payload)
+	newObj, err := db.BlueprintObjectCreateNewRevisionFromPayload(tx, object, payload)
 
 	if err != nil {
 		tx.Rollback()
