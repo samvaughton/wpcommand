@@ -18,7 +18,7 @@ func GetWpSetupFreshInstallCommand(site *types.Site) pipeline.SiteCommand {
 	}
 
 	commands = append(commands, GetHousecleaningCommand(site))
-	commands = append(commands, GetLazyblocksSyncCommand(site))
+	commands = append(commands, GetLazyblocksSyncForFreshInstallCommand(site)) // doesnt include data url download
 	commands = append(commands, GetAcfSyncFieldsCommand(site))
 	commands = append(commands, GetSetDefaultOptionsCommand(site))
 	commands = append(commands, GetWpUpdateSiteConfigCommand(site))
