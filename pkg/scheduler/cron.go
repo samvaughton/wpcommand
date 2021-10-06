@@ -13,7 +13,7 @@ func SetupCron() {
 	Cron = cron.New()
 
 	Cron.AddFunc("*/15 * * * *", func() {
-		flow.RunWpUserSync(types.FlowOptions{LogSource: "CRON"})
+		flow.RunJobBasedWpUserSync(types.FlowOptions{LogSource: "CRON"})
 	})
 
 	Cron.Start()

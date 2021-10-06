@@ -2,6 +2,7 @@
     import {Modal, ModalHeader, ModalBody, ModalFooter} from 'sveltestrap';
 
     export let name = null;
+    export let notice = null;
     export let endpoint = null;
     export let redirectTo = null;
     export let isOpen = false;
@@ -34,6 +35,8 @@
                 resp.json().then(data => {
                     if (redirectTo !== null) {
                         window.location = redirectTo;
+                    } else {
+                        onCloseFn();
                     }
                 });
             } else {
@@ -52,6 +55,15 @@
                     <div class="col-12">
                         <div class="alert alert-warning" role="alert">
                             {warningMessage}
+                        </div>
+                    </div>
+                </div>
+            {/if}
+            {#if notice !== ""}
+                <div class="row">
+                    <div class="col-12">
+                        <div class="alert alert-danger" role="alert">
+                            {notice}
                         </div>
                     </div>
                 </div>

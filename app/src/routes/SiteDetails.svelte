@@ -8,6 +8,7 @@
     import SiteUpdateModal from "../components/form/SiteUpdateModal.svelte";
     import CommandCreateUpdateModal from "../components/form/CommandCreateUpdateModal.svelte";
     import WpUserCreateUpdateModal from "../components/form/WpUserCreateUpdateModal.svelte";
+    import DeleteModal from "../components/DeleteModal.svelte";
 
     /*
      * Fetch site details
@@ -61,14 +62,19 @@
     let isUpdateCommandModalOpen = {};
 
     /*
-    * Command create modal
-    */
+     * Command create modal
+     */
     let isAddCommandModalOpen = false;
 
     /*
-    * WpUser update modal map
-    */
+     * WpUser update modal map
+     */
     let isUpdateWpUserModalOpen = {};
+
+    /*
+     * WpUser delete modal map
+     */
+    let isDeleteWpUserModalOpen = {};
 
     /*
      * WpUser create modal
@@ -322,16 +328,23 @@
                         <tbody>
                         {#each wpUsers as wpUser, index}
                             <tr>
-                                <td>{wpUser['user_login']}</td>
-                                <td>{wpUser['user_email']}</td>
-                                <td>{wpUser['roles']}</td>
+                                <td>{wpUser['Username']}</td>
+                                <td>{wpUser['Email']}</td>
+                                <td>{wpUser['Role']}</td>
                                 <td>
                                     {#await hasAccess(AuthEnum.ObjectWordpressUser, AuthEnum.ActionWrite)}
                                         <Loading />
                                     {:then result}
-                                        <a href="javascript:;" on:click={() => isUpdateWpUserModalOpen[wpUser['ID']] = !isUpdateWpUserModalOpen[wpUser['ID']]} style="cursor: pointer;">Update</a>
-                                        <WpUserCreateUpdateModal bind:isOpen={isUpdateWpUserModalOpen[wpUser['ID']]} bind:site={item} bind:item={wpUser} fetchData={fetchData} formType={"UPDATE"} />
+                                        <a href="javascript:;" on:click={() => isUpdateWpUserModalOpen[wpUser['Id']] = !isUpdateWpUserModalOpen[wpUser['Id']]} style="cursor: pointer;">Update</a>
+                                        <WpUserCreateUpdateModal bind:isOpen={isUpdateWpUserModalOpen[wpUser['Id']]} bind:site={item} bind:item={wpUser} fetchData={fetchData} formType={"UPDATE"} />
                                     {/await}
+                                    {#await hasAccess(AuthEnum.ObjectWordpressUser, AuthEnum.ActionDelete)}
+                                        <Loading />
+                                    {:then result}
+                                        <a href="javascript:;" on:click={() => isDeleteWpUserModalOpen[wpUser['Id']] = !isDeleteWpUserModalOpen[wpUser['Id']]} style="cursor: pointer; color: #ff4343;">Delete</a>
+                                        <DeleteModal notice="This will delete all posts for this user, please re-assign them prior to deletion." isOpen={isDeleteWpUserModalOpen[wpUser['Id']]} onClose="{() => {isDeleteWpUserModalOpen[wpUser['Id']] = false; fetchData()}}" name="WP User" endpoint={"/api/site/" + item.Uuid + "/wp/user/" + wpUser['Id']} />
+                                    {/await}
+
                                 </td>
                             </tr>
                         {/each}

@@ -11,7 +11,40 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func RunWpUserSync(flowOpts types.FlowOptions) {
+func RunWpUserSync(site *types.Site, flowOpts types.FlowOptions) error {
+	log.WithFields(log.Fields{
+		"Source": flowOpts.LogSource,
+		"Action": "JOB_WP_USER_SYNC",
+		"Detail": "",
+	}).Info("user sync starting")
+
+	executor, err := execution.NewCommandExecutor(site)
+
+	if err != nil {
+		log.WithFields(log.Fields{
+			"Source": flowOpts.LogSource,
+			"Action": "JOB_WP_USER_SYNC",
+			"Detail": "INIT_EXECUTOR",
+		}).Error(err)
+
+		return err
+	}
+	p := pipeline.SiteCommandPipeline{
+		Site:     site,
+		Executor: executor,
+		Config:   config.Config,
+		Options:  pipeline.ExecuteOptions{},
+		Commands: []pipeline.SiteCommand{
+			registry.GetUserSyncCommand(site),
+		},
+	}
+
+	p.Run()
+
+	return nil
+}
+
+func RunJobBasedWpUserSync(flowOpts types.FlowOptions) {
 	log.WithFields(log.Fields{
 		"Source": flowOpts.LogSource,
 		"Action": "WP_USER_SYNC",
@@ -84,7 +117,7 @@ func RunWpUserCreate(wpUser *types.CreateWpUserPayload, site *types.Site, flowOp
 	return nil
 }
 
-func RunWpUserUpdate(wpUser *types.UpdateWpUserPayload, site *types.Site, flowOpts types.FlowOptions) error {
+func RunWpUserUpdate(wpUserId int, wpUser *types.UpdateWpUserPayload, site *types.Site, flowOpts types.FlowOptions) error {
 	executor, err := execution.NewCommandExecutor(site)
 
 	if err != nil {
@@ -102,7 +135,7 @@ func RunWpUserUpdate(wpUser *types.UpdateWpUserPayload, site *types.Site, flowOp
 		updatePassword = fmt.Sprintf("  --user_pass=%s", wpUser.Password)
 	}
 
-	args := fmt.Sprintf("wp user update %v --user_email=%s --role=%s%s", wpUser.Id, wpUser.Email, wpUser.Role, updatePassword)
+	args := fmt.Sprintf("wp user update %v --user_email=%s --role=%s%s", wpUserId, wpUser.Email, wpUser.Role, updatePassword)
 
 	p := pipeline.SiteCommandPipeline{
 		Site:     site,
@@ -132,7 +165,7 @@ func RunWpUserDelete(wpUserId int, site *types.Site, flowOpts types.FlowOptions)
 		return err
 	}
 
-	args := fmt.Sprintf("wp user delete %v", wpUserId)
+	args := fmt.Sprintf("wp user delete %v --yes", wpUserId)
 
 	p := pipeline.SiteCommandPipeline{
 		Site:     site,

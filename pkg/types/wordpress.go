@@ -18,8 +18,34 @@ type WpUser struct {
 	UserRegistered string `json:"user_registered"`
 }
 
-type UpdateWpUserPayload struct {
+type ApiWpUser struct {
 	Id       int
+	Username string
+	Email    string
+	Password string
+	Role     string
+}
+
+func NewApiWpUserListFromWpUserList(users []WpUser) []*ApiWpUser {
+	var items = make([]*ApiWpUser, 0)
+
+	for _, u := range users {
+		items = append(items, NewApiWpUserFromWpUser(u))
+	}
+
+	return items
+}
+
+func NewApiWpUserFromWpUser(user WpUser) *ApiWpUser {
+	return &ApiWpUser{
+		Id:       user.ID,
+		Role:     user.Roles,
+		Email:    user.UserEmail,
+		Username: user.UserLogin,
+	}
+}
+
+type UpdateWpUserPayload struct {
 	Email    string
 	Password string
 	Role     string
@@ -27,7 +53,6 @@ type UpdateWpUserPayload struct {
 
 func (p UpdateWpUserPayload) Validate() error {
 	return validation.ValidateStruct(&p,
-		validation.Field(&p.Id, validation.Required),
 		validation.Field(&p.Email, validation.Required, is.Email),
 		validation.Field(&p.Password, validation.Length(6, 256)),
 		validation.Field(&p.Role, validation.Required, validation.In("owner")),

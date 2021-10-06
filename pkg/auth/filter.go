@@ -21,7 +21,7 @@ func FilterWpUserList(userAccount *types.UserAccount, list []types.WpUser) []typ
 
 func FindInWpUserList(userAccount *types.UserAccount, list []types.WpUser, userId int) *types.WpUser {
 	for _, item := range list {
-		if WpUserHasReadAccess(userAccount, &item) == false {
+		if WpUserHasReadAccess(userAccount, &item) && userId == item.ID {
 			return &item
 		}
 	}

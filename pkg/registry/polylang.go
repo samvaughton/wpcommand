@@ -43,8 +43,8 @@ func GetPolylangConfigureCommand(site *types.Site) pipeline.SiteCommand {
 			},
 			// enable post types
 			&pipeline.SimpleCommand{
-				Name: fmt.Sprintf("%s.%s", CmdWpPolylangConfigure, "post-types-enable=collections,experiences"),
-				Args: []string{fmt.Sprintf("wp pll post-type enable %s", "collections,experiences")},
+				Name: fmt.Sprintf("%s.%s", CmdWpPolylangConfigure, "post-types-enable=collections,experiences,hubs"),
+				Args: []string{fmt.Sprintf("wp pll post-type enable %s", "collections,experiences,hubs")},
 			},
 			// enable taxonomies
 			&pipeline.SimpleCommand{

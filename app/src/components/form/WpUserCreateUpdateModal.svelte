@@ -1,5 +1,6 @@
 <script>
 
+    import {hasAccess, AuthEnum} from "../../store/user";
     import {Modal, ModalHeader, ModalBody, ModalFooter} from 'sveltestrap';
     import { Label, FormGroup, FormText, Input } from 'sveltestrap';
     import Form from "../../form";
@@ -13,15 +14,10 @@
 
     let loading = false;
 
-    const fields = ['UserEmail', 'Role', 'UserPass', 'HttpUrl', 'HttpHeaders', 'HttpBody', 'Public'];
-
     let form = new Form(
         formType,
-        formType === 'UPDATE' ? fields : fields,
-        item,
-        {
-            "Public": "bool"
-        }
+        formType === 'UPDATE' ? ['Email', 'Role', 'Password'] : ['Username', 'Email', 'Role', 'Password'],
+        item
     );
 
     const toggle = () => (isOpen = !isOpen);
@@ -36,25 +32,19 @@
 
     let submitModal = function () {
         let method = 'POST';
-        let endpoint = '/api/site/' + site.Uuid + '/command';
+        let endpoint = '/api/site/' + site.Uuid + '/wp/user';
 
         if (formType === 'UPDATE') {
             method = 'PUT';
-            endpoint += '/' + item.Uuid;
+            endpoint += '/' + item['Id'];
         }
 
         loading = true;
         form.clearErrors();
 
-        let values = form.getValuesFromObj();
-
-        if (values['Public'] === '' || values['Public'] === undefined) {
-            values['Public'] = false;
-        }
-
         fetch(endpoint, {
             method: method,
-            body: JSON.stringify(values)
+            body: JSON.stringify(form.getValuesFromObj())
         }).then(resp => {
             loading = false;
 
@@ -74,7 +64,7 @@
                 }
 
                 resp.json().then(data => {
-                    item = data; // trigger update
+                    // do not update from response since it does not return the new object
 
                     form.initWithNewData(data);
 
@@ -90,7 +80,7 @@
 
 <Modal isOpen={isOpen} {toggle} on:close={_onClose}>
     <form on:submit|preventDefault={submitModal}>
-        <ModalHeader>{formType === 'CREATE' ? 'Add' : 'Update'} Command</ModalHeader>
+        <ModalHeader>{formType === 'CREATE' ? 'Add' : 'Update'} User</ModalHeader>
         <ModalBody>
             {#if form.errorMessage !== ""}
                 <div class="row">
@@ -103,58 +93,39 @@
             {/if}
             <div class="row">
                 <div class="col-12">
-                    {#if form.current.Type !== undefined}
+                    {#if form.current.Username !== undefined}
                         <FormGroup>
-                            <Label>Type</Label>
-                            <Input type="select" bind:value={form.current.Type.value} valid={form.isValid(form.current.Type)} invalid={form.isInvalid(form.current.Type)} feedback={form.current.Type.error}>
+                            <Label>Username</Label>
+                            <Input type="text" bind:value={form.current.Username.value} valid={form.isValid(form.current.Username)} invalid={form.isInvalid(form.current.Username)} feedback={form.current.Username.error} />
+                        </FormGroup>
+                    {/if}
+
+                    {#if form.current.Email !== undefined}
+                    <FormGroup>
+                        <Label>Email</Label>
+                        <Input type="text" bind:value={form.current.Email.value} valid={form.isValid(form.current.Email)} invalid={form.isInvalid(form.current.Email)} feedback={form.current.Email.error} />
+                    </FormGroup>
+                    {/if}
+
+                    {#if form.current.Role !== undefined}
+                        <FormGroup>
+                            <Label>Role</Label>
+                            <Input type="select" bind:value={form.current.Role.value} valid={form.isValid(form.current.Role)} invalid={form.isInvalid(form.current.Role)} feedback={form.current.Role.error}>
                                 <option>Select type</option>
-                                <option value="HTTP_CALL">HTTP_CALL</option>
+                                <option value="owner">Site Owner</option>
+                                {#await hasAccess(AuthEnum.ObjectWordpressUser, AuthEnum.ActionWriteSpecial)}
+                                {:then result}
+                                    <option value="administrator">Administrator</option>
+                                {/await}
+
                             </Input>
                         </FormGroup>
                     {/if}
 
-                    {#if form.current.Description !== undefined}
+                    {#if form.current.Password !== undefined}
                         <FormGroup>
-                            <Label>Description</Label>
-                            <Input type="text" bind:value={form.current.Description.value} valid={form.isValid(form.current.Description)} invalid={form.isInvalid(form.current.Description)} feedback={form.current.Description.error} />
-                        </FormGroup>
-                    {/if}
-
-                    {#if form.current.HttpMethod !== undefined}
-                    <FormGroup>
-                        <Label>Http Method</Label>
-                        <Input type="select" bind:value={form.current.HttpMethod.value} valid={form.isValid(form.current.HttpMethod)} invalid={form.isInvalid(form.current.HttpMethod)} feedback={form.current.HttpMethod.error}>
-                            <option>Select method</option>
-                            <option value="GET">GET</option>
-                            <option value="POST">POST</option>
-                        </Input>
-                    </FormGroup>
-                    {/if}
-
-                    {#if form.current.HttpUrl !== undefined}
-                        <FormGroup>
-                            <Label>Http Url</Label>
-                            <Input type="text" bind:value={form.current.HttpUrl.value} valid={form.isValid(form.current.HttpUrl)} invalid={form.isInvalid(form.current.HttpUrl)} feedback={form.current.HttpUrl.error} />
-                        </FormGroup>
-                    {/if}
-
-                    {#if form.current.HttpHeaders !== undefined}
-                        <FormGroup>
-                            <Label>Http Headers</Label>
-                            <Input type="textarea" bind:value={form.current.HttpHeaders.value} valid={form.isValid(form.current.HttpHeaders)} invalid={form.isInvalid(form.current.HttpHeaders)} feedback={form.current.HttpHeaders.error} />
-                        </FormGroup>
-                    {/if}
-
-                    {#if form.current.HttpBody !== undefined}
-                        <FormGroup>
-                            <Label>Http Body</Label>
-                            <Input type="textarea" bind:value={form.current.HttpBody.value} valid={form.isValid(form.current.HttpBody)} invalid={form.isInvalid(form.current.HttpBody)} feedback={form.current.HttpBody.error} />
-                        </FormGroup>
-                    {/if}
-
-                    {#if form.current.Public !== undefined}
-                        <FormGroup>
-                            <Input id="wp_cmd" label="Public" type="checkbox" bind:checked={form.current.Public.value} valid={form.isValid(form.current.Public)} invalid={form.isInvalid(form.current.Public)} feedback={form.current.Public.error} />
+                            <Label>Password</Label>
+                            <Input type="password" bind:value={form.current.Password.value} valid={form.isValid(form.current.Password)} invalid={form.isInvalid(form.current.Password)} feedback={form.current.Password.error} />
                         </FormGroup>
                     {/if}
 
@@ -164,7 +135,7 @@
         <ModalFooter>
             <button type="submit" class="btn btn-primary" disabled={loading}>
                 {#if loading}<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>{/if}
-                {formType === 'CREATE' ? 'Add' : 'Update'} Command
+                {formType === 'CREATE' ? 'Add' : 'Update'} User
             </button>
             <button type="button" class="btn btn-secondary" on:click={toggle}>Cancel</button>
         </ModalFooter>

@@ -62,9 +62,9 @@ func SetupApi(router *mux.Router) {
 	api.HandleFunc("/site/{siteUuid}", AuthWrapper(types.AuthObjectSite, types.AuthActionWrite, updateSiteHandler)).Methods("PUT")
 
 	api.HandleFunc("/site/{siteUuid}/wp/user", AuthWrapper(types.AuthObjectWordpressUser, types.AuthActionRead, loadWpUsersHandler)).Methods("GET")
-	api.HandleFunc("/site/{siteUuid}/wp/user", AuthWrapper(types.AuthObjectWordpressUser, types.AuthActionWrite, loadWpUsersHandler)).Methods("POST")
-	api.HandleFunc("/site/{siteUuid}/wp/user/{userId}", AuthWrapper(types.AuthObjectWordpressUser, types.AuthActionWrite, loadWpUsersHandler)).Methods("PUT")
-	api.HandleFunc("/site/{siteUuid}/wp/user/{userId}", AuthWrapper(types.AuthObjectWordpressUser, types.AuthActionDelete, loadWpUsersHandler)).Methods("DELETE")
+	api.HandleFunc("/site/{siteUuid}/wp/user", AuthWrapper(types.AuthObjectWordpressUser, types.AuthActionWrite, createWpUserHandler)).Methods("POST")
+	api.HandleFunc("/site/{siteUuid}/wp/user/{userId}", AuthWrapper(types.AuthObjectWordpressUser, types.AuthActionWrite, updateWpUserHandler)).Methods("PUT")
+	api.HandleFunc("/site/{siteUuid}/wp/user/{userId}", AuthWrapper(types.AuthObjectWordpressUser, types.AuthActionDelete, deleteWpUserHandler)).Methods("DELETE")
 
 	api.HandleFunc("/site/{key}/command", AuthWrapper(types.AuthObjectCommand, types.AuthActionRun, loadSiteCommandsHandler)).Methods("GET")
 	api.HandleFunc("/site/{key}/command", AuthWrapper(types.AuthObjectCommand, types.AuthActionWrite, createSiteCommandHandler)).Methods("POST")
