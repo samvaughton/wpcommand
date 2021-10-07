@@ -122,19 +122,7 @@ func InitConfig(configData string) {
 		log.Info("manifest parsed")
 	}
 
-	// add sentry logrus hook
-
-	// sentry logging
 	if config.SentryDsn != "" {
-		/*err = sentry.Init(sentry.ClientOptions{
-			Dsn: config.SentryDsn,
-		})
-
-		if err != nil {
-			log.Fatalf("sentry.Init: %s", err)
-		}*/
-
-		// the logrus hook initializes it anyway
 		hook, err := logrus_sentry.NewSentryHook(config.SentryDsn, []log.Level{
 			log.PanicLevel,
 			log.FatalLevel,
