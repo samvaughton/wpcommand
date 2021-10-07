@@ -67,8 +67,13 @@ userStore.subscribe(value => {
 
 export function logout() {
     // clear access cache
-    localStorage.setItem("accessCache", JSON.stringify({}));
+    clearCache();
     userStore.set(null);
+}
+
+export function clearCache() {
+    accessCache = {};
+    localStorage.setItem("accessCache", JSON.stringify({}));
 }
 
 export function authenticate(account, email, password) {
