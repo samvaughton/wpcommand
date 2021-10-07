@@ -43,7 +43,10 @@ func SetupApi(router *mux.Router) {
 
 	api := NewAuthorizedApi("/api", router)
 
+	api.HandleFunc("/casbin/reload", AuthWrapper(types.AuthObjectCasbin, types.AuthActionWrite, reloadCasbinHandler)).Methods("GET")
+
 	api.HandleFunc("/user", AuthWrapper(types.AuthObjectUser, types.AuthActionWrite, createUserHandler)).Methods("POST")
+
 	api.HandleFunc("/access", notImplemented).Methods("GET")
 	api.HandleFunc("/access", hasAccessHandler).Methods("POST")
 

@@ -53,6 +53,7 @@ func InitAuth(authData string) {
 			{types.RoleAdmin, types.AuthObjectAccount, "*"},
 			{types.RoleAdmin, types.AuthObjectWordpressUser, "*"},
 			{types.RoleAdmin, types.AuthObjectConfig, "read"},
+			{types.RoleAdmin, types.AuthObjectCasbin, "*"},
 
 			{types.RoleMember, types.AuthObjectSite, "read"},
 			{types.RoleMember, types.AuthObjectCommand, "run"},

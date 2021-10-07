@@ -3,6 +3,8 @@ package types
 const RoleAdmin = "admin"
 const RoleMember = "member"
 
+const AuthObjectCasbin = "casbin"
+
 const AuthObjectSite = "site"
 
 const AuthObjectCommand = "command"
