@@ -4,12 +4,16 @@
     import {getSites, siteStore} from '../store/site.js';
     import {Modal, ModalHeader, ModalBody, ModalFooter} from 'sveltestrap';
     import Enabled from "../components/Enabled.svelte";
+    import RunCommandModal from "../components/form/RunCommandModal.svelte";
 
     let isOpen = false;
     let loading = false;
     let warningMessage = "";
     let mNamespace = "";
     let mLabelSelector = "";
+
+    let runnableCommands = [];
+    let selector = "*";
 
     const toggle = () => (isOpen = !isOpen);
     const onClose = function () {
@@ -20,6 +24,10 @@
     };
 
     getSites();
+
+    fetch("/api/command?type=runnable").then(resp => resp.json()).then(data => {
+        runnableCommands = data;
+    })
 
     let submitAddSite = function () {
         loading = true;
@@ -45,6 +53,11 @@
             }
         });
     };
+
+    /*
+     * Run command modal
+     */
+    let isRunCommandModalOpen = false;
 
 </script>
 
@@ -99,6 +112,10 @@
                     <p class="lead">Currently managed sites.</p>
                 </div>
                 <div class="ms-auto p-2 bd-highlight">
+                    <div class="btn-group" role="group" aria-label="Site Actions">
+                        <button on:click={() => isRunCommandModalOpen = !isRunCommandModalOpen} class="btn btn-primary">Run Command</button>
+                        <RunCommandModal bind:isOpen={isRunCommandModalOpen} bind:runnableCommands={runnableCommands} bind:selector={selector} />
+                    </div>
                     <button on:click={toggle} class="btn btn-primary">Add Site</button>
                 </div>
             </div>

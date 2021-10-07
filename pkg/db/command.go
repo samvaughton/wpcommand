@@ -100,6 +100,41 @@ func CommandsGetAttachedForSiteSafe(siteId int64) ([]*types.Command, error) {
 	return items, nil
 }
 
+func CommandsGetRunnableForAccountId(accountId int64) ([]*types.Command, error) {
+	items := make([]*types.Command, 0)
+
+	err := Db.
+		NewSelect().
+		Model(&items).
+		// first clause covers site specific, second clause covers account wide, and third clause covers global
+		Where("account_id IS NULL OR (account_id = ? AND site_id IS NULL)", accountId).
+		Order("description ASC").
+		Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func CommandsGetAttachedForAccountId(accountId int64) ([]*types.Command, error) {
+	items := make([]*types.Command, 0)
+
+	err := Db.
+		NewSelect().
+		Model(&items).
+		Where("account_id = ? AND site_id IS NULL", accountId).
+		Order("description ASC").
+		Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
 func CommandsGetDefault() ([]*types.Command, error) {
 	items := make([]*types.Command, 0)
 

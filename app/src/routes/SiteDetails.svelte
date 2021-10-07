@@ -2,13 +2,13 @@
 
     import {Router, Link} from "svelte-routing";
     import {hasAccess, AuthEnum} from "../store/user";
-    import {Modal, ModalHeader, ModalBody, ModalFooter} from 'sveltestrap';
     import Enabled from "../components/Enabled.svelte";
     import Loading from "../components/Loading.svelte";
     import SiteUpdateModal from "../components/form/SiteUpdateModal.svelte";
     import CommandCreateUpdateModal from "../components/form/CommandCreateUpdateModal.svelte";
     import WpUserCreateUpdateModal from "../components/form/WpUserCreateUpdateModal.svelte";
     import DeleteModal from "../components/DeleteModal.svelte";
+    import RunCommandModal from "../components/form/RunCommandModal.svelte";
 
     /*
      * Fetch site details
@@ -84,88 +84,11 @@
     /*
      * Run command modal
      */
-
-    let isOpen = false;
-    let loading = false;
-    let warningMessage = "";
-    let mCommandId = 0;
-
-    const toggle = () => (isOpen = !isOpen);
-    const onClose = function () {
-        warningMessage = "";
-        loading = false;
-        mCommandId = 0;
-    };
-
-    let submitModal = function () {
-        loading = true;
-        warningMessage = "";
-        fetch("/api/command/job", {
-            method: "POST",
-            body: JSON.stringify({
-                CommandId: mCommandId,
-                Selector: item.Key,
-            })
-        }).then(resp => {
-            loading = false;
-
-            if (resp.status !== 200) {
-                resp.json().then(data => {
-                    warningMessage = data.Message;
-                });
-            } else {
-                // redirect to website
-                resp.json().then(data => {
-                    window.location = "/logs/" + data.Jobs[0].Uuid
-                    isOpen = false;
-                });
-            }
-        });
-    };
+    let isRunCommandModalOpen = false;
 
     fetchData();
 
 </script>
-
-<Modal isOpen={isOpen} {toggle} on:close={onClose}>
-    <form on:submit|preventDefault={submitModal}>
-        <ModalHeader>Run Command</ModalHeader>
-        <ModalBody>
-            {#if warningMessage !== ""}
-                <div class="row">
-                    <div class="col-12">
-                        <div class="alert alert-warning" role="alert">
-                            {warningMessage}
-                        </div>
-                    </div>
-                </div>
-            {/if}
-            <div class="row">
-                <div class="col-12">
-                    <label for="command" class="form-label">Command</label>
-                    <select bind:value={mCommandId} required id="command" class="form-control" aria-describedby="commandHelp">
-                        <option>Select command</option>
-                        {#each runnableCommands as command}
-                            <option value={command.Id}>
-                                {command.Description}
-                            </option>
-                        {/each}
-                    </select>
-                    <div id="commandHelp" class="form-text">
-                        The command to run.
-                    </div>
-                </div>
-            </div>
-        </ModalBody>
-        <ModalFooter>
-            <button type="submit" class="btn btn-primary" disabled={loading}>
-                {#if loading}<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>{/if}
-                Run Command
-            </button>
-            <button type="button" class="btn btn-secondary" on:click={toggle}>Cancel</button>
-        </ModalFooter>
-    </form>
-</Modal>
 
 <Router>
     {#if item}
@@ -178,7 +101,8 @@
                     </div>
                     <div class="ms-auto p-2 bd-highlight">
                         <div class="btn-group" role="group" aria-label="Site Actions">
-                            <button type="button" class="btn btn-primary" on:click={toggle}>Run Command</button>
+                            <button on:click={() => isRunCommandModalOpen = !isRunCommandModalOpen} class="btn btn-primary">Run Command</button>
+                            <RunCommandModal bind:isOpen={isRunCommandModalOpen} bind:runnableCommands={runnableCommands} bind:selector={item.Key} />
                         </div>
                         {#await hasAccess(AuthEnum.ObjectSite, AuthEnum.ActionWrite)}
                             <Loading />

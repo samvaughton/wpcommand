@@ -215,6 +215,29 @@ func updateSiteCommandHandler(resp http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(resp).Encode(cmd)
 }
 
+func loadCommandsHandler(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-Type", "application/json")
+
+	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
+
+	var err error
+	var commands = make([]*types.Command, 0)
+
+	if req.URL.Query().Get("type") == "runnable" {
+		commands, err = db.CommandsGetRunnableForAccountId(userAccount.AccountId)
+	} else if req.URL.Query().Get("type") == "attached" {
+		commands, err = db.CommandsGetAttachedForAccountId(userAccount.AccountId)
+	}
+
+	if err != nil {
+		log.Error(err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	json.NewEncoder(resp).Encode(auth.FilterCommandList(userAccount, commands))
+}
+
 func loadSiteCommandsHandler(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
 

@@ -67,10 +67,13 @@ func SetupApi(router *mux.Router) {
 	api.HandleFunc("/site/{siteUuid}/wp/user/{userId}", AuthWrapper(types.AuthObjectWordpressUser, types.AuthActionDelete, deleteWpUserHandler)).Methods("DELETE")
 
 	api.HandleFunc("/site/{key}/command", AuthWrapper(types.AuthObjectCommand, types.AuthActionRun, loadSiteCommandsHandler)).Methods("GET")
+
 	api.HandleFunc("/site/{key}/command", AuthWrapper(types.AuthObjectCommand, types.AuthActionWrite, createSiteCommandHandler)).Methods("POST")
 	api.HandleFunc("/site/{siteUuid}/command/{cmdUuid}", AuthWrapper(types.AuthObjectCommand, types.AuthActionWrite, updateSiteCommandHandler)).Methods("PUT")
 
 	api.HandleFunc("/site/{key}/blueprint", AuthWrapper(types.AuthObjectBlueprint, types.AuthActionRead, loadSiteBlueprintsHandler)).Methods("GET")
+
+	api.HandleFunc("/command", AuthWrapper(types.AuthObjectCommand, types.AuthActionRun, loadCommandsHandler)).Methods("GET")
 
 	api.HandleFunc("/command/job", AuthWrapper(types.AuthObjectCommandJob, types.AuthActionWrite, createCommandJobHandler)).Methods("POST")
 	api.HandleFunc("/command/job", AuthWrapper(types.AuthObjectCommandJob, types.AuthActionRead, getCommandJobsHandler)).Methods("GET")
