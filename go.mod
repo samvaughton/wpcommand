@@ -42,7 +42,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.4.0 // indirect
 	github.com/spf13/cobra v1.1.3
-	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/stretchr/testify v1.7.0
 	github.com/uptrace/bun v1.0.9
 	github.com/uptrace/bun/dialect/pgdialect v1.0.2
 	github.com/uptrace/bun/driver/pgdriver v0.3.9 // indirect
@@ -60,6 +60,7 @@ require (
 	gopkg.in/guregu/null.v3 v3.5.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.22.1
 	k8s.io/apimachinery v0.22.1
 	k8s.io/client-go v0.22.1

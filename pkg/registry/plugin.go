@@ -3,6 +3,7 @@ package registry
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/pipeline"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	"github.com/samvaughton/wpcommand/v2/pkg/wordpress"
@@ -13,7 +14,8 @@ func GetPluginsStatusCommand(site *types.Site) pipeline.SiteCommand {
 	return &pipeline.WrappedCommand{
 		Name: CmdWpPluginsStatus,
 		Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {
-			actionSet, err := wordpress.GetSitePluginStatuses(site.Id, pipeline.Executor)
+			latestObjs := db.GetLatestObjectBlueprintsForSiteAndType(site.Id, types.ObjectBlueprintTypePlugin)
+			actionSet, err := wordpress.GetSitePluginStatuses(pipeline.Executor, latestObjs)
 
 			if err != nil {
 				return nil, err

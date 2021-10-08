@@ -7,7 +7,8 @@ import (
 )
 
 type DebugCommandExecutor struct {
-	Site *types.Site
+	Site       *types.Site
+	MockOutput string
 }
 
 func (e *DebugCommandExecutor) ExecuteCommand(args []string) (*types.CommandResult, error) {
@@ -24,6 +25,6 @@ func (e *DebugCommandExecutor) ExecuteCommand(args []string) (*types.CommandResu
 
 	return &types.CommandResult{
 		Command: command,
-		Output:  "",
+		Output:  e.MockOutput,
 	}, nil
 }

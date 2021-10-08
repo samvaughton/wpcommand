@@ -3,6 +3,7 @@ package registry
 import (
 	"errors"
 	"fmt"
+	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/pipeline"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	"github.com/samvaughton/wpcommand/v2/pkg/wordpress"
@@ -12,7 +13,8 @@ func GetThemesStatusCommand(site *types.Site) pipeline.SiteCommand {
 	return &pipeline.WrappedCommand{
 		Name: CmdWpThemesStatus,
 		Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {
-			actionSet, err := wordpress.GetSiteThemeStatuses(site.Id, pipeline.Executor)
+			latestObjs := db.GetLatestObjectBlueprintsForSiteAndType(site.Id, types.ObjectBlueprintTypeTheme)
+			actionSet, err := wordpress.GetSiteThemeStatuses(pipeline.Executor, latestObjs)
 
 			if err != nil {
 				return nil, err

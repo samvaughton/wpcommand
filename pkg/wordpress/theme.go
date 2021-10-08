@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Masterminds/semver/v3"
-	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/execution"
 	"github.com/samvaughton/wpcommand/v2/pkg/object_blueprint"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
@@ -14,7 +13,7 @@ import (
 	"time"
 )
 
-func GetSiteThemeStatuses(siteId int64, executor execution.CommandExecutor) (types.ThemeActionSet, error) {
+func GetSiteThemeStatuses(executor execution.CommandExecutor, latestObjs []types.ObjectBlueprint) (types.ThemeActionSet, error) {
 	result, err := executor.ExecuteCommand([]string{"wp theme list --format=json"})
 
 	if err != nil {
@@ -27,7 +26,7 @@ func GetSiteThemeStatuses(siteId int64, executor execution.CommandExecutor) (typ
 		return types.ThemeActionSet{}, err
 	}
 
-	actionSet := ComputeThemeActionSet(themeList, db.GetLatestObjectBlueprintsForSiteAndType(siteId, types.ObjectBlueprintTypeTheme))
+	actionSet := ComputeThemeActionSet(themeList, latestObjs)
 
 	return types.ThemeActionSet{Items: actionSet}, nil
 }

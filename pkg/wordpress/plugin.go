@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/Masterminds/semver/v3"
 	"github.com/pkg/errors"
-	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/execution"
 	"github.com/samvaughton/wpcommand/v2/pkg/object_blueprint"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
@@ -15,20 +14,20 @@ import (
 	"time"
 )
 
-func GetSitePluginStatuses(siteId int64, executor execution.CommandExecutor) (types.PluginActionSet, error) {
+func GetSitePluginStatuses(executor execution.CommandExecutor, latestObjs []types.ObjectBlueprint) (types.PluginActionSet, error) {
 	result, err := executor.ExecuteCommand([]string{"wp plugin list --format=json"})
 
 	if err != nil {
 		return types.PluginActionSet{}, err
 	}
 
+	fmt.Println(result)
+
 	pluginList, err := PluginListFromJson(result.Output)
 
 	if err != nil {
 		return types.PluginActionSet{}, err
 	}
-
-	latestObjs := db.GetLatestObjectBlueprintsForSiteAndType(siteId, types.ObjectBlueprintTypePlugin)
 
 	actionSet := ComputePluginActionSet(pluginList, latestObjs)
 
@@ -121,9 +120,8 @@ func ComputePluginActionSet(plugins []types.WpPlugin, objects []types.ObjectBlue
 			cpDbPlugin := dbPlugin
 
 			dbSemver := semver.MustParse(cpDbPlugin.Version)
-			currentSemver := semver.MustParse(cpDbPlugin.Version)
+			currentSemver := semver.MustParse(plugin.Version)
 
-			// the server version must match the manifest version
 			if currentSemver.Equal(dbSemver) {
 				actionSet[sortSet[plugin.Name]] = types.PluginActionItem{
 					Name:   cpDbPlugin.ExactName,
