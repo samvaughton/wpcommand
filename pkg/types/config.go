@@ -28,6 +28,7 @@ type Config struct {
 	ServerAddress      string `yaml:"serverAddress" envconfig:"SERVER_ADDRESS" json:"serverAddress"`
 	Environment        string `yaml:"environment" envconfig:"ENVIRONMENT" json:"environment"`
 	DatabaseDsn        string `yaml:"databaseDsn" envconfig:"DATABASE_DSN" json:"-"`
+	GithubToken        string `yaml:"githubToken" envconfig:"GITHUB_TOKEN" json:"-"`
 
 	K8 struct {
 		LabelSelector string `yaml:"labelSelector" envconfig:"K8_LABEL_SELECTOR" json:"labelSelector"`

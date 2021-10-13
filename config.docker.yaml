@@ -6,6 +6,7 @@ useInClusterConfig: true
 sentryDsn:
 databaseDsn:
 manifest: https://raw.githubusercontent.com/aptenex/k8-store/main/manifest.yaml
+githubToken:
 kubernetes:
   labelSelector: app.kubernetes.io/name=wordpress
 logging:
