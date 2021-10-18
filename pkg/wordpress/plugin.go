@@ -21,8 +21,6 @@ func GetSitePluginStatuses(executor execution.CommandExecutor, latestObjs []type
 		return types.PluginActionSet{}, err
 	}
 
-	fmt.Println(result)
-
 	pluginList, err := PluginListFromJson(result.Output)
 
 	if err != nil {
