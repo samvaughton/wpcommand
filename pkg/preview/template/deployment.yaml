@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simbatsy-preview-$BUILD_ID
+  namespace: site-preview-$BUILD_ID
+  labels:
+    app.kubernetes.io/name: "simbatsy-preview-$BUILD_ID"
+    app.kubernetes.io/managed-by: "k8"
+    app.kubernetes.io/component: "simbatsy-frontend"
+    app.kubernetes.io/environment: "staging"
+    wpcmd.k8.rentivo.com/build: "$BUILD_ID"
+    wpcmd.k8.rentivo.com/type: "preview"
+  annotations:
+    keel.sh/policy: "all"
+    keel.sh/approvals: "0"
+    keel.sh/trigger: "poll"
+    keel.sh/matchPreRelease: "false"
+    keel.sh/pollSchedule: "@every 1m"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simbatsy-preview-$BUILD_ID
+  template:
+    metadata:
+      namespace: site-preview-$BUILD_ID
+      labels:
+        app: simbatsy-preview-$BUILD_ID
+    spec:
+      containers:
+        - name: simbatsy-preview-$BUILD_ID
+          image: docker.io/samrentivo/$IMAGE:$BUILD_ID
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          startupProbe:
+            initialDelaySeconds: 3
+            periodSeconds: 2
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 1
+            httpGet:
+              host:
+              scheme: HTTP
+              path: /
+              port: 80

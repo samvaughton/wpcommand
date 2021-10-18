@@ -67,7 +67,13 @@ func Start() {
 
 					log.Infof("dispatching job %s to pool", item.Uuid)
 
-					commands := GetCommandsFromJob(local)
+					cmdConfig := map[string]interface{}{}
+
+					if local.Command.Type == types.CommandTypePreviewBuild {
+						// load up a request job from the job log
+					}
+
+					commands := GetCommandsFromJob(local, cmdConfig)
 
 					AddPipelineTask(pipeline.SiteCommandPipeline{
 						Site:     local.Site,
@@ -201,18 +207,22 @@ func Start() {
 	}()
 }
 
-func GetCommandsFromJob(job types.CommandJob) []pipeline.SiteCommand {
+func GetCommandsFromJob(job types.CommandJob, cmdConfig map[string]interface{}) []pipeline.SiteCommand {
 	commands := make([]pipeline.SiteCommand, 0)
 
 	switch job.Command.Type {
 	case types.CommandTypeWpBuiltIn:
 		commands = []pipeline.SiteCommand{
-			registry.CommandRegistry[job.Key](job.Site),
+			registry.BuiltInCommandRegistry[job.Key](job.Site, cmdConfig),
 		}
 		break
 	case types.CommandTypeHttpCall:
 		commands = []pipeline.SiteCommand{
 			registry.GetHttpCallCommand(job),
+		}
+	case types.CommandTypePreviewBuild:
+		commands = []pipeline.SiteCommand{
+			registry.GetPreviewBuildCommand(job),
 		}
 	}
 

@@ -7,6 +7,12 @@ sentryDsn:
 databaseDsn: postgres://app:password@localhost:5444/app?sslmode=disable
 manifest: https://raw.githubusercontent.com/aptenex/k8-store/main/manifest.yaml
 githubToken:
+github:
+  owner: aptenex
+  repo: rentivo-gatsby-themes
+  previewWorkflow: dynamic_preview.yaml
+docker:
+  namespace: samrentivo
 kubernetes:
   labelSelector: app.kubernetes.io/name=wordpress
 logging:

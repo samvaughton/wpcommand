@@ -30,6 +30,8 @@
             })
 
             fetch("/api/site/" + key + "/command?type=attached").then(resp => resp.json()).then(data => {
+                itemSpecificCommands = [];
+
                 itemSpecificCommands = data;
 
                 itemSpecificCommands.forEach(cmd => {

@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: simbatsy-preview-$BUILD_ID-ingress
+  namespace: site-preview-$BUILD_ID
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  labels:
+    wpcmd.k8.rentivo.com/build: "$BUILD_ID"
+    wpcmd.k8.rentivo.com/type: "preview"
+spec:
+  rules:
+    - host: $BUILD_ID.preview.k8.rentivo.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: simbatsy-preview-$BUILD_ID
+                port:
+                  number: 80

@@ -35,7 +35,7 @@ func RunWpUserSync(site *types.Site, flowOpts types.FlowOptions) error {
 		Config:   config.Config,
 		Options:  pipeline.ExecuteOptions{},
 		Commands: []pipeline.SiteCommand{
-			registry.GetUserSyncCommand(site),
+			registry.GetUserSyncCommand(site, map[string]interface{}{}),
 		},
 	}
 

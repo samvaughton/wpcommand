@@ -1,0 +1,21 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: simbatsy-preview-$BUILD_ID
+  namespace: site-preview-$BUILD_ID
+  labels:
+    app.kubernetes.io/name: "simbatsy-preview-$BUILD_ID"
+    app.kubernetes.io/managed-by: "k8"
+    app.kubernetes.io/component: "simbatsy-service"
+    app.kubernetes.io/environment: "staging"
+    wpcmd.k8.rentivo.com/build: "$BUILD_ID"
+    wpcmd.k8.rentivo.com/type: "preview"
+spec:
+  selector:
+    app: simbatsy-preview-$BUILD_ID
+  ports:
+    - protocol: "TCP"
+      # Port accessible inside cluster for other pods to communicate with
+      port: 80
+      # Port to forward to inside the pod, eg what the application/docker is exposing
+      targetPort: 80

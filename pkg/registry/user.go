@@ -8,7 +8,7 @@ import (
 	"github.com/samvaughton/wpcommand/v2/pkg/wordpress"
 )
 
-func GetUserSetupCommand(site *types.Site) pipeline.SiteCommand {
+func GetUserSetupCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
 	return &pipeline.SimplePipelineCommand{
 		Name:              CmdWpSiteUserSetup,
 		ErrorIsSuccessful: true, // if no user is found, it errors and then we create
@@ -25,7 +25,7 @@ func GetUserSetupCommand(site *types.Site) pipeline.SiteCommand {
 	}
 }
 
-func GetUserSyncCommand(site *types.Site) pipeline.SiteCommand {
+func GetUserSyncCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
 	return &pipeline.WrappedCommand{
 		Name: CmdWpUserList,
 		Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {

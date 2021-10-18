@@ -12,7 +12,7 @@
 
     let timer = null;
     let currentTimeout = 0;
-    let maxTimeout = 300;
+    let maxTimeout = 300 * 3; // 15min
 
     let fetchEvents = () => {
         fetch("/api/command/job/" + uuid + "/event").then(resp => resp.json()).then(data => {
@@ -43,7 +43,7 @@
         fetchEvents();
 
         if (data.status !== "SUCCESS" && data.status !== "FAILURE") {
-            timer = setInterval(fetchEvents, 1000); // every second
+            timer = setInterval(fetchEvents, 5000); // every second
         }
     });
 

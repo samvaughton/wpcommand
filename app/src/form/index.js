@@ -1,17 +1,21 @@
 class Form {
 
-    constructor(formType, fields, existingObject, fieldsTypeMap) {
+    constructor(formType, fields, existingObject, fieldsTypeMap, hooks) {
+        this.hooks = hooks || {};
         this.formType = formType;
         this.fields = fields;
         this.fieldsTypeMap = fieldsTypeMap || {};
-        this.existingObject = existingObject;
         this.submitted = false;
         this.errorMessage = '';
 
-        this.init();
+        this.initWithNewData(existingObject);
     }
 
     initWithNewData(object) {
+        if (this.hooks['onHydrate'] !== undefined) {
+            object = this.hooks['onHydrate'](object);
+        }
+
         this.existingObject = object;
         this.init();
     }
@@ -37,6 +41,8 @@ class Form {
                 this.existingObject !== null &&
                 this.existingObject[field] !== undefined
             ) {
+
+
                 value = this.existingObject[field];
             }
 

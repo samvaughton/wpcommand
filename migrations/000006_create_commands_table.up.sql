@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS commands(
     http_url TEXT,
     http_headers JSON,
     http_body TEXT,
+    config JSON DEFAULT '{}'::json NOT NULL,
     public BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP
 );

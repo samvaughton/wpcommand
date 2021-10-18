@@ -12,24 +12,26 @@ import (
 )
 
 type Site struct {
-	Id            int64 `bun:"id,pk"`
-	AccountId     int64
-	Account       *Account        `bun:"rel:belongs-to" json:"-"`
-	BlueprintSets []*BlueprintSet `bun:"m2m:sites_blueprint_sets" json:"-"`
-	Uuid          string
-	Key           string
-	Description   string
-	LabelSelector string
-	Namespace     string
-	SiteEmail     string
-	SiteUsername  string
-	SitePassword  string `casbin:"sitadwade,read_special"`
-	SiteConfig    string
-	WpCachedData  string
-	Enabled       bool
-	TestMode      bool
-	CreatedAt     time.Time
-	UpdatedAt     bun.NullTime
+	Id                 int64 `bun:"id,pk"`
+	AccountId          int64
+	Account            *Account        `bun:"rel:belongs-to" json:"-"`
+	BlueprintSets      []*BlueprintSet `bun:"m2m:sites_blueprint_sets" json:"-"`
+	Uuid               string
+	Key                string
+	Description        string
+	LabelSelector      string
+	Namespace          string
+	SiteEmail          string
+	SiteUsername       string
+	SitePassword       string
+	SiteConfig         string
+	WpCachedData       string
+	WpDomain           string
+	DockerRegistryName string
+	Enabled            bool
+	TestMode           bool
+	CreatedAt          time.Time
+	UpdatedAt          bun.NullTime
 }
 
 func (s *Site) GetWpCachedData() (WpCachedData, error) {
@@ -81,14 +83,16 @@ func NewSiteFromHttpRequest(req *http.Request) (*Site, error) {
 }
 
 type UpdateSitePayload struct {
-	Description   string
-	LabelSelector string
-	Namespace     string
-	Enabled       bool
-	SiteConfig    string
-	SiteUsername  string
-	SiteEmail     string
-	SitePassword  string
+	Description        string
+	LabelSelector      string
+	Namespace          string
+	Enabled            bool
+	SiteConfig         string
+	SiteUsername       string
+	SiteEmail          string
+	SitePassword       string
+	WpDomain           string
+	DockerRegistryName string
 }
 
 func (p UpdateSitePayload) HydrateSite(site *Site) {
@@ -100,6 +104,8 @@ func (p UpdateSitePayload) HydrateSite(site *Site) {
 	site.SiteUsername = p.SiteUsername
 	site.SiteEmail = p.SiteEmail
 	site.SitePassword = p.SitePassword
+	site.WpDomain = p.WpDomain
+	site.DockerRegistryName = p.DockerRegistryName
 }
 
 func (p UpdateSitePayload) Validate() error {
@@ -107,6 +113,8 @@ func (p UpdateSitePayload) Validate() error {
 		validation.Field(&p.Description, validation.Required),
 		validation.Field(&p.LabelSelector, validation.Required),
 		validation.Field(&p.Namespace, validation.Required),
+		validation.Field(&p.WpDomain, validation.Required),
+		validation.Field(&p.DockerRegistryName, validation.Required),
 		validation.Field(&p.SiteConfig, is.JSON),
 		validation.Field(&p.SiteEmail, is.Email),
 	)

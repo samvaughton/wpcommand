@@ -108,6 +108,7 @@ func CreateCommandJobs(command *types.Command, sites []*types.Site, runByUserId 
 			Status:      types.CommandJobStatusCreated,
 			Description: description,
 			CreatedAt:   time.Now(),
+			Config:      command.Config,
 		}
 
 		_, err := Db.NewInsert().Model(job).Returning("*").Exec(context.Background())

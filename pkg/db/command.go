@@ -174,6 +174,7 @@ func CommandCreateDefault(description string, key string, cmdType string) (*type
 		Public:      false,
 		Description: description,
 		CreatedAt:   time.Now(),
+		Config:      "{}",
 	})
 }
 

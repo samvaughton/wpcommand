@@ -14,6 +14,16 @@ type Wordpress struct {
 	DataUrls  []DataUrl `yaml:"dataUrls" json:"dataUrls"`
 }
 
+type Github struct {
+	Owner           string `yaml:"owner"`
+	Repo            string `yaml:"repo"`
+	PreviewWorkflow string `yaml:"previewWorkflow"`
+}
+
+type Docker struct {
+	Namespace string `yaml:"namespace"`
+}
+
 type Config struct {
 	K8RestConfig *rest.Config `json:"-"`
 	// Runtime not meant for env or yaml files, only flags
@@ -28,7 +38,11 @@ type Config struct {
 	ServerAddress      string `yaml:"serverAddress" envconfig:"SERVER_ADDRESS" json:"serverAddress"`
 	Environment        string `yaml:"environment" envconfig:"ENVIRONMENT" json:"environment"`
 	DatabaseDsn        string `yaml:"databaseDsn" envconfig:"DATABASE_DSN" json:"-"`
-	GithubToken        string `yaml:"githubToken" envconfig:"GITHUB_TOKEN" json:"-"`
+
+	Docker Docker `yaml:"docker"`
+
+	Github      Github `yaml:"github"`
+	GithubToken string `yaml:"githubToken" envconfig:"GITHUB_TOKEN" json:"-"`
 
 	K8 struct {
 		LabelSelector string `yaml:"labelSelector" envconfig:"K8_LABEL_SELECTOR" json:"labelSelector"`

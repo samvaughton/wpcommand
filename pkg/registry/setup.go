@@ -5,22 +5,22 @@ import (
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 )
 
-func GetWpSetupFreshInstallCommand(site *types.Site) pipeline.SiteCommand {
+func GetWpSetupFreshInstallCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
 	var commands []pipeline.SiteCommand
 
-	commands = append(commands, GetPluginsSyncCommand(site))
-	commands = append(commands, GetThemesSyncCommand(site))
-	commands = append(commands, GetWpDataUrlTransferCommand(site))
-	commands = append(commands, GetPolylangSetupCommand(site))
+	commands = append(commands, GetPluginsSyncCommand(site, config))
+	commands = append(commands, GetThemesSyncCommand(site, config))
+	commands = append(commands, GetWpDataUrlTransferCommand(site, config))
+	commands = append(commands, GetPolylangSetupCommand(site, config))
 
 	if site.SiteUsername != "" && site.SitePassword != "" && site.SiteEmail != "" {
-		commands = append(commands, GetUserSetupCommand(site))
+		commands = append(commands, GetUserSetupCommand(site, config))
 	}
 
-	commands = append(commands, GetHousecleaningCommand(site))
-	commands = append(commands, GetLazyblocksSyncForFreshInstallCommand(site)) // doesnt include data url download
-	commands = append(commands, GetAcfSyncFieldsCommand(site))
-	commands = append(commands, GetSetDefaultOptionsCommand(site))
+	commands = append(commands, GetHousecleaningCommand(site, config))
+	commands = append(commands, GetLazyblocksSyncForFreshInstallCommand(site, config)) // doesnt include data url download
+	commands = append(commands, GetAcfSyncFieldsCommand(site, config))
+	commands = append(commands, GetSetDefaultOptionsCommand(site, config))
 	commands = append(commands, GetWpUpdateSiteConfigCommand(site))
 
 	return &pipeline.SimplePipelineCommand{

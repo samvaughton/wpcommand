@@ -31,7 +31,8 @@ func Start(staticFiles *embed.FS, configData string, authData string) {
 
 	registry.CreateDefaultCommands()
 
-	scheduler.Init(time.Second*5, 2)
+	// nearly all tasks will be http blocking hence a high number of workers
+	scheduler.Init(time.Second*5, 50)
 	scheduler.Start()
 	scheduler.SetupCron()
 

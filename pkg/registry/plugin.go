@@ -10,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GetPluginsStatusCommand(site *types.Site) pipeline.SiteCommand {
+func GetPluginsStatusCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
 	return &pipeline.WrappedCommand{
 		Name: CmdWpPluginsStatus,
 		Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {
@@ -40,11 +40,11 @@ func GetPluginsStatusCommand(site *types.Site) pipeline.SiteCommand {
 	}
 }
 
-func GetPluginsSyncCommand(site *types.Site) pipeline.SiteCommand {
+func GetPluginsSyncCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
 	return &pipeline.SimplePipelineCommand{
 		Name: CmdWpPluginsSync,
 		Commands: []pipeline.SiteCommand{
-			GetPluginsStatusCommand(site),
+			GetPluginsStatusCommand(site, config),
 			&pipeline.WrappedCommand{
 				Name: fmt.Sprintf("%s.%s", CmdWpPluginsSync, "execute"),
 				Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {

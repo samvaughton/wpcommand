@@ -10,28 +10,28 @@ import (
 	"strings"
 )
 
-func GetLazyblocksSyncCommand(site *types.Site) pipeline.SiteCommand {
+func GetLazyblocksSyncCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
 	return &pipeline.SimplePipelineCommand{
 		Name: CmdWpSyncLazyblocks,
 		Commands: []pipeline.SiteCommand{
-			GetWpDataUrlTransferCommand(site),
-			GetLazyblocksDeleteExistingCommand(site),
-			GetLazyBlocksImportCommand(site),
+			GetWpDataUrlTransferCommand(site, config),
+			GetLazyblocksDeleteExistingCommand(site, config),
+			GetLazyBlocksImportCommand(site, config),
 		},
 	}
 }
 
-func GetLazyblocksSyncForFreshInstallCommand(site *types.Site) pipeline.SiteCommand {
+func GetLazyblocksSyncForFreshInstallCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
 	return &pipeline.SimplePipelineCommand{
 		Name: CmdWpSyncLazyblocks,
 		Commands: []pipeline.SiteCommand{
-			GetLazyblocksDeleteExistingCommand(site),
-			GetLazyBlocksImportCommand(site),
+			GetLazyblocksDeleteExistingCommand(site, config),
+			GetLazyBlocksImportCommand(site, config),
 		},
 	}
 }
 
-func GetLazyblocksDeleteExistingCommand(site *types.Site) pipeline.SiteCommand {
+func GetLazyblocksDeleteExistingCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
 	return &pipeline.DynamicArgsCommand{
 		Name: fmt.Sprintf("%s.%s", CmdWpSyncLazyblocks, "delete-existing"),
 		GetArgs: func(pipeline *pipeline.SiteCommandPipeline) ([]string, error) {
@@ -57,7 +57,7 @@ func GetLazyblocksDeleteExistingCommand(site *types.Site) pipeline.SiteCommand {
 	}
 }
 
-func GetLazyBlocksImportCommand(site *types.Site) pipeline.SiteCommand {
+func GetLazyBlocksImportCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
 	return &pipeline.SimpleCommand{
 		Name: fmt.Sprintf("%s.%s", CmdWpSyncLazyblocks, "import"),
 		Args: []string{"wp eval-file /opt/bitnami/eval-index.php lazyblocks-import"},

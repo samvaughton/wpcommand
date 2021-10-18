@@ -12,7 +12,7 @@
 
     let loading = false;
 
-    const fields = ['Description', 'LabelSelector', 'Namespace', 'Enabled', 'SiteConfig', 'SiteEmail', 'SiteUsername', 'SitePassword'];
+    const fields = ['Description', 'LabelSelector', 'Namespace', 'Enabled', 'SiteConfig', 'SiteEmail', 'SiteUsername', 'SitePassword', 'WpDomain', 'DockerRegistryName'];
 
     let form = new Form(
         formType,
@@ -138,6 +138,20 @@
                         <FormGroup>
                             <Label>Site Config</Label>
                             <Input type="text" bind:value={form.current.SitePassword.value} valid={form.isValid(form.current.SitePassword)} invalid={form.isInvalid(form.current.SitePassword)} feedback={form.current.SitePassword.error} />
+                        </FormGroup>
+                    {/if}
+
+                    {#if form.current.WpDomain !== undefined}
+                        <FormGroup>
+                            <Label>Wordpress Domain</Label>
+                            <Input type="text" bind:value={form.current.WpDomain.value} valid={form.isValid(form.current.WpDomain)} invalid={form.isInvalid(form.current.WpDomain)} feedback={form.current.WpDomain.error} />
+                        </FormGroup>
+                    {/if}
+
+                    {#if form.current.DockerRegistryName !== undefined}
+                        <FormGroup>
+                            <Label>Docker Registry Name</Label>
+                            <Input type="text" bind:value={form.current.DockerRegistryName.value} valid={form.isValid(form.current.DockerRegistryName)} invalid={form.isInvalid(form.current.DockerRegistryName)} feedback={form.current.DockerRegistryName.error} />
                         </FormGroup>
                     {/if}
                 </div>

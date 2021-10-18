@@ -43,7 +43,12 @@ const CmdWpUpdateSiteConfig = "update-site-config"
 
 const CmdHttpCall = "http-call"
 
-var CommandRegistry = map[string]func(site *types.Site) pipeline.SiteCommand{
+const CmdPreviewBuild = "preview-build"
+const CmdPreviewBuildRunGithubWorkflow = "preview-build-github-workflow"
+const CmdPreviewBuildRunDockerRegistryWorkflow = "preview-build-docker-registry"
+const CmdPreviewBuildKubernetesDeploy = "preview-build-kubernetes-deploy"
+
+var BuiltInCommandRegistry = map[string]func(site *types.Site, config map[string]interface{}) pipeline.SiteCommand{
 	CmdWpThemesSync:       GetThemesSyncCommand,
 	CmdWpThemesStatus:     GetThemesStatusCommand,
 	CmdWpPluginsSync:      GetPluginsSyncCommand,
@@ -63,13 +68,13 @@ var CommandRegistry = map[string]func(site *types.Site) pipeline.SiteCommand{
 }
 
 func CommandExists(key string) bool {
-	_, exists := CommandRegistry[key]
+	_, exists := BuiltInCommandRegistry[key]
 
 	return exists
 }
 
 func CreateDefaultCommands() {
-	for key, _ := range CommandRegistry {
+	for key, _ := range BuiltInCommandRegistry {
 		existingCmd, err := db.CommandGetByKey(key)
 
 		if existingCmd != nil {
@@ -86,6 +91,6 @@ func CreateDefaultCommands() {
 			continue
 		}
 
-		log.Infof("command %s creeated", cmd.Key)
+		log.Infof("command %s created", cmd.Key)
 	}
 }

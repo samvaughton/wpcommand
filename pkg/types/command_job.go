@@ -56,5 +56,6 @@ type CommandJob struct {
 	Key         string
 	Status      string
 	Description string
+	Config      string
 	CreatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp"`
 }
