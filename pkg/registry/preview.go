@@ -68,10 +68,10 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 					}
 
 					// check every 15 seconds against the registry
-					ticker := time.NewTicker(15 * time.Second)
+					ticker := time.NewTicker(30 * time.Second)
 
 					// deadline
-					deadline := time.Now().Add(30 * time.Minute)
+					deadline := time.Now().Add(20 * time.Minute)
 
 					for {
 						select {

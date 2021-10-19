@@ -17,7 +17,7 @@ func getCommandJobsHandler(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
 
 	account := req.Context().Value("account").(*types.Account)
-	items, err := db.CommandJobsGetForAccount(account.Id)
+	items, err := db.CommandJobsGetForAccount(account.Id, db.CommandJobsFilterOptions{ExcludeKeys: []string{"wp-user-sync"}})
 
 	if err != nil {
 		log.Error(err)

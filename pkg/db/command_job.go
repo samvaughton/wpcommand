@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"github.com/uptrace/bun"
 	"gopkg.in/guregu/null.v3"
 	"time"
 )
@@ -68,11 +69,15 @@ func GetCreatedJobs() []types.CommandJob {
 	return items
 }
 
-func CommandJobsGetForAccount(accountId int64) ([]*types.CommandJob, error) {
+type CommandJobsFilterOptions struct {
+	ExcludeKeys []string
+}
+
+func CommandJobsGetForAccount(accountId int64, opts CommandJobsFilterOptions) ([]*types.CommandJob, error) {
 	var err error
 	items := make([]*types.CommandJob, 0)
 
-	err = Db.
+	query := Db.
 		NewSelect().
 		Model(&items).
 		Relation("Site").
@@ -80,8 +85,13 @@ func CommandJobsGetForAccount(accountId int64) ([]*types.CommandJob, error) {
 		Relation("RunByUser").
 		Where("\"site\".account_id = ?", accountId).
 		Order("created_at DESC").
-		Limit(50).
-		Scan(context.Background())
+		Limit(50)
+
+	if len(opts.ExcludeKeys) > 0 {
+		query = query.Where("\"command\".\"key\" NOT IN (?)", bun.In(opts.ExcludeKeys))
+	}
+
+	err = query.Scan(context.Background())
 
 	if err != nil {
 		return items, err
