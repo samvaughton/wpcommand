@@ -13,6 +13,7 @@ const EventLogTypeJobFinished = "JOB_FINISHED"
 const EventLogStatusSuccess = "SUCCESS"
 const EventLogStatusFailure = "FAILURE"
 const EventLogStatusSkipped = "SKIPPED"
+const EventLogStatusTerminated = "TERMINATED" // for when jobs get stuck etc
 
 type CommandJobEventLog struct {
 	Id           int64 `bun:"id,pk"`

@@ -13,6 +13,7 @@ const CommandJobStatusPending = "PENDING"
 const CommandJobStatusRunning = "RUNNING"
 const CommandJobStatusSuccess = "SUCCESS"
 const CommandJobStatusFailure = "FAILURE"
+const CommandJobStatusTerminated = "TERMINATED"
 
 type ApiCreateCommandJobRequest struct {
 	CommandId int64

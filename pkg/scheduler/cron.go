@@ -16,6 +16,10 @@ func SetupCron() {
 		flow.RunJobBasedWpUserSync(types.FlowOptions{LogSource: "CRON"})
 	})
 
+	Cron.AddFunc("*/10 * * * *", func() {
+		flow.CleanupAbandonedJobs(types.FlowOptions{LogSource: "CRON"})
+	})
+
 	Cron.Start()
 
 	log.Info("cron initialized")

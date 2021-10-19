@@ -73,6 +73,30 @@ type CommandJobsFilterOptions struct {
 	ExcludeKeys []string
 }
 
+func CommandJobsGetAbandoned(timeoutDuration time.Duration) ([]*types.CommandJob, error) {
+	var err error
+	items := make([]*types.CommandJob, 0)
+
+	query := Db.
+		NewSelect().
+		Model(&items).
+		Relation("Site").
+		Relation("Command").
+		Relation("RunByUser").
+		Where("\"command_job\".status = ?", types.CommandJobStatusRunning).
+		Where("? >= \"command_job\".created_at", time.Now().Add(-timeoutDuration)).
+		Order("created_at DESC").
+		Limit(50)
+
+	err = query.Scan(context.Background())
+
+	if err != nil {
+		return items, err
+	}
+
+	return items, nil
+}
+
 func CommandJobsGetForAccount(accountId int64, opts CommandJobsFilterOptions) ([]*types.CommandJob, error) {
 	var err error
 	items := make([]*types.CommandJob, 0)
