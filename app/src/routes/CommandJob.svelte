@@ -1,6 +1,9 @@
 <script>
 
-    import { Router } from "svelte-routing";
+    import {Router} from "svelte-routing";
+    import CommandJobStatus from "../components/CommandJobStatus.svelte";
+    import CommandJobEventLogStatus from "../components/CommandJobEventLogStatus.svelte";
+    import CommandJobEventLogType from "../components/CommandJobEventLogType.svelte";
 
     /*
      * Fetch site details
@@ -89,17 +92,7 @@
                     <tr>
                         <th>Status</th>
                         <td>
-                            {#if item.Status === "CREATED"}
-                                <span class="badge bg-secondary">Created</span>
-                            {:else if item.Status === "PENDING"}
-                                <span class="badge bg-info">Pending</span>
-                            {:else if item.Status === "RUNNING"}
-                                <span class="badge bg-primary">Running</span>
-                            {:else if item.Status === "SUCCESS"}
-                                <span class="badge bg-success">Success</span>
-                            {:else if item.Status === "FAILURE"}
-                                <span class="badge bg-danger">Failure</span>
-                            {/if}
+                            <CommandJobStatus value={item.Status} />
                         </td>
                     </tr>
                     <tr>
@@ -134,24 +127,10 @@
                         <tr>
                             <td>{eItem.ExecutedAt}</td>
                             <td>
-                                {#if eItem.Type === "INFO"}
-                                    <span class="badge bg-info">Info</span>
-                                {:else if eItem.Type === "DATA"}
-                                    <span class="badge bg-primary">Data</span>
-                                {:else if eItem.Type === "JOB_STARTED"}
-                                    <span class="badge bg-secondary">Job Started</span>
-                                {:else if eItem.Type === "JOB_FINISHED"}
-                                    <span class="badge bg-secondary">Job Finished</span>
-                                {/if}
+                                <CommandJobEventLogType value={eItem.Type} />
                             </td>
                             <td>
-                                {#if eItem.Status === "SKIPPED"}
-                                    <span class="badge bg-warning">Skipped</span>
-                                {:else if eItem.Status === "SUCCESS"}
-                                    <span class="badge bg-success">Success</span>
-                                {:else if eItem.Status === "FAILURE"}
-                                    <span class="badge bg-danger">Failure</span>
-                                {/if}
+                                <CommandJobEventLogStatus value={eItem.Status} />
                             </td>
                             <td><code>{eItem.Command}</code></td>
                             <td>

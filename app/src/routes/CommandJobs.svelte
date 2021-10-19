@@ -2,6 +2,7 @@
 
     import {Router, Link, Route} from "svelte-routing";
     import {getLogs, logStore} from '../store/logs.js';
+    import CommandJobStatus from "../components/CommandJobStatus.svelte";
 
     getLogs();
 
@@ -39,17 +40,7 @@
                     <tr>
                         <td>{item.CreatedAt}</td>
                         <td>
-                            {#if item.Status === "CREATED"}
-                                <span class="badge bg-secondary">Created</span>
-                            {:else if item.Status === "PENDING"}
-                                <span class="badge bg-info">Pending</span>
-                            {:else if item.Status === "RUNNING"}
-                                <span class="badge bg-primary">Running</span>
-                            {:else if item.Status === "SUCCESS"}
-                                <span class="badge bg-success">Success</span>
-                            {:else if item.Status === "FAILURE"}
-                                <span class="badge bg-danger">Failure</span>
-                            {/if}
+                            <CommandJobStatus value={item.Status} />
                         </td>
                         <td>{item.Command.Description}</td>
                         <td>{item.Site.Description}</td>
