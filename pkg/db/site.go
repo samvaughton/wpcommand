@@ -117,29 +117,6 @@ func SiteCreateFromStruct(site *types.Site, accountId int64) error {
 	return err
 }
 
-func SiteCreate(key string, accountId int64, description string) *types.Site {
-	site := &types.Site{
-		Uuid:        uuid.New().String(),
-		AccountId:   accountId,
-		Key:         key,
-		Description: description,
-		Enabled:     true,
-		CreatedAt:   time.Now(),
-		SiteConfig:  "{}",
-		UpdatedAt:   bun.NullTime{Time: time.Now()},
-	}
-
-	_, err := Db.NewInsert().Model(site).Returning("*").Exec(context.Background())
-
-	if err != nil {
-		log.Error("could not create a new site", err)
-
-		return nil
-	}
-
-	return site
-}
-
 func SiteUpdate(site *types.Site) error {
 	_, err := Db.NewUpdate().Model(site).WherePK().Returning("*").Exec(context.Background())
 
