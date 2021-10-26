@@ -90,6 +90,7 @@ func SiteCreateFromStruct(site *types.Site, accountId int64) error {
 	site.Enabled = true
 	site.AccountId = accountId
 	site.SiteConfig = "{}"
+	site.WpCachedData = "{}"
 	site.CreatedAt = time.Now()
 	site.UpdatedAt = bun.NullTime{Time: time.Now()}
 
