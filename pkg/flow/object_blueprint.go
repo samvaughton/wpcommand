@@ -57,7 +57,7 @@ func CreateObjectBlueprintFromCreatePayload(payload *types.CreateObjectBlueprint
 		return nil, err
 	}
 
-	_, err = object_blueprint.StoreObjectFile(tx, object.Id, data, false)
+	_, err = object_blueprint.StoreObjectFile(tx, object.Id, data)
 
 	if err != nil {
 		tx.Rollback()
@@ -106,7 +106,7 @@ func CreateObjectBlueprintRevisionFromNewVersionPayload(object *types.ObjectBlue
 	}
 
 	// now we need to store the object
-	_, err = object_blueprint.StoreObjectFile(tx, newObj.Id, data, true)
+	_, err = object_blueprint.StoreObjectFile(tx, newObj.Id, data)
 
 	if err != nil {
 		err2 := tx.Rollback()
@@ -139,5 +139,5 @@ func VerifyAndStoreObjectFile(object *types.ObjectBlueprint) {
 		return
 	}
 
-	object_blueprint.StoreObjectFile(db.Db, object.Id, data, false)
+	object_blueprint.StoreObjectFile(db.Db, object.Id, data)
 }

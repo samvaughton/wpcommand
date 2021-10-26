@@ -14,7 +14,7 @@ import (
  * Takes in the objectId and the url, attempting to create or retrieve a record in object storage
  * and attach it to that object
  */
-func StoreObjectFile(tx bun.IDB, objectId int64, data []byte, rejectIfExists bool) (*types.ObjectBlueprintStorage, error) {
+func StoreObjectFile(tx bun.IDB, objectId int64, data []byte) (*types.ObjectBlueprintStorage, error) {
 	// we have our zip file in "bytes", now we need to hash these bytes and check if it already exists or not
 	hasher := sha3.New256()
 	hasher.Write(data)
@@ -30,8 +30,6 @@ func StoreObjectFile(tx bun.IDB, objectId int64, data []byte, rejectIfExists boo
 		if err != nil {
 			return nil, err
 		}
-	} else if rejectIfExists {
-		return nil, errors.New("provided file already exists, maybe the url does not have the latest version yet")
 	}
 
 	if item == nil {
