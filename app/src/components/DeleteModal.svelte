@@ -2,7 +2,7 @@
     import {Modal, ModalHeader, ModalBody, ModalFooter} from 'sveltestrap';
 
     export let name = null;
-    export let notice = null;
+    export let notice = "";
     export let endpoint = null;
     export let redirectTo = null;
     export let isOpen = false;
