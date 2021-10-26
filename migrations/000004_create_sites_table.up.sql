@@ -15,5 +15,8 @@ CREATE TABLE IF NOT EXISTS sites(
     test_mode BOOL DEFAULT FALSE NOT NULL,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
-    CONSTRAINT fk_account_id FOREIGN KEY (account_id) REFERENCES accounts (id)
+    CONSTRAINT fk_account_id FOREIGN KEY (account_id) REFERENCES accounts (id),
+    CONSTRAINT sites_account_id_key UNIQUE (key, account_id)
 );
+
+CREATE UNIQUE INDEX sites_account_id_key ON sites (account_id, key);
