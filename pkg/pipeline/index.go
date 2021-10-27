@@ -33,6 +33,16 @@ type SiteCommandPipeline struct {
 	errors         []error
 }
 
+func NewSiteCommandPipeline(name string, site *types.Site, config *types.Config, commands []SiteCommand, executor execution.CommandExecutor) SiteCommandPipeline {
+	return SiteCommandPipeline{
+		Name:     name,
+		Site:     site,
+		Config:   config,
+		Commands: commands,
+		Executor: executor,
+	}
+}
+
 type ExecuteOptions struct {
 }
 
