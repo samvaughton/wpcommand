@@ -13,8 +13,7 @@ build-binaries:
 		-ldflags "$(LDFLAGS)" -osarch="linux/amd64"
 
 test:
-	go get github.com/mfridman/tparse
-	go test -json -v `go list ./... | egrep -v /tests` -cover | tparse -all -smallscreen
+	go test ./pkg/./...
 
 build:
 	CGO_ENABLED=0 GOOS=linux go build -a -ldflags "$(LDFLAGS) -w -s" .
