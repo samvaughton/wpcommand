@@ -3,6 +3,11 @@ storageHost: https://wpcmd.k8.rentivo.com
 environment: dev
 embedStaticFiles: false
 useInClusterConfig: false
+mailgun:
+  from: "Rentivo Build <build@rentivo.com>"
+  domain: manage.rentivo.com
+  baseUrl: https://api.eu.mailgun.net/v3
+  apiKey:
 sentryDsn:
 databaseDsn:
 manifest: https://raw.githubusercontent.com/aptenex/k8-store/main/manifest.yaml

@@ -1,14 +1,17 @@
 package registry
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	appConfig "github.com/samvaughton/wpcommand/v2/pkg/config"
+	"github.com/samvaughton/wpcommand/v2/pkg/notify"
 	"github.com/samvaughton/wpcommand/v2/pkg/pipeline"
 	"github.com/samvaughton/wpcommand/v2/pkg/preview"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"text/template"
 	"time"
 )
 
@@ -118,7 +121,46 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 						return nil, err
 					}
 
-					return &types.CommandResult{Command: CmdPreviewBuildKubernetesDeploy, Output: imageName, Data: tracker}, nil
+					return &types.CommandResult{Command: CmdPreviewBuildKubernetesDeploy, Output: buildId}, nil
+				},
+			},
+			&pipeline.WrappedCommand{
+				Name: "CmdNotifyAccountUsersForPreview",
+				Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {
+
+					buildId := pipeline.PreviousResult.Output
+					url := fmt.Sprintf("https://%s.preview.k8.rentivo.com", buildId)
+
+					t, err := template.New("build-preview-email").
+						Parse("Hi there,\n\nA preview build is now ready for your site {{ .SiteName }}. You may find it here:\n\n{{ .Url }}\n\nThis preview build will be automatically deleted after 8 hours.\n\nKind Regards, Rentivo")
+
+					if err != nil {
+						return nil, err
+					}
+
+					var output bytes.Buffer
+
+					err = t.Execute(&output, map[string]string{
+						"Url":      url,
+						"BuildId":  buildId,
+						"SiteName": pipeline.Site.Description,
+					})
+
+					if err != nil {
+						return nil, err
+					}
+
+					err = notify.SendToAllUsers(
+						fmt.Sprintf("%s - Preview Build Ready", pipeline.Site.Description),
+						output.String(),
+						pipeline.Site.AccountId,
+					)
+
+					if err != nil {
+						return nil, err
+					}
+
+					return &types.CommandResult{Command: CmdPreviewBuildNotifyAccountUsers, Output: url}, nil
 				},
 			},
 		},

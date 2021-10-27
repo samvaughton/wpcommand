@@ -9,6 +9,7 @@ import (
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/flow"
+	"github.com/samvaughton/wpcommand/v2/pkg/notify"
 	"github.com/samvaughton/wpcommand/v2/pkg/registry"
 	"github.com/samvaughton/wpcommand/v2/pkg/scheduler"
 	"github.com/samvaughton/wpcommand/v2/pkg/util"
@@ -25,10 +26,10 @@ func Start(staticFiles *embed.FS, configData string, authData string) {
 	db.InitDbConnection()
 	util.SetupLogging()
 
+	notify.InitNotifier(notify.ImplMailgun, config.Config)
+
 	auth.InitAuth(authData)
-
 	flow.CreateDefaultAccountAndUser()
-
 	registry.CreateDefaultCommands()
 
 	// nearly all tasks will be http blocking hence a high number of workers
@@ -37,7 +38,6 @@ func Start(staticFiles *embed.FS, configData string, authData string) {
 	scheduler.SetupCron()
 
 	router := mux.NewRouter()
-
 	SetupApi(router)
 	SetupPublic(router)
 	SetupSpa(router, staticFiles)

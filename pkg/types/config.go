@@ -39,6 +39,13 @@ type Config struct {
 	Environment        string `yaml:"environment" envconfig:"ENVIRONMENT" json:"environment"`
 	DatabaseDsn        string `yaml:"databaseDsn" envconfig:"DATABASE_DSN" json:"-"`
 
+	Mailgun struct {
+		From    string `yaml:"from"`
+		Domain  string `yaml:"domain"`
+		BaseUrl string `yaml:"baseUrl"`
+		ApiKey  string `yaml:"apiKey"`
+	} `yaml:"mailgun"`
+
 	Docker Docker `yaml:"docker"`
 
 	Github      Github `yaml:"github"`

@@ -14,15 +14,11 @@ const (
 // Revision that was compiled. This will be filled in by the compiler.
 var Revision string
 
-// BuildDate is when the binary was compiled.  This will be filled in by the
-// compiler.
+// BuildDate is when the binary was compiled.  This will be filled in by the compiler.
 var BuildDate string
 
 // Version number that is being run at the moment.  Version should use semver.
 var Version string
-
-// Experimental is intended to be used to enable alpha features.
-var Experimental string
 
 func GetInfo() types.VersionInfo {
 	v := types.VersionInfo{

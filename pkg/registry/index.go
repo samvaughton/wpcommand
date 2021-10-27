@@ -47,6 +47,7 @@ const CmdPreviewBuild = "preview-build"
 const CmdPreviewBuildRunGithubWorkflow = "preview-build-github-workflow"
 const CmdPreviewBuildRunDockerRegistryWorkflow = "preview-build-docker-registry"
 const CmdPreviewBuildKubernetesDeploy = "preview-build-kubernetes-deploy"
+const CmdPreviewBuildNotifyAccountUsers = "preview-build-notify-users"
 
 var BuiltInCommandRegistry = map[string]func(site *types.Site, config map[string]interface{}) pipeline.SiteCommand{
 	CmdWpThemesSync:       GetThemesSyncCommand,
