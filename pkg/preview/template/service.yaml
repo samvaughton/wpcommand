@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/managed-by: "k8"
     app.kubernetes.io/component: "simbatsy-service"
     app.kubernetes.io/environment: "staging"
+    wpcmd.k8.rentivo.com/site-id: "$SITE_ID"
     wpcmd.k8.rentivo.com/build: "$BUILD_ID"
     wpcmd.k8.rentivo.com/type: "preview"
 spec:

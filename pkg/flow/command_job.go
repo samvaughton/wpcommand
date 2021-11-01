@@ -14,7 +14,7 @@ func CleanupAbandonedJobs(flowOpts types.FlowOptions) {
 		"Source": flowOpts.LogSource,
 		"Action": "CLEANUP_ABANDONED_JOBS",
 		"Detail": "START",
-	}).Debug("cleanup starting")
+	}).Debug("started")
 
 	jobs, err := db.CommandJobsGetAbandoned(1 * time.Hour)
 
@@ -37,12 +37,30 @@ func CleanupAbandonedJobs(flowOpts types.FlowOptions) {
 	for _, job := range jobs {
 		job.Status = types.CommandJobStatusTerminated
 		db.Db.NewUpdate().Model(job).WherePK().Returning("*").Exec(context.Background())
-		db.CreateCommandJobEvent(job.Id, types.EventLogTypeInfo, types.EventLogStatusTerminated, "job", "job terminated due to timeout via cron", map[string]interface{}{})
+
+		_, err := db.CreateCommandJobEvent(job.Id, types.EventLogTypeInfo, types.EventLogStatusTerminated, "job", "job terminated due to timeout via cron", map[string]interface{}{})
+
+		if err != nil {
+			log.WithFields(log.Fields{
+				"Source": flowOpts.LogSource,
+				"Action": "CLEANUP_ABANDONED_JOBS",
+				"Detail": "CREATE_COMMAND_JOB_EVENT",
+			}).Error(err)
+
+			continue
+		}
+
+		log.WithFields(log.Fields{
+			"Source": flowOpts.LogSource,
+			"Action": "CLEANUP_ABANDONED_JOBS",
+			"Detail": "JOB_CLEANUP",
+			"JobId":  job.Uuid,
+		}).Info("cleaned up abandoned job")
 	}
 
 	log.WithFields(log.Fields{
 		"Source": flowOpts.LogSource,
 		"Action": "CLEANUP_ABANDONED_JOBS",
 		"Detail": "FINISH",
-	}).Debug("cleanup finished")
+	}).Debug("finished")
 }

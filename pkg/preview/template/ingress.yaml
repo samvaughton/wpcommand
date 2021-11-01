@@ -6,6 +6,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
   labels:
+    wpcmd.k8.rentivo.com/site-id: "$SITE_ID"
     wpcmd.k8.rentivo.com/build: "$BUILD_ID"
     wpcmd.k8.rentivo.com/type: "preview"
 spec:

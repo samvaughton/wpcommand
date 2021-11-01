@@ -28,7 +28,7 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 						return nil, err
 					}
 
-					bpr := types.BuildPreviewRequest{
+					bpr := types.BuildRequest{
 						Id: uuid.New().String(),
 
 						RepoOwner: appConfig.Config.Github.Owner,
@@ -37,8 +37,10 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 
 						RepoRef: bprc.BuildPreviewRef,
 
-						DockerRegistryName: job.Site.DockerRegistryName,
+						DockerRegistryName: appConfig.Config.Docker.PreviewRepo,
 						WordpressDomain:    job.Site.WpDomain,
+
+						IsPreviewBuild: true,
 					}
 
 					tracker := preview.NewBuildTracker(preview.NewGithubClient(appConfig.Config.GithubToken), appConfig.Config.K8RestConfig)
@@ -111,11 +113,15 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 					buildId := pipeline.PreviousResult.Output
 
 					// create the actual output required for K8 deployment (the image)
-					imageName := fmt.Sprintf("%s/%s:%s", appConfig.Config.Docker.Namespace, job.Site.DockerRegistryName, buildId)
+					previewImageName := appConfig.Config.Docker.GetPreviewImageName()
 
-					log.Debug(fmt.Sprintf("deploying preview build %s to kubernetes", imageName))
+					log.Debug(fmt.Sprintf("deploying preview build %s:%s to kubernetes", previewImageName, buildId))
 
-					err := tracker.DeployPreviewBuild(imageName, buildId)
+					err := tracker.DeployPreviewBuild(preview.TemplateContext{
+						ImageName: previewImageName,
+						BuildId:   buildId,
+						SiteId:    pipeline.Site.Uuid,
+					})
 
 					if err != nil {
 						return nil, err
@@ -125,14 +131,14 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 				},
 			},
 			&pipeline.WrappedCommand{
-				Name: "CmdNotifyAccountUsersForPreview",
+				Name: CmdPreviewBuildNotifyAccountUsers,
 				Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {
 
 					buildId := pipeline.PreviousResult.Output
 					url := fmt.Sprintf("https://%s.preview.k8.rentivo.com", buildId)
 
 					t, err := template.New("build-preview-email").
-						Parse("Hi there,\n\nA preview build is now ready for your site {{ .SiteName }}. You may find it here:\n\n{{ .Url }}\n\nThis preview build will be automatically deleted after 8 hours.\n\nKind Regards, Rentivo")
+						Parse("Hi there,\n\nA preview build is now ready for your site {{ .SiteName }}. You may find it here:\n\n{{ .Url }}\n\nThis preview build will be automatically deleted after 4 hours.\n\nKind Regards, Rentivo")
 
 					if err != nil {
 						return nil, err

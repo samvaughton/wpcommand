@@ -13,7 +13,7 @@
 
     let loading = false;
 
-    const fields = ['Type', 'Description', 'HttpMethod', 'HttpUrl', 'HttpHeaders', 'HttpBody', 'BuildPreviewRef', 'Public'];
+    const fields = ['Type', 'Description', 'HttpMethod', 'HttpUrl', 'HttpHeaders', 'HttpBody', 'BuildPreviewRef', 'Public', 'GithubActionName'];
 
     let form = new Form(
         formType,
@@ -121,6 +121,7 @@
                             <Label>Type</Label>
                             <Input type="select" bind:value={form.current.Type.value} valid={form.isValid(form.current.Type)} invalid={form.isInvalid(form.current.Type)} feedback={form.current.Type.error}>
                                 <option>Select type</option>
+                                <option value="BUILD_RELEASE">Build & Deploy</option>
                                 <option value="PREVIEW_BUILD">Preview Build</option>
                                 <option value="HTTP_CALL">Http Call</option>
                             </Input>
@@ -139,6 +140,15 @@
                             <FormGroup>
                                 <Label>Github Ref (Branch/Commit/Tag)</Label>
                                 <Input type="text" bind:value={form.current.BuildPreviewRef.value} valid={form.isValid(form.current.BuildPreviewRef)} invalid={form.isInvalid(form.current.BuildPreviewRef)} feedback={form.current.BuildPreviewRef.error} />
+                            </FormGroup>
+                        {/if}
+                    {/if}
+
+                    {#if form.current.Type.value === "BUILD_RELEASE" }
+                        {#if form.current.GithubActionName !== undefined}
+                            <FormGroup>
+                                <Label>Workflow Action Name</Label>
+                                <Input type="text" bind:value={form.current.GithubActionName.value} valid={form.isValid(form.current.GithubActionName)} invalid={form.isInvalid(form.current.GithubActionName)} feedback={form.current.GithubActionName.error} />
                             </FormGroup>
                         {/if}
                     {/if}

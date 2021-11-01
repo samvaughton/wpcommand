@@ -16,7 +16,7 @@ func RunWpUserSync(site *types.Site, flowOpts types.FlowOptions) error {
 		"Source": flowOpts.LogSource,
 		"Action": "JOB_WP_USER_SYNC",
 		"Detail": "",
-	}).Info("user sync starting")
+	}).Debug("started")
 
 	executor, err := execution.NewCommandExecutor(site)
 
@@ -40,6 +40,12 @@ func RunWpUserSync(site *types.Site, flowOpts types.FlowOptions) error {
 	}
 
 	p.Run()
+
+	log.WithFields(log.Fields{
+		"Source": flowOpts.LogSource,
+		"Action": "JOB_WP_USER_SYNC",
+		"Detail": "",
+	}).Debug("finished")
 
 	return nil
 }

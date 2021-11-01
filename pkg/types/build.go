@@ -2,7 +2,7 @@ package types
 
 import "github.com/google/go-github/v39/github"
 
-type BuildPreviewRequest struct {
+type BuildRequest struct {
 	Id                 string
 	RepoOwner          string
 	RepoName           string
@@ -10,10 +10,11 @@ type BuildPreviewRequest struct {
 	Workflow           string
 	DockerRegistryName string
 	WordpressDomain    string
+	IsPreviewBuild     bool
 }
 
-type BuildPreviewResult struct {
-	BuildPreviewRequest BuildPreviewRequest
-	GithubWorkflowJob   github.WorkflowJob
-	BuildPreviewUrl     string
+type BuildResult struct {
+	BuildRequest      BuildRequest
+	GithubWorkflowJob github.WorkflowJob
+	BuildUrl          string
 }

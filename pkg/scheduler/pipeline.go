@@ -224,6 +224,10 @@ func GetCommandsFromJob(job types.CommandJob, cmdConfig map[string]interface{}) 
 		commands = []pipeline.SiteCommand{
 			registry.GetPreviewBuildCommand(job),
 		}
+	case types.CommandTypeBuildRelease:
+		commands = []pipeline.SiteCommand{
+			registry.GetBuildReleaseCommand(job),
+		}
 	}
 
 	return commands

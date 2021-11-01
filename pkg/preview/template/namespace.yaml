@@ -3,5 +3,6 @@ kind: Namespace
 metadata:
   name: site-preview-$BUILD_ID
   labels:
+    wpcmd.k8.rentivo.com/site-id: "$SITE_ID"
     wpcmd.k8.rentivo.com/build: "$BUILD_ID"
     wpcmd.k8.rentivo.com/type: "preview"

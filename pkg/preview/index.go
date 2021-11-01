@@ -30,7 +30,7 @@ var k8Files embed.FS
 type BuildTracker struct {
 	ghClient *gh.Client
 	k8Client *rest.Config
-	jobChan  chan types.BuildPreviewRequest
+	jobChan  chan types.BuildRequest
 }
 
 func NewGithubClient(token string) *gh.Client {
@@ -44,18 +44,24 @@ func NewBuildTracker(ghClient *gh.Client, k8Client *rest.Config) *BuildTracker {
 	return &BuildTracker{
 		ghClient: ghClient,
 		k8Client: k8Client,
-		jobChan:  make(chan types.BuildPreviewRequest, 100),
+		jobChan:  make(chan types.BuildRequest, 100),
 	}
 }
 
-func (jt *BuildTracker) RunGithubWorkflowJob(request types.BuildPreviewRequest) error {
-	resp, err := jt.ghClient.Actions.CreateWorkflowDispatchEventByFileName(context.Background(), request.RepoOwner, request.RepoName, request.Workflow, gh.CreateWorkflowDispatchEventRequest{
-		Ref: request.RepoRef,
-		Inputs: map[string]interface{}{
+func (jt *BuildTracker) RunGithubWorkflowJob(request types.BuildRequest) error {
+	inputs := map[string]interface{}{}
+
+	if request.IsPreviewBuild {
+		inputs = map[string]interface{}{
 			"previewBuildId":  request.Id,
 			"dockerRepo":      request.DockerRegistryName,
 			"wordpressDomain": request.WordpressDomain,
-		},
+		}
+	}
+
+	resp, err := jt.ghClient.Actions.CreateWorkflowDispatchEventByFileName(context.Background(), request.RepoOwner, request.RepoName, request.Workflow, gh.CreateWorkflowDispatchEventRequest{
+		Ref:    request.RepoRef,
+		Inputs: inputs,
 	})
 
 	if err != nil {
@@ -75,11 +81,17 @@ func (jt *BuildTracker) RunGithubWorkflowJob(request types.BuildPreviewRequest) 
 	return nil
 }
 
-func (jt *BuildTracker) DeployPreviewBuild(imageName string, buildId string) error {
-	namespace := readK8NamespaceFromYaml("template/namespace.yaml", imageName, buildId)
-	ingress := readK8IngressFromYaml("template/ingress.yaml", imageName, buildId)
-	service := readK8ServiceFromYaml("template/service.yaml", imageName, buildId)
-	deployment := readK8DeploymentFromYaml("template/deployment.yaml", imageName, buildId)
+type TemplateContext struct {
+	ImageName string
+	BuildId   string
+	SiteId    string
+}
+
+func (jt *BuildTracker) DeployPreviewBuild(templateContext TemplateContext) error {
+	namespace := readK8NamespaceFromYaml("template/namespace.yaml", templateContext)
+	ingress := readK8IngressFromYaml("template/ingress.yaml", templateContext)
+	service := readK8ServiceFromYaml("template/service.yaml", templateContext)
+	deployment := readK8DeploymentFromYaml("template/deployment.yaml", templateContext)
 
 	coreClient, err := kubernetes.NewForConfig(jt.k8Client)
 
@@ -87,7 +99,7 @@ func (jt *BuildTracker) DeployPreviewBuild(imageName string, buildId string) err
 		return err
 	}
 
-	ns := fmt.Sprintf("site-preview-%s", buildId)
+	ns := fmt.Sprintf("site-preview-%s", templateContext.BuildId)
 
 	_, err = coreClient.CoreV1().Namespaces().Create(context.Background(), namespace, v1Meta.CreateOptions{})
 
@@ -116,9 +128,9 @@ func (jt *BuildTracker) DeployPreviewBuild(imageName string, buildId string) err
 	return nil
 }
 
-func readK8NamespaceFromYaml(file string, imageName string, buildId string) *v1Core.Namespace {
+func readK8NamespaceFromYaml(file string, templateContext TemplateContext) *v1Core.Namespace {
 	ns := &v1Core.Namespace{}
-	_, _, err := scheme.Codecs.UniversalDeserializer().Decode(loadFile(file, imageName, buildId), nil, ns)
+	_, _, err := scheme.Codecs.UniversalDeserializer().Decode(loadFile(file, templateContext), nil, ns)
 
 	if err != nil {
 		panic(err)
@@ -127,9 +139,9 @@ func readK8NamespaceFromYaml(file string, imageName string, buildId string) *v1C
 	return ns
 }
 
-func readK8IngressFromYaml(file string, imageName string, buildId string) *v1Net.Ingress {
+func readK8IngressFromYaml(file string, templateContext TemplateContext) *v1Net.Ingress {
 	ing := &v1Net.Ingress{}
-	_, _, err := scheme.Codecs.UniversalDeserializer().Decode(loadFile(file, imageName, buildId), nil, ing)
+	_, _, err := scheme.Codecs.UniversalDeserializer().Decode(loadFile(file, templateContext), nil, ing)
 
 	if err != nil {
 		panic(err)
@@ -138,9 +150,9 @@ func readK8IngressFromYaml(file string, imageName string, buildId string) *v1Net
 	return ing
 }
 
-func readK8ServiceFromYaml(file string, imageName string, buildId string) *v1Core.Service {
+func readK8ServiceFromYaml(file string, templateContext TemplateContext) *v1Core.Service {
 	service := &v1Core.Service{}
-	_, _, err := scheme.Codecs.UniversalDeserializer().Decode(loadFile(file, imageName, buildId), nil, service)
+	_, _, err := scheme.Codecs.UniversalDeserializer().Decode(loadFile(file, templateContext), nil, service)
 
 	if err != nil {
 		panic(err)
@@ -149,9 +161,9 @@ func readK8ServiceFromYaml(file string, imageName string, buildId string) *v1Cor
 	return service
 }
 
-func readK8DeploymentFromYaml(file string, imageName string, buildId string) *v1App.Deployment {
+func readK8DeploymentFromYaml(file string, templateContext TemplateContext) *v1App.Deployment {
 	dep := &v1App.Deployment{}
-	_, _, err := scheme.Codecs.UniversalDeserializer().Decode(loadFile(file, imageName, buildId), nil, dep)
+	_, _, err := scheme.Codecs.UniversalDeserializer().Decode(loadFile(file, templateContext), nil, dep)
 
 	if err != nil {
 		panic(err)
@@ -160,19 +172,20 @@ func readK8DeploymentFromYaml(file string, imageName string, buildId string) *v1
 	return dep
 }
 
-func loadFile(file string, imageName string, buildId string) []byte {
+func loadFile(file string, templateContext TemplateContext) []byte {
 	objData, err := k8Files.ReadFile(file)
 
 	if err != nil {
 		panic(err)
 	}
 
-	return []byte(replaceVariablesInString(string(objData), imageName, buildId))
+	return []byte(replaceVariablesInString(string(objData), templateContext))
 }
 
-func replaceVariablesInString(data string, imageName string, buildId string) string {
-	data = strings.Replace(data, "$IMAGE", imageName, -1)
-	data = strings.Replace(data, "$BUILD_ID", buildId, -1)
+func replaceVariablesInString(data string, templateContext TemplateContext) string {
+	data = strings.Replace(data, "$IMAGE", templateContext.ImageName, -1)
+	data = strings.Replace(data, "$BUILD_ID", templateContext.BuildId, -1)
+	data = strings.Replace(data, "$SITE_ID", templateContext.SiteId, -1)
 
 	return data
 }

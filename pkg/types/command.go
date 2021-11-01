@@ -15,6 +15,7 @@ import (
 const CommandTypeHttpCall = "HTTP_CALL"
 const CommandTypeWpBuiltIn = "WP_BUILT_IN"
 const CommandTypePreviewBuild = "PREVIEW_BUILD"
+const CommandTypeBuildRelease = "BUILD_RELEASE"
 
 type CommandTypePreviewBuildConfig struct {
 	BuildPreviewRef string
@@ -33,6 +34,32 @@ func NewCommandTypePreviewBuildConfigFromConfig(cmdConfig string) (*CommandTypeP
 }
 
 func (c CommandTypePreviewBuildConfig) ToString() (string, error) {
+	cfgJson, err := json.Marshal(c)
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(cfgJson), nil
+}
+
+type CommandTypeBuildReleaseConfig struct {
+	GithubActionName string
+}
+
+func NewCommandTypeBuildReleaseConfigFromConfig(cmdConfig string) (*CommandTypeBuildReleaseConfig, error) {
+	var item CommandTypeBuildReleaseConfig
+
+	err := json.Unmarshal([]byte(cmdConfig), &item)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
+}
+
+func (c CommandTypeBuildReleaseConfig) ToString() (string, error) {
 	cfgJson, err := json.Marshal(c)
 
 	if err != nil {
@@ -66,14 +93,15 @@ func (c *Command) IsDefault() bool {
 }
 
 type CreateCommandPayload struct {
-	Type            string
-	Description     string
-	HttpMethod      string
-	HttpUrl         string
-	HttpHeaders     string
-	HttpBody        string
-	BuildPreviewRef string
-	Public          bool
+	Type             string
+	Description      string
+	HttpMethod       string
+	HttpUrl          string
+	HttpHeaders      string
+	HttpBody         string
+	BuildPreviewRef  string
+	GithubActionName string
+	Public           bool
 }
 
 func (p CreateCommandPayload) HydrateCommand(command *Command) {
@@ -90,9 +118,19 @@ func (p CreateCommandPayload) HydrateCommand(command *Command) {
 		command.HttpHeaders = "{}"
 	}
 
-	cfgJson, err := json.Marshal(map[string]string{
-		"BuildPreviewRef": p.BuildPreviewRef,
-	})
+	configData := map[string]string{}
+
+	if p.Type == CommandTypePreviewBuild {
+		configData = map[string]string{
+			"BuildPreviewRef": p.BuildPreviewRef,
+		}
+	} else if p.Type == CommandTypeBuildRelease {
+		configData = map[string]string{
+			"GithubActionName": p.GithubActionName,
+		}
+	}
+
+	cfgJson, err := json.Marshal(configData)
 
 	if err != nil {
 		log.Error(err)
@@ -115,6 +153,12 @@ func (p CreateCommandPayload) Validate() error {
 			validation.Field(&p.Type, validation.Required),
 			validation.Field(&p.Description, validation.Required),
 			validation.Field(&p.BuildPreviewRef, validation.Required),
+		)
+	} else if p.Type == CommandTypeBuildRelease {
+		return validation.ValidateStruct(&p,
+			validation.Field(&p.Type, validation.Required),
+			validation.Field(&p.Description, validation.Required),
+			validation.Field(&p.GithubActionName, validation.Required),
 		)
 	}
 
