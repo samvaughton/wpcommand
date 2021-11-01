@@ -6,7 +6,7 @@ import (
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 )
 
-func GetSetDefaultOptionsCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
+func GetSetDefaultOptionsCommand(site *types.Site) pipeline.SiteCommand {
 	return &pipeline.SimplePipelineCommand{
 		Name: CmdWpSetDefaultOptions,
 		Commands: []pipeline.SiteCommand{

@@ -9,7 +9,7 @@ import (
 	"github.com/samvaughton/wpcommand/v2/pkg/wordpress"
 )
 
-func GetThemesStatusCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
+func GetThemesStatusCommand(site *types.Site) pipeline.SiteCommand {
 	return &pipeline.WrappedCommand{
 		Name: CmdWpThemesStatus,
 		Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {
@@ -25,11 +25,11 @@ func GetThemesStatusCommand(site *types.Site, config map[string]interface{}) pip
 	}
 }
 
-func GetThemesSyncCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
+func GetThemesSyncCommand(site *types.Site) pipeline.SiteCommand {
 	return &pipeline.SimplePipelineCommand{
 		Name: CmdWpThemesSync,
 		Commands: []pipeline.SiteCommand{
-			GetThemesStatusCommand(site, config),
+			GetThemesStatusCommand(site),
 			&pipeline.WrappedCommand{
 				Name: fmt.Sprintf("%s.%s", CmdWpThemesSync, "execute"),
 				Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {

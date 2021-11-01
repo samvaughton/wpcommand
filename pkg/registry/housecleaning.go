@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func GetHousecleaningCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
+func GetHousecleaningCommand(site *types.Site) pipeline.SiteCommand {
 	return &pipeline.DynamicArgsCommand{
 		Name: CmdWpHousecleaning,
 		GetArgs: func(pipeline *pipeline.SiteCommandPipeline) ([]string, error) {

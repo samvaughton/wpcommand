@@ -6,24 +6,24 @@ import (
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 )
 
-func GetPolylangSetupCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
+func GetPolylangSetupCommand(site *types.Site) pipeline.SiteCommand {
 	return &pipeline.SimplePipelineCommand{
 		Name: CmdWpPolylangSetup,
 		Commands: []pipeline.SiteCommand{
-			GetPolylangCliInstallCommand(site, config),
-			GetPolylangConfigureCommand(site, config),
+			GetPolylangCliInstallCommand(site),
+			GetPolylangConfigureCommand(site),
 		},
 	}
 }
 
-func GetPolylangCliInstallCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
+func GetPolylangCliInstallCommand(site *types.Site) pipeline.SiteCommand {
 	return &pipeline.SimpleCommand{
 		Name: CmdWpPolylangCliInstall,
 		Args: []string{"wp package install https://github.com/aptenex/polylang-cli/archive/refs/heads/master.zip --insecure"},
 	}
 }
 
-func GetPolylangConfigureCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
+func GetPolylangConfigureCommand(site *types.Site) pipeline.SiteCommand {
 	return &pipeline.SimplePipelineCommand{
 		Name:              CmdWpPolylangConfigure,
 		ErrorIsSuccessful: false,

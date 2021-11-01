@@ -54,7 +54,7 @@ const CmdBuildReleaseRunGithubWorkflow = "build-release-run-github-workflow"
 const CmdBuildReleaseCheckDeploymentStatus = "build-release-check-deployment-status"
 const CmdBuildReleaseNotifyAccountUsers = "build-release-notify-users"
 
-var BuiltInCommandRegistry = map[string]func(site *types.Site, config map[string]interface{}) pipeline.SiteCommand{
+var BuiltInCommandRegistry = map[string]func(site *types.Site) pipeline.SiteCommand{
 	CmdWpThemesSync:       GetThemesSyncCommand,
 	CmdWpThemesStatus:     GetThemesStatusCommand,
 	CmdWpPluginsSync:      GetPluginsSyncCommand,

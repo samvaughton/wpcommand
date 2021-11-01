@@ -7,7 +7,7 @@ import (
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 )
 
-func GetWpDataUrlTransferCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
+func GetWpDataUrlTransferCommand(site *types.Site) pipeline.SiteCommand {
 	return &pipeline.WrappedCommand{
 		Name: CmdWpDataUrlTransfers,
 		Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {

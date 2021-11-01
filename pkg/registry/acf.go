@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func GetAcfSyncFieldsCommand(site *types.Site, config map[string]interface{}) pipeline.SiteCommand {
+func GetAcfSyncFieldsCommand(site *types.Site) pipeline.SiteCommand {
 	return &pipeline.SimplePipelineCommand{
 		Name: CmdWpSyncAcfFields,
 		Commands: []pipeline.SiteCommand{
