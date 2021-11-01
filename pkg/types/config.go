@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"k8s.io/client-go/rest"
 )
 
@@ -21,7 +22,12 @@ type Github struct {
 }
 
 type Docker struct {
-	Namespace string `yaml:"namespace"`
+	Namespace   string `yaml:"namespace"`
+	PreviewRepo string `yaml:"previewRepo"`
+}
+
+func (d *Docker) GetPreviewImageName() string {
+	return fmt.Sprintf("%s/%s", d.Namespace, d.PreviewRepo)
 }
 
 type Config struct {
@@ -43,7 +49,7 @@ type Config struct {
 		From    string `yaml:"from"`
 		Domain  string `yaml:"domain"`
 		BaseUrl string `yaml:"baseUrl"`
-		ApiKey  string `yaml:"apiKey"`
+		ApiKey  string `yaml:"apiKey" envconfig:"MAILGUN_API_KEY"`
 	} `yaml:"mailgun"`
 
 	Docker Docker `yaml:"docker"`

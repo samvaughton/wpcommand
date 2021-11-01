@@ -18,6 +18,7 @@ github:
   previewWorkflow: dynamic_preview.yaml
 docker:
   namespace: samrentivo
+  previewRepo: preview
 kubernetes:
   labelSelector: app.kubernetes.io/name=wordpress
 logging:
