@@ -1,15 +1,16 @@
 package execution
 
 import (
+	"fmt"
+	"github.com/pkg/errors"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
-	log "github.com/sirupsen/logrus"
 )
 
 type CommandExecutor interface {
 	ExecuteCommand(args []string) (*types.CommandResult, error)
 }
 
-func NewCommandExecutor(site *types.Site) (CommandExecutor, error) {
+func NewCommandExecutor(site *types.Site, config *types.Config) (CommandExecutor, error) {
 	dce := &DebugCommandExecutor{Site: site}
 
 	if site.TestMode {
@@ -17,15 +18,8 @@ func NewCommandExecutor(site *types.Site) (CommandExecutor, error) {
 	}
 
 	if site.LabelSelector != "" && site.Namespace != "" {
-		ce, err := NewKubernetesCommandExecutor(site)
-
-		if err != nil {
-			log.Errorf("could not initialize kubernetes executor %s", err)
-			return nil, err
-		}
-
-		return ce, nil
+		return NewKubernetesCommandExecutor(site, config), nil
 	}
 
-	return dce, nil
+	return nil, errors.New(fmt.Sprintf("could not locate a suitable executor for site %s", site.Description))
 }

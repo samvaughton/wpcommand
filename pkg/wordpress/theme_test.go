@@ -47,7 +47,7 @@ func TestGetSiteThemeStatuses(t *testing.T) {
 		return ""
 	}
 
-	t.Run("GetSiteThemeStatuses", func(t *testing.T) {
+	t.Run("TestGetSiteThemeStatuses", func(t *testing.T) {
 		result, err := GetSiteThemeStatuses(newTestExecutor(themeStatusOutput), latestObjs)
 
 		assert.Nil(t, err)

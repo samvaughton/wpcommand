@@ -21,36 +21,62 @@ import (
 
 type KubernetesCommandExecutor struct {
 	Site     *types.Site
-	Pod      v1.Pod
 	K8Config *rest.Config
 }
 
-func NewKubernetesCommandExecutor(site *types.Site) (*KubernetesCommandExecutor, error) {
-	pod, err := GetPodBySite(site.LabelSelector, site.Namespace, config.Config.K8.LabelSelector, config.Config.K8RestConfig)
+/*
+ * Assign to variable to allow easy testing of other methods, although this isn't exactly the best method to allow for
+ * mocking of this function, it greatly simplifies the normal usage of this package
+ */
+var GetPodBySite = func(labelSelector string, namespace string, baseSelector string, k8Config *rest.Config) (*v1.Pod, error) {
+	client, err := kubernetes.NewForConfig(k8Config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// combine label selectors from wordpress and the specific one
+	combinedSelector := fmt.Sprintf("%s,%s", baseSelector, labelSelector)
+
+	pods, err := client.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{
+		LabelSelector: combinedSelector,
+	})
+
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("an error occurred finding the pod with selector %s", labelSelector))
+	}
+
+	if len(pods.Items) != 1 {
+		return nil, errors.New("could not find pod with the label selector " + labelSelector + ", items returned: " + strconv.Itoa(len(pods.Items)))
+	}
+
+	return &pods.Items[0], nil
+}
+
+func NewKubernetesCommandExecutor(site *types.Site, config *types.Config) *KubernetesCommandExecutor {
+	return &KubernetesCommandExecutor{
+		Site:     site,
+		K8Config: config.K8RestConfig,
+	}
+}
+
+func (e *KubernetesCommandExecutor) ExecuteCommand(args []string) (*types.CommandResult, error) {
+	pod, err := GetPodBySite(e.Site.LabelSelector, e.Site.Namespace, config.Config.K8.LabelSelector, config.Config.K8RestConfig)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &KubernetesCommandExecutor{
-		Site:     site,
-		Pod:      *pod,
-		K8Config: config.Config.K8RestConfig,
-	}, nil
-}
-
-func (e *KubernetesCommandExecutor) ExecuteCommand(args []string) (*types.CommandResult, error) {
 	command := strings.Join(args, " ")
 
 	fields := log.Fields{
 		"event":    "execute-command",
 		"command":  command,
 		"executor": "kubernetes",
-		"pod":      e.Pod.Name,
+		"pod":      pod.Name,
 		"site":     e.Site.Key,
 	}
 
-	stdout, stderr, err := executeRemoteCommand(e.K8Config, e.Pod, command, nil)
+	stdout, stderr, err := executeRemoteCommand(e.K8Config, *pod, command, nil)
 
 	if err != nil {
 		return nil, err
@@ -142,28 +168,4 @@ func executeRemoteCommand(restCfg *rest.Config, pod v1.Pod, command string, stdi
 	}
 
 	return buf.String(), errBuf.String(), nil
-}
-
-func GetPodBySite(labelSelector string, namespace string, baseSelector string, k8Config *rest.Config) (*v1.Pod, error) {
-	client, err := kubernetes.NewForConfig(k8Config)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// combine label selectors from wordpress and the specific one
-	combinedSelector := fmt.Sprintf("%s,%s", baseSelector, labelSelector)
-
-	pods, err := client.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{
-		LabelSelector: combinedSelector,
-	})
-
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("an error occurred finding the pod with selector %s", labelSelector))
-	}
-
-	if len(pods.Items) != 1 {
-		return nil, errors.New("could not find pod with the label selector " + labelSelector + ", items returned: " + strconv.Itoa(len(pods.Items)))
-	}
-
-	return &pods.Items[0], nil
 }

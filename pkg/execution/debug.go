@@ -9,6 +9,11 @@ import (
 type DebugCommandExecutor struct {
 	Site       *types.Site
 	MockOutput string
+	CommandLog []string
+}
+
+func (e *DebugCommandExecutor) ClearLog() {
+	e.CommandLog = []string{}
 }
 
 func (e *DebugCommandExecutor) ExecuteCommand(args []string) (*types.CommandResult, error) {
@@ -22,6 +27,8 @@ func (e *DebugCommandExecutor) ExecuteCommand(args []string) (*types.CommandResu
 	}
 
 	log.WithFields(fields).Infoln("success")
+
+	e.CommandLog = append(e.CommandLog, command)
 
 	return &types.CommandResult{
 		Command: command,

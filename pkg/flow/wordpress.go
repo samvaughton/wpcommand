@@ -18,7 +18,7 @@ func RunWpUserSync(site *types.Site, flowOpts types.FlowOptions) error {
 		"Detail": "",
 	}).Debug("started")
 
-	executor, err := execution.NewCommandExecutor(site)
+	executor, err := execution.NewCommandExecutor(site, config.Config)
 
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -94,7 +94,7 @@ func RunWpUserCreate(wpUser *types.CreateWpUserPayload, site *types.Site, flowOp
 		"Detail": "",
 	}).Info("user create starting")
 
-	executor, err := execution.NewCommandExecutor(site)
+	executor, err := execution.NewCommandExecutor(site, config.Config)
 
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -124,7 +124,7 @@ func RunWpUserCreate(wpUser *types.CreateWpUserPayload, site *types.Site, flowOp
 }
 
 func RunWpUserUpdate(wpUserId int, wpUser *types.UpdateWpUserPayload, site *types.Site, flowOpts types.FlowOptions) error {
-	executor, err := execution.NewCommandExecutor(site)
+	executor, err := execution.NewCommandExecutor(site, config.Config)
 
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -159,7 +159,7 @@ func RunWpUserUpdate(wpUserId int, wpUser *types.UpdateWpUserPayload, site *type
 }
 
 func RunWpUserDelete(wpUserId int, site *types.Site, flowOpts types.FlowOptions) error {
-	executor, err := execution.NewCommandExecutor(site)
+	executor, err := execution.NewCommandExecutor(site, config.Config)
 
 	if err != nil {
 		log.WithFields(log.Fields{

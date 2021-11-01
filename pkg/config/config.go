@@ -35,24 +35,28 @@ func InitConfig(configData string) {
 	// Create config structure
 	config := &types.Config{}
 
-	d := yaml.NewDecoder(strings.NewReader(configData))
+	if configData != "" {
 
-	// if path is provided
-	if cfgPath != "" {
-		// Open config file
-		file, err := os.Open(cfgPath)
-		if err != nil {
+		d := yaml.NewDecoder(strings.NewReader(configData))
+
+		// if path is provided
+		if cfgPath != "" {
+			// Open config file
+			file, err := os.Open(cfgPath)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			defer file.Close()
+
+			d = yaml.NewDecoder(file)
+		}
+
+		// Start YAML decoding from file
+		if err := d.Decode(&config); err != nil {
 			log.Fatal(err)
 		}
 
-		defer file.Close()
-
-		d = yaml.NewDecoder(file)
-	}
-
-	// Start YAML decoding from file
-	if err := d.Decode(&config); err != nil {
-		log.Fatal(err)
 	}
 
 	// Override config based on environmental variables

@@ -69,7 +69,7 @@ func TestGetSitePluginStatuses(t *testing.T) {
 		return ""
 	}
 
-	t.Run("GetSitePluginStatuses", func(t *testing.T) {
+	t.Run("TestGetSitePluginStatuses", func(t *testing.T) {
 		result, err := GetSitePluginStatuses(newTestExecutor(pluginStatusOutput), latestObjs)
 
 		assert.Nil(t, err)

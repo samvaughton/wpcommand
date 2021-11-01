@@ -45,7 +45,7 @@ func Start() {
 
 				for _, item := range created {
 					local := item
-					executor, err := execution.NewCommandExecutor(local.Site)
+					executor, err := execution.NewCommandExecutor(local.Site, config.Config)
 
 					if err != nil {
 						// set the status to failed, job to failed and add an event describing situation

@@ -12,13 +12,13 @@ type SiteCommand interface {
 }
 
 type CommandHooks struct {
-	Started     []func()
-	PreAlways   []func(c SiteCommand)
-	Skipped     []func(c SiteCommand, result *types.CommandResult, err error)
-	PostAlways  []func(c SiteCommand, result *types.CommandResult, err error)
-	PostSuccess []func(c SiteCommand, result *types.CommandResult, err error)
-	PostError   []func(c SiteCommand, result *types.CommandResult, err error)
-	Finished    []func(errors []error)
+	Started     []func()                                                      // Is called when the Run() method is called
+	PreAlways   []func(c SiteCommand)                                         // Is always called for each command at the start
+	Skipped     []func(c SiteCommand, result *types.CommandResult, err error) // Is called when a command is skipped
+	PostAlways  []func(c SiteCommand, result *types.CommandResult, err error) // Is always called after the command has run
+	PostSuccess []func(c SiteCommand, result *types.CommandResult, err error) // Called after a successful command run
+	PostError   []func(c SiteCommand, result *types.CommandResult, err error) // Called after an erroneous command run
+	Finished    []func(errors []error)                                        // Called at the end of the Run() method
 }
 
 type SiteCommandPipeline struct {
@@ -89,17 +89,19 @@ func iterateAndExecute(pipeline *SiteCommandPipeline, commands []SiteCommand) er
 				for _, hook := range pipeline.Hooks.PostError {
 					hook(command, result, err)
 				}
-
-				break
 			} else {
 				for _, hook := range pipeline.Hooks.PostSuccess {
 					hook(command, result, nil)
 				}
 			}
+
+			for _, hook := range pipeline.Hooks.PostAlways {
+				hook(command, result, err)
+			}
 		}
 
 		if err != nil {
-			return err // always break on an error
+			return err // any error we exit the command execution
 		}
 
 		pipeline.PreviousResult = result
