@@ -30,7 +30,8 @@ type SiteCommandPipeline struct {
 	Options        ExecuteOptions
 	Executor       execution.CommandExecutor
 	PreviousResult *types.CommandResult
-	errors         []error
+	Results        []*types.CommandResult
+	Errors         []error
 }
 
 func NewSiteCommandPipeline(name string, site *types.Site, config *types.Config, commands []SiteCommand, executor execution.CommandExecutor) SiteCommandPipeline {
@@ -54,11 +55,11 @@ func (p *SiteCommandPipeline) Run() {
 	err := iterateAndExecute(p, p.Commands)
 
 	if err != nil {
-		p.errors = append(p.errors, err)
+		p.Errors = append(p.Errors, err)
 	}
 
 	for _, hook := range p.Hooks.Finished {
-		hook(p.errors)
+		hook(p.Errors)
 	}
 }
 
@@ -75,7 +76,7 @@ func iterateAndExecute(pipeline *SiteCommandPipeline, commands []SiteCommand) er
 		result, err := command.Execute(pipeline)
 
 		if err != nil {
-			pipeline.errors = append(pipeline.errors, err)
+			pipeline.Errors = append(pipeline.Errors, err)
 		}
 
 		preCheckError, isPreCheck := err.(*PreCheckFailedError)
@@ -105,6 +106,7 @@ func iterateAndExecute(pipeline *SiteCommandPipeline, commands []SiteCommand) er
 		}
 
 		pipeline.PreviousResult = result
+		pipeline.Results = append(pipeline.Results, result)
 	}
 
 	return nil
