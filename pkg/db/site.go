@@ -129,3 +129,26 @@ func SiteUpdate(site *types.Site) error {
 
 	return nil
 }
+
+func SiteMustGetById(siteId int64) *types.Site {
+	site := new(types.Site)
+
+	err := Db.NewSelect().Model(site).Where("id = ?", siteId).Scan(context.Background())
+
+	if err != nil {
+		panic(err)
+	}
+
+	return site
+}
+
+func SiteAddBlueprintSet(siteId int64, blueprintSetId int64) error {
+	sbps := &types.SiteBlueprintSet{
+		SiteId:         siteId,
+		BlueprintSetId: blueprintSetId,
+	}
+
+	_, err := Db.NewInsert().Model(sbps).Returning("*").Exec(context.Background())
+
+	return err
+}

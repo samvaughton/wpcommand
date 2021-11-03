@@ -26,7 +26,7 @@ type KubernetesCommandExecutor struct {
 
 /*
  * Assign to variable to allow easy testing of other methods, although this isn't exactly the best method to allow for
- * mocking of this function, it greatly simplifies the normal usage of this package
+ * mocking of this function, it greatly simplifies the normal usage of this package when running integration tests
  */
 var GetPodBySite = func(labelSelector string, namespace string, baseSelector string, k8Config *rest.Config) (*v1.Pod, error) {
 	client, err := kubernetes.NewForConfig(k8Config)

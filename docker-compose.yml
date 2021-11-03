@@ -16,6 +16,15 @@ services:
     volumes:
       - ./docker/db-data/:/var/lib/postgresql/data/
 
+  postgres_test:
+    image: postgres:latest
+    ports:
+      - 5445:5432
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app_test
+
   redis:
     image: redis:latest
     ports:

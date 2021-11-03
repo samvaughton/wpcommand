@@ -11,17 +11,6 @@ import (
 )
 
 func TestIsolatedCommands(t *testing.T) {
-	// Mock the function
-	oGetPodBySite := execution.GetPodBySite
-	execution.GetPodBySite = func(labelSelector string, namespace string, baseSelector string, k8Config *rest.Config) (*v1.Pod, error) {
-		return &v1.Pod{}, nil
-	}
-
-	// After all tests, restore
-	t.Cleanup(func() {
-		execution.GetPodBySite = oGetPodBySite
-	})
-
 	exampleCommand := "example bash test command"
 
 	testSite := &types.Site{TestMode: true}

@@ -27,8 +27,8 @@ var PluginActionsList = []PluginAction{
 }
 
 type PluginActionItem struct {
-	Name   string // although object has the exact name, if the object does not exist, this needs to be set regardless
-	Object *ObjectBlueprint
+	Name   string           // although object has the exact name, if the object does not exist, this needs to be set regardless
+	Object *ObjectBlueprint `json:"-"`
 	Action PluginAction
 }
 

@@ -32,7 +32,7 @@ func GetPluginsStatusCommand(site *types.Site) pipeline.SiteCommand {
 					"plugin":  action.Name,
 					"version": ver,
 					"action":  action.Action,
-				}).Info("plugin status")
+				}).Debug("plugin status")
 			}
 
 			return &types.CommandResult{Data: actionSet}, nil

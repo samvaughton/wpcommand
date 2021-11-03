@@ -25,6 +25,16 @@ var (
 	DisableManifest bool
 )
 
+func InitConfigFromFile(file string) {
+	data, err := os.ReadFile(file)
+
+	if err != nil {
+		panic(err)
+	}
+
+	InitConfig(string(data))
+}
+
 func InitConfig(configData string) {
 	cfgPath, err := ParseFlags()
 

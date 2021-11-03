@@ -4,7 +4,7 @@ jobs:
   build:
     working_directory: ~/repo
     docker:
-      - image: circleci/golang:1.16.9
+      - image: cimg/go:1.13
     steps:
       - checkout
       - restore_cache:
@@ -22,6 +22,9 @@ jobs:
           command: |
             mkdir -p /tmp/test-reports
             gotestsum --junitfile /tmp/test-reports/unit-tests.xml
+      - run:
+          name: Integration tests
+          command: make test-integration
       - store_test_results:
           path: /tmp/test-reports
 

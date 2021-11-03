@@ -4,11 +4,13 @@ go 1.16
 
 require (
 	github.com/Blank-Xu/sql-adapter v0.0.0-20210714092925-0bdd0d548758
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/asim/go-micro/cmd/protoc-gen-micro/v3 v3.0.0-20211002121322-2ef523a7eb0c // indirect
 	github.com/asim/go-micro/v3 v3.6.0 // indirect
+	github.com/bxcodec/faker/v3 v3.6.0 // indirect
 	github.com/casbin/casbin/v2 v2.36.2
 	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -22,19 +24,17 @@ require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
-	github.com/google/go-github/v39 v39.1.0 // indirect
+	github.com/google/go-github/v39 v39.1.0
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
-	github.com/gorilla/websocket v1.4.2
-	github.com/hibiken/asynq v0.12.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jackc/pgx v3.6.2+incompatible // indirect
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.10.2 // indirect
-	github.com/mailgun/mailgun-go/v4 v4.5.3 // indirect
+	github.com/mailgun/mailgun-go/v4 v4.5.3
 	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/oiime/logrusbun v0.1.1
@@ -51,7 +51,7 @@ require (
 	github.com/uptrace/bun/extra/bundebug v1.0.9 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f
-	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
+	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
