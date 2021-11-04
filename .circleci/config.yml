@@ -9,6 +9,9 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
+      - run:
+          name: Start all services declared in docker-compose.yml
+          command: docker-compose --project wpcmd up -d
       - restore_cache:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
@@ -22,9 +25,6 @@ jobs:
       - run:
           name: Run tests
           command: make test-integration-ci
-      - run:
-          name: List running containers
-          command: docker container ls
       - store_test_results:
           path: /tmp/test-reports
 
