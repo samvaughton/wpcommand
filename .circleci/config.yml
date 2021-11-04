@@ -8,10 +8,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          version: 20.10.7
           docker_layer_caching: true
-      - run:
-          name: Start all services declared in docker-compose.yml
-          command: docker-compose up -d
       - restore_cache:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}

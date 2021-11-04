@@ -28,8 +28,8 @@ test-integration-ci: docker-up dependency setup-test-db
 	gotestsum -tags=integration --junitfile /tmp/test-reports/unit-tests.xml
 
 setup-test-db:
-	PGPASSWORD=password docker exec wpcmd_postgres_test psql -U app -d postgres -c 'DROP DATABASE IF EXISTS app_test'
-	PGPASSWORD=password docker exec wpcmd_postgres_test psql -U app -d postgres -c 'CREATE DATABASE app_test'
+	docker run --network container:wpcmd_postgres_test postgres:latest psql postgresql://app:password@wpcmd_postgres_test:5432/postgres -c 'DROP DATABASE IF EXISTS app_test'
+	docker run --network container:wpcmd_postgres_test postgres:latest psql postgresql://app:password@wpcmd_postgres_test:5432/postgres -c 'CREATE DATABASE app_test'
 	./bin/migrate -database $(POSTGRES_TEST_DSN) -path $(MIGRATIONS_PATH) up
 	go run ./test/load_test_fixtures.go
 
