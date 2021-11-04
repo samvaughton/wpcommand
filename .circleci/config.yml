@@ -20,6 +20,9 @@ jobs:
           paths:
             - "/go/pkg/mod"
       - run:
+          name: List running containers
+          command: docker container ls
+      - run:
           name: Run tests
           command: make test-integration-ci
       - store_test_results:
