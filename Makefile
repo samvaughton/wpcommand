@@ -17,7 +17,7 @@ build-binaries:
 dependency:
 	@go get -v ./pkg/./...
 
-test:
+test-unit: dependency
 	go test ./pkg/./...
 
 test-integration: docker-up dependency setup-test-db
