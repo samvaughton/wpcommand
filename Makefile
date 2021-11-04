@@ -23,6 +23,10 @@ test-unit: dependency
 test-integration: docker-up dependency setup-test-db
 	go test -tags=integration ./pkg/./...
 
+test-integration-ci: docker-up dependency setup-test-db
+	mkdir -p /tmp/test-reports
+	gotestsum -tags=integration --junitfile /tmp/test-reports/unit-tests.xml
+
 setup-test-db:
 	PGPASSWORD=password docker exec wpcommand_postgres_test_1 psql -U app -d postgres -c 'DROP DATABASE IF EXISTS app_test'
 	PGPASSWORD=password docker exec wpcommand_postgres_test_1 psql -U app -d postgres -c 'CREATE DATABASE app_test'
