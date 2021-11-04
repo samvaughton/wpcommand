@@ -51,7 +51,7 @@ func TestProcessingAsExpected(t *testing.T) {
 		}, time.Second*10, time.Second*1)
 	})
 
-	t.Run("TestPanicIsHandled", func(t *testing.T) {
+	t.Run("TestPanicIsRecoveredFrom", func(t *testing.T) {
 		taskProcessed := int32(0)
 
 		commandRunnerPool := NewCommandRunnerPool(3)
@@ -94,7 +94,7 @@ func TestProcessingAsExpected(t *testing.T) {
 		}
 
 		commandRunnerPool.RecoveryHandler = func(currentWorkerCount int32) {
-			assert.Equal(t, currentWorkerCount, int32(2)) // should be 2
+			assert.Equal(t, int32(2), currentWorkerCount) // should be 2
 		}
 
 		commandRunnerPool.AddTask(failingScp)
