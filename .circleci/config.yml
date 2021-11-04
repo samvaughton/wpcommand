@@ -11,7 +11,7 @@ jobs:
           docker_layer_caching: true
       - run:
           name: Start all services declared in docker-compose.yml
-          command: docker-compose --project wpcmd up -d
+          command: docker-compose up -d
       - restore_cache:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
