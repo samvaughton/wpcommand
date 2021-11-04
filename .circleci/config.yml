@@ -4,12 +4,13 @@ jobs:
   build:
     working_directory: ~/repo
     docker:
-      - image: circleci/golang:1.16.9
+      - image: cimg/go:1.16.9
     steps:
       - checkout
       - restore_cache:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
+      - run: docker-compose up -d
       - run:
           name: Install Dependencies
           command: go mod download
