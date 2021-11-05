@@ -42,7 +42,7 @@ setup-test-ci-db:
 	go run ./test/load_test_fixtures.go
 
 docker-up-ci:
-	docker-compose build --profile test  --build-arg WPCMD_CONFIG=config.docker.yaml
+	docker-compose build --build-arg WPCMD_CONFIG=config.docker.yaml
 	docker-compose up -d --profile test
 
 docker-up:
