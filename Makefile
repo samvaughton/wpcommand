@@ -42,14 +42,14 @@ setup-test-ci-db:
 	go run ./test/load_test_fixtures.go
 
 docker-up-ci:
-	@docker-compose --profile test build --build-arg WPCMD_CONFIG=config.docker.yaml
-	@docker-compose --profile test up -d
+	docker-compose --profile test build --build-arg WPCMD_CONFIG=config.docker.yaml
+	docker-compose --profile test up -d
 
 docker-up:
-	@docker-compose up -d
+	docker-compose up -d
 
 docker-down:
-	@docker-compose down
+	docker-compose down
 
 build:
 	CGO_ENABLED=0 GOOS=linux go build -a -ldflags "$(LDFLAGS) -w -s" .
