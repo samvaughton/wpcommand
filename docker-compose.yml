@@ -1,6 +1,22 @@
 version: '3.7'
 
 services:
+  wpcmd_test:
+    profiles: ["test"]
+    ports:
+      - 8999:8999
+    container_name: wpcmd_test
+    entrypoint: make test-integration-ci
+    depends_on:
+      - postgres_test
+      - redis
+    volumes:
+      - /tmp/test-reports:/tmp/test-reports
+    build:
+      context: ./
+      args:
+        WPCMD_CONFIG: 'config.docker.yaml'
+
   postgres:
     container_name: wpcmd_postgres
     image: postgres:latest

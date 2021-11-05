@@ -2,27 +2,20 @@ version: 2.1
 
 jobs:
   build:
+    machine: true
     working_directory: ~/repo
-    docker:
-      - image: cimg/go:1.16.9
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.7
-          docker_layer_caching: true
       - restore_cache:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
-      - run:
-          name: Install Dependencies
-          command: go mod download
       - save_cache:
           key: go-mod-v4-{{ checksum "go.sum" }}
           paths:
             - "/go/pkg/mod"
       - run:
-          name: Run tests
-          command: make test-integration-ci
+          name: Start docker-compose services and run tests
+          command: make docker-up-ci
       - store_test_results:
           path: /tmp/test-reports
 

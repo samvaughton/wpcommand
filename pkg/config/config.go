@@ -127,9 +127,10 @@ func InitConfig(configData string) {
 		}
 	}
 
-	config.K8RestConfig = restCfg
-
-	log.Info("kube host: ", restCfg.Host)
+	if restCfg != nil {
+		config.K8RestConfig = restCfg
+		log.Info("kube host: ", restCfg.Host)
+	}
 
 	if DisableManifest == false {
 		config.Wordpress = *getComputedManifest(config)

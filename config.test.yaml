@@ -1,5 +1,5 @@
 serverAddress: ":8999"
-storageHost: https://localhost:8999
+storageHost: wpcmd.eu.ngrok.io
 environment: dev
 embedStaticFiles: false
 useInClusterConfig: false

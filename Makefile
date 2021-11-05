@@ -2,6 +2,7 @@ JOBDATE		?= $(shell date -u +%Y-%m-%dT%H%M%SZ)
 GIT_REVISION	= $(shell git rev-parse --short HEAD)
 VERSION		?= $(shell git describe --tags --abbrev=0)
 POSTGRES_TEST_DSN = postgres://app:password@localhost:5445/app_test?sslmode=disable
+POSTGRES_TEST_DOCKER_DSN = postgres://app:password@wpcmd_postgres_test:5432/app_test?sslmode=disable
 MIGRATIONS_PATH = ./migrations
 
 #LDFLAGS		+= -linkmode external -extldflags -static
@@ -21,17 +22,28 @@ test-unit: dependency
 	go test ./pkg/./...
 
 test-integration: docker-up dependency setup-test-db
-	go test -tags=integration ./pkg/./...
-
-test-integration-ci: docker-up dependency setup-test-db
-	mkdir -p /tmp/test-reports
-	gotestsum -tags=integration --junitfile /tmp/test-reports/unit-tests.xml
+	DATABASE_DSN=$(POSTGRES_TEST_DSN) go test -tags=integration ./pkg/./...
 
 setup-test-db:
-	docker run --network container:wpcmd_postgres_test postgres:latest psql postgresql://app:password@wpcmd_postgres_test:5432/postgres -c 'DROP DATABASE IF EXISTS app_test'
-	docker run --network container:wpcmd_postgres_test postgres:latest psql postgresql://app:password@wpcmd_postgres_test:5432/postgres -c 'CREATE DATABASE app_test'
+	docker run --network container:wpcmd_postgres_test postgres:latest psql postgres://app:password@wpcmd_postgres_test:5432/postgres?sslmode=disable -c 'DROP DATABASE IF EXISTS app_test'
+	docker run --network container:wpcmd_postgres_test postgres:latest psql postgres://app:password@wpcmd_postgres_test:5432/postgres?sslmode=disable -c 'CREATE DATABASE app_test'
+	./bin/migrate -database $(POSTGRES_TEST_DSN) -path $(MIGRATIONS_PATH) up
+	go run ./test/load_test_fixtures.go --config=config.test.yaml
+
+# This is only to be run inside the docker container
+test-integration-ci: setup-test-ci-db dependency
+	mkdir -p /tmp/test-reports
+	DATABASE_DSN=$(POSTGRES_TEST_DOCKER_DSN) gotestsum -tags=integration --junitfile /tmp/test-reports/unit-tests.xml
+
+setup-test-ci-db:
+	docker run --network container:wpcmd_postgres_test postgres:latest psql $(POSTGRES_TEST_DOCKER_DSN) -c 'DROP DATABASE IF EXISTS app_test'
+	docker run --network container:wpcmd_postgres_test postgres:latest psql $(POSTGRES_TEST_DOCKER_DSN) -c 'CREATE DATABASE app_test'
 	./bin/migrate -database $(POSTGRES_TEST_DSN) -path $(MIGRATIONS_PATH) up
 	go run ./test/load_test_fixtures.go
+
+docker-up-ci:
+	@docker-compose --profile test build --build-arg WPCMD_CONFIG=config.docker.yaml
+	@docker-compose --profile test up -d
 
 docker-up:
 	@docker-compose up -d

@@ -1,15 +1,15 @@
 serverAddress: ":8999"
-storageHost: wpcmd.eu.ngrok.io
+storageHost: https://wpcmd.k8.rentivo.com
 environment: dev
-embedStaticFiles: false
-useInClusterConfig: false
+embedStaticFiles: true
+useInClusterConfig: true
 mailgun:
   from: "Rentivo Build <build@rentivo.com>"
   domain: manage.rentivo.com
   baseUrl: https://api.eu.mailgun.net/v3
   apiKey:
 sentryDsn:
-databaseDsn: postgres://app:password@wpcmd_postgres:5432/app_test?sslmode=disable
+databaseDsn:
 manifest: https://raw.githubusercontent.com/aptenex/k8-store/main/manifest.yaml
 githubToken:
 github:
