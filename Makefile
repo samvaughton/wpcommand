@@ -46,8 +46,9 @@ setup-test-ci-db:
 docker-up-ci:
 	docker-compose --profile test build --build-arg WPCMD_CONFIG=config.docker.yaml
 	docker-compose up -d # do not bring up the test container as will run that manually
-	docker run --network container:wpcmd_postgres_test postgres:latest psql postgres://app:password@localhost:5432/postgres?sslmode=disable -c 'DROP DATABASE IF EXISTS app_test'
-	docker run --network container:wpcmd_postgres_test postgres:latest psql postgres://app:password@localhost:5432/postgres?sslmode=disable -c 'CREATE DATABASE app_test'
+	sleep 5
+	docker exec wpcmd_postgres_test psql postgres://app:password@localhost:5432/postgres?sslmode=disable -c 'DROP DATABASE IF EXISTS app_test'
+	docker exec wpcmd_postgres_test psql postgres://app:password@localhost:5432/postgres?sslmode=disable -c 'CREATE DATABASE app_test'
 
 docker-up:
 	docker-compose up -d
