@@ -25,8 +25,8 @@ test-integration: docker-up dependency setup-test-db
 	DATABASE_DSN=$(POSTGRES_TEST_DSN) go test -tags=integration ./pkg/./...
 
 setup-test-db:
-	docker run --network container:wpcmd_postgres_test postgres:latest psql postgres://app:password@wpcmd_postgres_test:5432/postgres?sslmode=disable -c 'DROP DATABASE IF EXISTS app_test'
-	docker run --network container:wpcmd_postgres_test postgres:latest psql postgres://app:password@wpcmd_postgres_test:5432/postgres?sslmode=disable -c 'CREATE DATABASE app_test'
+	docker run --network container:wpcmd_postgres_test postgres:latest psql postgres://app:password@localhost:5432/postgres?sslmode=disable -c 'DROP DATABASE IF EXISTS app_test'
+	docker run --network container:wpcmd_postgres_test postgres:latest psql postgres://app:password@localhost:5432/postgres?sslmode=disable -c 'CREATE DATABASE app_test'
 	./bin/migrate -database $(POSTGRES_TEST_DSN) -path $(MIGRATIONS_PATH) up
 	go run ./test/load_test_fixtures.go --config=config.test.yaml
 
