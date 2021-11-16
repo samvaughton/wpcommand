@@ -69,6 +69,8 @@ push-image:
 image:
 	docker build -t samrentivo/wpcommand:$(VERSION) -f Dockerfile .
 
+release: image push-image
+
 run:
 	go install github.com/samrentivo/wpcommand/wpcmd
 	wpcmd
