@@ -16,10 +16,17 @@
 
     export let key;
     let item = null;
+    let siteCredentials = null;
     let runnableCommands = [];
     let blueprintSets = [];
     let itemSpecificCommands = [];
     let wpUsers = [];
+
+    function loginUser(userId) {
+        fetch("/api/site/" + key + "/login/" + userId, {method: "POST"}).then(resp => resp.json()).then(data => {
+            window.location = data['LoginUrl'];
+        });
+    }
 
     function fetchData() {
         fetch("/api/site/" + key).then(resp => resp.json()).then(data => {
@@ -38,6 +45,12 @@
                     isUpdateCommandModalOpen[cmd.Uuid] = false;
                 });
             })
+
+            hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionReadSpecial).then(() => {
+                fetch("/api/site/" + key + "/credentials").then(resp => resp.json()).then(data => {
+                    siteCredentials = data;
+                })
+            });
 
             hasAccess(AuthEnum.ObjectBlueprint, AuthEnum.ActionRead).then(() => {
                 fetch("/api/site/" + key + "/blueprint").then(resp => resp.json()).then(data => {
@@ -139,6 +152,12 @@
                             <th>Label Selector</th>
                             <td>{item.LabelSelector}</td>
                         </tr>
+                        {#if siteCredentials != null}
+                            <tr>
+                                <th>Access Token</th>
+                                <td><code>{siteCredentials['AccessToken']}</code></td>
+                            </tr>
+                        {/if}
                     </tbody>
                 </table>
             </div>
@@ -270,7 +289,11 @@
                                         <a href="javascript:;" on:click={() => isDeleteWpUserModalOpen[wpUser['Id']] = !isDeleteWpUserModalOpen[wpUser['Id']]} style="cursor: pointer; color: #ff4343;">Delete</a>
                                         <DeleteModal notice="This will delete all posts for this user, please re-assign them prior to deletion." isOpen={isDeleteWpUserModalOpen[wpUser['Id']]} onClose="{() => {isDeleteWpUserModalOpen[wpUser['Id']] = false; fetchData()}}" name="WP User" endpoint={"/api/site/" + item.Uuid + "/wp/user/" + wpUser['Id']} />
                                     {/await}
-
+                                    {#await hasAccess(AuthEnum.ObjectWordpressUser, AuthEnum.ActionRun)}
+                                        <Loading />
+                                    {:then result}
+                                        <a href="javascript:;" on:click={loginUser(wpUser['Id'])} style="cursor: pointer; color: #c10a8a;">Login to WP</a>
+                                    {/await}
                                 </td>
                             </tr>
                         {/each}

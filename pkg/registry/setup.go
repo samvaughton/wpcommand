@@ -10,6 +10,7 @@ func GetWpSetupFreshInstallCommand(site *types.Site) pipeline.SiteCommand {
 
 	commands = append(commands, GetPluginsSyncCommand(site))
 	commands = append(commands, GetThemesSyncCommand(site))
+	commands = append(commands, GetWpCliLoginInstallCommand(site))
 	commands = append(commands, GetWpDataUrlTransferCommand(site))
 	commands = append(commands, GetPolylangSetupCommand(site))
 

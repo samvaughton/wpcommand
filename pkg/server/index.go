@@ -23,8 +23,9 @@ import (
 
 func Start(staticFiles *embed.FS, configData string, authData string) {
 	config.InitConfig(configData)
-	db.InitDbConnection()
 	util.SetupLogging()
+
+	db.InitDbConnection()
 
 	notify.InitNotifier(notify.ImplMailgun, config.Config)
 

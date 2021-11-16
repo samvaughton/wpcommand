@@ -43,6 +43,11 @@ func InitDbConnection() {
 
 	RegisterHooks()
 	RegisterModels()
+
+	if log.GetLevel() == log.DebugLevel {
+		log.Info("registering debug db hooks")
+		RegisterDebugHooks()
+	}
 }
 
 func InitMockDbConnection() sqlmock.Sqlmock {

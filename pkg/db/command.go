@@ -65,6 +65,22 @@ func CommandGetByUuidAccountSafe(uuid string, accountId int64) (*types.Command, 
 	return item, nil
 }
 
+func CommandGetByTypeSiteSafe(cmdType string, siteId int64) (*types.Command, error) {
+	item := new(types.Command)
+
+	err := Db.NewSelect().Model(item).Where("type = ? AND site_id = ?", cmdType, siteId).Scan(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	if item.IsDefault() == false && item.SiteId.Int64 != siteId {
+		return nil, errors.New("command not found via type & siteId")
+	}
+
+	return item, nil
+}
+
 func CommandsGetRunnableForSiteSafe(siteId int64, accountId int64) ([]*types.Command, error) {
 	items := make([]*types.Command, 0)
 

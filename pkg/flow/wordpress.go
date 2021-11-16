@@ -2,6 +2,7 @@ package flow
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/execution"
@@ -9,6 +10,7 @@ import (
 	"github.com/samvaughton/wpcommand/v2/pkg/registry"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"strings"
 )
 
 func RunWpUserSync(site *types.Site, flowOpts types.FlowOptions) error {
@@ -121,6 +123,56 @@ func RunWpUserCreate(wpUser *types.CreateWpUserPayload, site *types.Site, flowOp
 	p.Run()
 
 	return nil
+}
+
+func sanitizeUrlOutput(url string) string {
+	return strings.Trim(url, "\n\r ")
+}
+
+func RunWpCreateUserLogin(site *types.Site, userId string, flowOpts types.FlowOptions) (string, error) {
+	log.WithFields(log.Fields{
+		"Source": flowOpts.LogSource,
+		"Action": "WP_USER_LOGIN_CREATE",
+		"Detail": "",
+	}).Info("user login create starting")
+
+	executor, err := execution.NewCommandExecutor(site, config.Config)
+
+	if err != nil {
+		log.WithFields(log.Fields{
+			"Source": flowOpts.LogSource,
+			"Action": "WP_USER_LOGIN_CREATE",
+			"Detail": "INIT_EXECUTOR",
+		}).Error(err)
+
+		return "", err
+	}
+
+	args := fmt.Sprintf("wp login create %s --url-only", userId)
+
+	log.WithFields(log.Fields{
+		"Source": flowOpts.LogSource,
+		"Action": "WP_USER_LOGIN_CREATE",
+		"Detail": "GENERATE_ARGS",
+	}).Debug(args)
+
+	p := pipeline.SiteCommandPipeline{
+		Site:     site,
+		Executor: executor,
+		Config:   config.Config,
+		Options:  pipeline.ExecuteOptions{},
+		Commands: []pipeline.SiteCommand{
+			&pipeline.SimpleCommand{Args: []string{args}},
+		},
+	}
+
+	p.Run()
+
+	if p.PreviousResult == nil {
+		return "", errors.New("no result returned")
+	}
+
+	return sanitizeUrlOutput(p.PreviousResult.Output), nil
 }
 
 func RunWpUserUpdate(wpUserId int, wpUser *types.UpdateWpUserPayload, site *types.Site, flowOpts types.FlowOptions) error {

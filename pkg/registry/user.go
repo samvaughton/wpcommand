@@ -49,7 +49,11 @@ func GetUserSyncCommand(site *types.Site) pipeline.SiteCommand {
 				return nil, err
 			}
 
-			db.SiteUpdate(site)
+			err = db.SiteUpdate(site)
+
+			if err != nil {
+				return nil, err
+			}
 
 			return &types.CommandResult{Data: list}, nil
 		},

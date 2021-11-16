@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/samvaughton/wpcommand/v2/pkg/auth"
-	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/flow"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	"github.com/samvaughton/wpcommand/v2/pkg/util"
@@ -14,18 +13,10 @@ import (
 )
 
 func loadWpUsersHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/json")
+	site, userAccount := initHandlerWithSiteByUuid(resp, req)
 
-	vars := mux.Vars(req)
-
-	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
-
-	site, err := db.SiteGetByUuidSafe(vars["siteUuid"], userAccount.AccountId)
-
-	if err != nil {
-		log.Error(err)
-		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "could not find site", util.HttpEmptyErrors())
-		return
+	if site == nil {
+		return // error handled by func
 	}
 
 	cachedData, err := site.GetWpCachedData()
@@ -39,17 +30,59 @@ func loadWpUsersHandler(resp http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(resp).Encode(types.NewApiWpUserListFromWpUserList(auth.FilterWpUserList(userAccount, cachedData.UserList)))
 }
 
-func createWpUserHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/json")
-	vars := mux.Vars(req)
-	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
+func createWpUserLoginUrlHandler(resp http.ResponseWriter, req *http.Request) {
+	site, ua := initHandlerWithSiteByKey(resp, req)
 
-	site, err := db.SiteGetByUuidSafe(vars["siteUuid"], userAccount.AccountId)
+	if site == nil {
+		return // error handled by func
+	}
+
+	vars := mux.Vars(req)
+
+	// verify user exists
+	userId, err := strconv.Atoi(vars["userId"])
+
+	if err != nil {
+		util.HttpErrorEncode(resp, util.HttpStatusInvalidPayload, "invalid userId", err)
+		return
+	}
+
+	var found *types.WpUser
+	cachedData, err := site.GetWpCachedData()
+	for _, item := range cachedData.UserList {
+		if item.ID == userId {
+			found = &item
+			break
+		}
+	}
+
+	if found == nil {
+		log.Error(err)
+		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "could not find user", util.HttpEmptyErrors())
+	}
+
+	// does not have access
+	if auth.WpUserHasImpersonateAccess(ua, found) == false {
+		log.Error(err)
+		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "could not find user", util.HttpEmptyErrors())
+	}
+
+	loginUrl, err := flow.RunWpCreateUserLogin(site, vars["userId"], types.FlowOptions{LogSource: "API_CREATE_WP_USER_LOGIN"})
 
 	if err != nil {
 		log.Error(err)
-		util.HttpError(util.HttpStatusNotFound, "could not find site", util.HttpEmptyErrors())
+		util.HttpErrorEncode(resp, util.HttpStatusInternalServerError, "failed to create user login", err)
 		return
+	}
+
+	json.NewEncoder(resp).Encode(map[string]string{"LoginUrl": loginUrl})
+}
+
+func createWpUserHandler(resp http.ResponseWriter, req *http.Request) {
+	site, _ := initHandlerWithSiteByUuid(resp, req)
+
+	if site == nil {
+		return // error handled by func
 	}
 
 	payload, err := types.NewCreateWpUserPayloadFromHttpRequest(req)
@@ -87,15 +120,11 @@ func createWpUserHandler(resp http.ResponseWriter, req *http.Request) {
 }
 
 func updateWpUserHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(req)
-	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
+	site, userAccount := initHandlerWithSiteByUuid(resp, req)
 
-	site, err := db.SiteGetByUuidSafe(vars["siteUuid"], userAccount.AccountId)
-
-	if err != nil {
-		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "could not find site", util.HttpEmptyErrors())
-		return
+	if site == nil {
+		return // error handled by func
 	}
 
 	cachedData, err := site.GetWpCachedData()
@@ -144,16 +173,11 @@ func updateWpUserHandler(resp http.ResponseWriter, req *http.Request) {
 }
 
 func deleteWpUserHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(req)
-	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
+	site, userAccount := initHandlerWithSiteByUuid(resp, req)
 
-	site, err := db.SiteGetByUuidSafe(vars["siteUuid"], userAccount.AccountId)
-
-	if err != nil {
-		log.Error(err)
-		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "could not find site", util.HttpEmptyErrors())
-		return
+	if site == nil {
+		return // error handled by func
 	}
 
 	cachedData, err := site.GetWpCachedData()

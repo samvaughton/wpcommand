@@ -8,6 +8,7 @@ import (
 type HttpStatus string
 
 const HttpStatusNotFound = "NOT_FOUND"
+const HttpStatusUnauthorized = "UNAUTHORIZED"
 const HttpStatusContentMalformed = "CONTENT_MALFORMED"
 const HttpStatusInvalidPayload = "INVALID_PAYLOAD"
 const HttpStatusValidationErrors = "VALIDATION_ERRORS"
@@ -27,6 +28,8 @@ func HttpErrorEncode(resp http.ResponseWriter, status HttpStatus, message string
 	switch status {
 	case HttpStatusNotFound:
 		resp.WriteHeader(http.StatusNotFound)
+	case HttpStatusUnauthorized:
+		resp.WriteHeader(http.StatusUnauthorized)
 	case HttpStatusContentMalformed:
 	case HttpStatusValidationErrors:
 	case HttpStatusInvalidPayload:

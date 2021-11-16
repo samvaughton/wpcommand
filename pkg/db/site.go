@@ -2,17 +2,19 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
+	"golang.org/x/crypto/sha3"
 	"strings"
 	"time"
 )
 
 func SiteExists(key string, accountId int64) bool {
-	_, err := SiteGetByKey(key, accountId)
+	_, err := SiteGetByKeySafe(key, accountId)
 
 	return err != nil
 }
@@ -29,13 +31,25 @@ func SiteGetAllEnabled() ([]*types.Site, error) {
 	return sites, nil
 }
 
-func SiteGetByKey(key string, accountId int64) (*types.Site, error) {
+func SiteGetByKeySafe(key string, accountId int64) (*types.Site, error) {
 	site := new(types.Site)
 
 	err := Db.NewSelect().Model(site).Where("key = ? and account_id = ?", key, accountId).Scan(context.Background())
 
 	if err != nil {
 		return nil, err
+	}
+
+	return site, nil
+}
+
+func SiteGetByAccessToken(token string) (*types.Site, error) {
+	site := new(types.Site)
+
+	err := Db.NewSelect().Model(site).Where("access_token = ?", token).Scan(context.Background())
+
+	if err != nil {
+		return nil, err // not found
 	}
 
 	return site, nil
@@ -82,10 +96,22 @@ func SelectSites(siteSelector string, accountId int64) ([]*types.Site, error) {
 	return sites, nil
 }
 
+func assignAccessToken(site *types.Site) {
+	if site.AccessToken == "" {
+		atUuid := uuid.New().String()
+		hasher := sha3.New256()
+		hasher.Write([]byte(atUuid))
+		hash := hasher.Sum(nil)
+		site.AccessToken = fmt.Sprintf("%x", hash)
+	}
+}
+
 func SiteCreateFromStruct(site *types.Site, accountId int64) error {
 	if site.LabelSelector == "" || site.Namespace == "" {
 		return errors.New("please provide label selector & namespace when creating a site")
 	}
+
+	assignAccessToken(site)
 
 	site.Enabled = true
 	site.AccountId = accountId
@@ -119,6 +145,8 @@ func SiteCreateFromStruct(site *types.Site, accountId int64) error {
 }
 
 func SiteUpdate(site *types.Site) error {
+	assignAccessToken(site)
+
 	_, err := Db.NewUpdate().Model(site).WherePK().Returning("*").Exec(context.Background())
 
 	if err != nil {

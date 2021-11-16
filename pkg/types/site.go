@@ -12,6 +12,11 @@ import (
 )
 
 type Site struct {
+	ApiSiteCore
+	ApiSiteCredentials
+}
+
+type ApiSiteCore struct {
 	Id                 int64 `bun:"id,pk"`
 	AccountId          int64
 	Account            *Account        `bun:"rel:belongs-to" json:"-"`
@@ -28,10 +33,47 @@ type Site struct {
 	WpCachedData       string
 	WpDomain           string
 	DockerRegistryName string
-	Enabled            bool
-	TestMode           bool
-	CreatedAt          time.Time
-	UpdatedAt          bun.NullTime
+
+	Enabled   bool
+	TestMode  bool
+	CreatedAt time.Time
+	UpdatedAt bun.NullTime
+}
+
+func NewApiSiteCoreFromSite(site Site) *ApiSiteCore {
+	return &ApiSiteCore{
+		Id:                 site.Id,
+		AccountId:          site.AccountId,
+		Account:            site.Account,
+		BlueprintSets:      site.BlueprintSets,
+		Uuid:               site.Uuid,
+		Key:                site.Key,
+		Description:        site.Description,
+		LabelSelector:      site.LabelSelector,
+		Namespace:          site.Namespace,
+		SiteEmail:          site.SiteEmail,
+		SiteUsername:       site.SiteUsername,
+		SitePassword:       site.SitePassword,
+		SiteConfig:         site.SiteConfig,
+		WpCachedData:       site.WpCachedData,
+		WpDomain:           site.WpDomain,
+		DockerRegistryName: site.DockerRegistryName,
+
+		Enabled:   site.Enabled,
+		TestMode:  site.TestMode,
+		CreatedAt: site.CreatedAt,
+		UpdatedAt: site.UpdatedAt,
+	}
+}
+
+type ApiSiteCredentials struct {
+	AccessToken string
+}
+
+func NewApiSiteCredentialsFromSite(site Site) *ApiSiteCredentials {
+	return &ApiSiteCredentials{
+		AccessToken: site.AccessToken,
+	}
 }
 
 func (s *Site) GetWpCachedData() (WpCachedData, error) {

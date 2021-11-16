@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/samvaughton/wpcommand/v2/pkg/auth"
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
@@ -15,6 +16,97 @@ import (
 	"net/http"
 )
 
+func initHandlerWithSiteByAccessToken(resp http.ResponseWriter, req *http.Request) *types.Site {
+	resp.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(req)
+
+	site, err := db.SiteGetByAccessToken(vars["accessToken"])
+
+	if err != nil {
+		log.Error(err)
+		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "could not find site", util.HttpEmptyErrors())
+
+		return nil
+	}
+
+	return site
+}
+
+func initHandlerWithSiteByUuid(resp http.ResponseWriter, req *http.Request) (*types.Site, *types.UserAccount) {
+	resp.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(req)
+	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
+
+	site, err := db.SiteGetByUuidSafe(vars["siteUuid"], userAccount.AccountId)
+
+	if err != nil {
+		log.Error(err)
+		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "could not find site", util.HttpEmptyErrors())
+
+		return nil, userAccount
+	}
+
+	return site, userAccount
+}
+
+func initHandlerWithSiteByKey(resp http.ResponseWriter, req *http.Request) (*types.Site, *types.UserAccount) {
+	resp.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(req)
+	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
+
+	site, err := db.SiteGetByKeySafe(vars["siteKey"], userAccount.AccountId)
+	if err != nil {
+		log.Error(err)
+		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "could not find site", util.HttpEmptyErrors())
+
+		return nil, userAccount
+	}
+
+	return site, userAccount
+}
+
+func runSiteBuild(resp http.ResponseWriter, req *http.Request) {
+	site := initHandlerWithSiteByAccessToken(resp, req)
+
+	if site == nil {
+		return // error handled by func
+	}
+
+	command, err := db.CommandGetByTypeSiteSafe(types.CommandTypeBuildRelease, site.Id)
+
+	if err != nil {
+		log.Error(err)
+		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "site does not have a build command", util.HttpEmptyErrors())
+
+		return
+	}
+
+	jobs := db.CreateCommandJobs(command, []*types.Site{site}, 0, fmt.Sprintf("job created via public api"))
+
+	json.NewEncoder(resp).Encode(jobs)
+}
+
+func runSitePreview(resp http.ResponseWriter, req *http.Request) {
+	site := initHandlerWithSiteByAccessToken(resp, req)
+
+	if site == nil {
+		return // error handled by func
+	}
+
+	command, err := db.CommandGetByTypeSiteSafe(types.CommandTypePreviewBuild, site.Id)
+
+	if err != nil {
+		log.Error(err)
+		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "site does not have a preview command", util.HttpEmptyErrors())
+
+		return
+	}
+
+	jobs := db.CreateCommandJobs(command, []*types.Site{site}, 0, fmt.Sprintf("job created via public api"))
+
+	json.NewEncoder(resp).Encode(jobs)
+}
+
 func loadSiteHandler(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
 
@@ -23,7 +115,7 @@ func loadSiteHandler(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	key := vars["key"]
 
-	site, err := db.SiteGetByKey(key, userAccount.AccountId)
+	site, err := db.SiteGetByKeySafe(key, userAccount.AccountId)
 
 	if err != nil {
 		log.Error(err)
@@ -31,23 +123,33 @@ func loadSiteHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	json.NewEncoder(resp).Encode(site)
+	json.NewEncoder(resp).Encode(types.NewApiSiteCoreFromSite(*site))
 }
 
-func updateSiteHandler(resp http.ResponseWriter, req *http.Request) {
+func loadSiteCredentialsHandler(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
 
 	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
 
 	vars := mux.Vars(req)
-	key := vars["siteUuid"]
+	key := vars["key"]
 
-	site, err := db.SiteGetByUuidSafe(key, userAccount.AccountId)
+	site, err := db.SiteGetByKeySafe(key, userAccount.AccountId)
 
 	if err != nil {
 		log.Error(err)
-		resp.WriteHeader(http.StatusNotFound)
+		resp.WriteHeader(http.StatusBadRequest)
 		return
+	}
+
+	json.NewEncoder(resp).Encode(types.NewApiSiteCredentialsFromSite(*site))
+}
+
+func updateSiteHandler(resp http.ResponseWriter, req *http.Request) {
+	site, _ := initHandlerWithSiteByUuid(resp, req)
+
+	if site == nil {
+		return // error handled by func
 	}
 
 	payload, err := types.NewUpdateSitePayloadFromHttpRequest(req)
@@ -70,17 +172,9 @@ func updateSiteHandler(resp http.ResponseWriter, req *http.Request) {
 	payload.HydrateSite(site)
 
 	// we want to update all objects with the same uuid for this
-	res, err := db.Db.NewUpdate().Model(site).WherePK().Exec(context.Background())
+	err = db.SiteUpdate(site)
 
 	if err != nil {
-		log.Error(err)
-		util.HttpErrorEncode(resp, util.HttpStatusInternalServerError, "Something went wrong.", util.HttpEmptyErrors())
-		return
-	}
-
-	ra, err := res.RowsAffected()
-
-	if err != nil || ra == 0 {
 		log.Error(err)
 		util.HttpErrorEncode(resp, util.HttpStatusInternalServerError, "Something went wrong.", util.HttpEmptyErrors())
 		return
@@ -151,23 +245,15 @@ func createSiteCommandHandler(resp http.ResponseWriter, req *http.Request) {
 }
 
 func updateSiteCommandHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/json")
-
-	userAccount := req.Context().Value("userAccount").(*types.UserAccount)
-
 	vars := mux.Vars(req)
-	siteUuid := vars["siteUuid"]
-	cmdUuid := vars["cmdUuid"]
 
-	site, err := db.SiteGetByUuidSafe(siteUuid, userAccount.AccountId)
+	site, _ := initHandlerWithSiteByUuid(resp, req)
 
-	if err != nil {
-		log.Error(err)
-		resp.WriteHeader(http.StatusNotFound)
-		return
+	if site == nil {
+		return // error handled by func
 	}
 
-	cmd, err := db.CommandGetByUuidAccountSafe(cmdUuid, site.AccountId)
+	cmd, err := db.CommandGetByUuidAccountSafe(vars["cmdUuid"], site.AccountId)
 
 	if err != nil {
 		log.Error(err)
@@ -246,7 +332,7 @@ func loadSiteCommandsHandler(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	key := vars["key"]
 
-	site, err := db.SiteGetByKey(key, userAccount.AccountId)
+	site, err := db.SiteGetByKeySafe(key, userAccount.AccountId)
 
 	if err != nil {
 		log.Error(err)
@@ -279,7 +365,7 @@ func loadSiteBlueprintsHandler(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	key := vars["key"]
 
-	site, err := db.SiteGetByKey(key, userAccount.AccountId)
+	site, err := db.SiteGetByKeySafe(key, userAccount.AccountId)
 
 	if err != nil {
 		log.Error(err)

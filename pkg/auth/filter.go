@@ -55,6 +55,32 @@ func WpUserHasReadAccess(userAccount *types.UserAccount, wpUser *types.WpUser) b
 	return false
 }
 
+func WpUserHasImpersonateAccess(userAccount *types.UserAccount, wpUser *types.WpUser) bool {
+	if wpUser.Roles != "administrator" {
+		allowedNormal, err := Enforcer.Enforce(userAccount.GetCasbinPolicyKey(), types.AuthObjectWordpressUser, types.AuthActionRun)
+
+		if err != nil {
+			log.Error(err)
+			return false
+		}
+
+		return allowedNormal
+	}
+
+	if wpUser.Roles == "administrator" {
+		allowedSpecial, err := Enforcer.Enforce(userAccount.GetCasbinPolicyKey(), types.AuthObjectWordpressUser, types.AuthActionRunSpecial)
+
+		if err != nil {
+			log.Error(err)
+			return false
+		}
+
+		return allowedSpecial
+	}
+
+	return false
+}
+
 func FilterCommandList(userAccount *types.UserAccount, list []*types.Command) []*types.Command {
 	filtered := make([]*types.Command, 0)
 

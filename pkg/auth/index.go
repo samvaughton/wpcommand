@@ -65,6 +65,7 @@ func InitAuth(authData string) {
 			{types.RoleMember, types.AuthObjectAccount, "read"},
 			{types.RoleMember, types.AuthObjectWordpressUser, "read"},
 			{types.RoleMember, types.AuthObjectWordpressUser, "write"},
+			{types.RoleMember, types.AuthObjectWordpressUser, "run"},
 		})
 
 		log.Info("default casbin policies added")

@@ -10,6 +10,9 @@ import (
 
 const CmdWpSetupFreshInstall = "setup-fresh-install"
 
+const CmdWpCliLoginInstall = "wp-cli-login-install"
+const CmdWpCliLoginCreateLoginUrl = "wp-cli-login-create-login-url"
+
 const CmdWpThemesSync = "themes-sync"
 const CmdWpThemesStatus = "themes-status"
 
@@ -71,6 +74,7 @@ var BuiltInCommandRegistry = map[string]func(site *types.Site) pipeline.SiteComm
 	CmdWpPolylangSetup:     GetPolylangSetupCommand,
 
 	CmdWpSetupFreshInstall: GetWpSetupFreshInstallCommand,
+	CmdWpCliLoginInstall:   GetWpCliLoginInstallCommand,
 }
 
 func CommandExists(key string) bool {
