@@ -19,15 +19,7 @@ import (
 func initHandlerWithSiteByUuidAndAccessToken(resp http.ResponseWriter, req *http.Request) *types.Site {
 	resp.Header().Set("Content-Type", "application/json")
 
-	if req.Header.Get("X-WPCMD-Token") != config.Config.WpCmdAccessToken {
-		util.HttpErrorEncode(resp, util.HttpStatusUnauthenticated, "", util.HttpEmptyErrors())
-
-		return nil
-	}
-
-	vars := mux.Vars(req)
-
-	site, err := db.SiteGetByUuid(vars["siteUuid"])
+	site, err := db.SiteGetByAccessToken(req.Header.Get("X-Site-Token"))
 
 	if err != nil {
 		log.Error(err)

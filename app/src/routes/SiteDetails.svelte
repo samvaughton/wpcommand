@@ -156,12 +156,12 @@
                             <th>Label Selector</th>
                             <td>{item.LabelSelector}</td>
                         </tr>
-                        <!--{#if siteCredentials != null}
+                        {#if siteCredentials != null}
                             <tr>
                                 <th>Access Token</th>
                                 <td><code>{siteCredentials['AccessToken']}</code></td>
                             </tr>
-                        {/if}-->
+                        {/if}
                     </tbody>
                 </table>
             </div>

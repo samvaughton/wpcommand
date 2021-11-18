@@ -22,6 +22,10 @@ func GetSetDefaultOptionsCommand(site *types.Site) pipeline.SiteCommand {
 				Name: fmt.Sprintf("%s.%s", CmdWpSetDefaultOptions, "permalink_structure=%postname%"),
 				Args: []string{"wp option update permalink_structure \"/%postname%/\""},
 			},
+			&pipeline.SimpleCommand{
+				Name: fmt.Sprintf("%s.%s", CmdWpSetDefaultOptions, "wpcmd_site_access_token=***"),
+				Args: []string{fmt.Sprintf("wp option update wpcmd_site_access_token \"%s\"", site.AccessToken)},
+			},
 		},
 	}
 }
