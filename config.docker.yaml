@@ -11,6 +11,7 @@ mailgun:
 sentryDsn:
 databaseDsn: postgres://app:password@wpcmd_postgres:5432/app_test?sslmode=disable
 manifest: https://raw.githubusercontent.com/aptenex/k8-store/main/manifest.yaml
+wpcmdAccessToken:
 githubToken:
 github:
   owner: aptenex

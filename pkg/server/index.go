@@ -41,6 +41,7 @@ func Start(staticFiles *embed.FS, configData string, authData string) {
 	router := mux.NewRouter()
 	SetupApi(router)
 	SetupPublic(router)
+	SetupInternal(router)
 	SetupSpa(router, staticFiles)
 
 	srv := &http.Server{

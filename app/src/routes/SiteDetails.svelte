@@ -145,6 +145,10 @@
                             <td><Enabled value="{item.Enabled}"/></td>
                         </tr>
                         <tr>
+                            <th>UUID</th>
+                            <td><code>{item.Uuid}</code></td>
+                        </tr>
+                        <tr>
                             <th>Namespace</th>
                             <td>{item.Namespace}</td>
                         </tr>
@@ -152,12 +156,12 @@
                             <th>Label Selector</th>
                             <td>{item.LabelSelector}</td>
                         </tr>
-                        {#if siteCredentials != null}
+                        <!--{#if siteCredentials != null}
                             <tr>
                                 <th>Access Token</th>
                                 <td><code>{siteCredentials['AccessToken']}</code></td>
                             </tr>
-                        {/if}
+                        {/if}-->
                     </tbody>
                 </table>
             </div>

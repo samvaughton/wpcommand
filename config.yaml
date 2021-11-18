@@ -1,5 +1,5 @@
 serverAddress: ":8999"
-storageHost: https://wpcmd.k8.rentivo.com
+storageHost: wpcmd.eu.ngrok.io
 environment: dev
 embedStaticFiles: false
 useInClusterConfig: false
@@ -9,8 +9,9 @@ mailgun:
   baseUrl: https://api.eu.mailgun.net/v3
   apiKey:
 sentryDsn:
-databaseDsn:
+databaseDsn: postgres://app:password@localhost:5444/app?sslmode=disable
 manifest: https://raw.githubusercontent.com/aptenex/k8-store/main/manifest.yaml
+wpcmdAccessToken:
 githubToken:
 github:
   owner: aptenex

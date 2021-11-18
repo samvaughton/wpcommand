@@ -11,9 +11,6 @@ func SetupPublic(router *mux.Router) {
 	public := router.PathPrefix("/public").Subrouter()
 	public.HandleFunc("/healthz", getHealthCheckHandler).Methods("GET")
 
-	public.HandleFunc("/site/{accessToken}/build-release", runSiteBuild).Methods("POST")
-	public.HandleFunc("/site/{accessToken}/build-preview", runSitePreview).Methods("POST")
-
 	public.HandleFunc("/site/{uuid}/config", getSiteConfigHandler).Methods("GET")
 
 	public.HandleFunc("/command/job/{jobUuid}/event/{eventUuid}", getCommandJobEventHandler).Methods("GET")

@@ -57,6 +57,8 @@ type Config struct {
 	Github      Github `yaml:"github"`
 	GithubToken string `yaml:"githubToken" envconfig:"GITHUB_TOKEN" json:"-"`
 
+	WpCmdAccessToken string `yaml:"wpcmdAccessToken" envconfig:"WPCMD_ACCESS_TOKEN" json:"-"`
+
 	K8 struct {
 		LabelSelector string `yaml:"labelSelector" envconfig:"K8_LABEL_SELECTOR" json:"labelSelector"`
 	} `yaml:"kubernetes" json:"kubernetes"`

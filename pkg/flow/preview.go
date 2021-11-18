@@ -51,7 +51,7 @@ func DeleteExpiredBuildPreviews(flowOpts types.FlowOptions) {
 			"CreatedAt": item.CreationTimestamp.String(),
 		}).Debug(fmt.Sprintf("found namespace"))
 
-		// if creation + 8 hours STILL in the past, then we can delete as it is over X hours old
+		// if creation + X hours STILL in the past, then we can delete as it is over X hours old
 		if item.CreationTimestamp.Add(time.Hour * 4).Before(time.Now()) {
 			err = client.CoreV1().Namespaces().Delete(context.Background(), item.Name, metav1.DeleteOptions{})
 

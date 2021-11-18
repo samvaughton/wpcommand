@@ -1,6 +1,8 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"github.com/evalphobia/logrus_sentry"
@@ -11,6 +13,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -149,7 +152,18 @@ func InitConfig(configData string) {
 		}
 	}
 
+	if config.WpCmdAccessToken == "" {
+		config.WpCmdAccessToken = randomBase64String(16)
+	}
+
 	Config = config
+}
+
+func randomBase64String(l int) string {
+	buff := make([]byte, int(math.Ceil(float64(l)/float64(1.33333333333))))
+	rand.Read(buff)
+	str := base64.RawURLEncoding.EncodeToString(buff)
+	return str[:l] // strip the one extra byte we get from half the results.
 }
 
 // ValidateConfigPath just makes sure, that the path provided is a file,

@@ -16,11 +16,18 @@ import (
 	"net/http"
 )
 
-func initHandlerWithSiteByAccessToken(resp http.ResponseWriter, req *http.Request) *types.Site {
+func initHandlerWithSiteByUuidAndAccessToken(resp http.ResponseWriter, req *http.Request) *types.Site {
 	resp.Header().Set("Content-Type", "application/json")
+
+	if req.Header.Get("X-WPCMD-Token") != config.Config.WpCmdAccessToken {
+		util.HttpErrorEncode(resp, util.HttpStatusUnauthenticated, "", util.HttpEmptyErrors())
+
+		return nil
+	}
+
 	vars := mux.Vars(req)
 
-	site, err := db.SiteGetByAccessToken(vars["accessToken"])
+	site, err := db.SiteGetByUuid(vars["siteUuid"])
 
 	if err != nil {
 		log.Error(err)
@@ -66,7 +73,7 @@ func initHandlerWithSiteByKey(resp http.ResponseWriter, req *http.Request) (*typ
 }
 
 func runSiteBuild(resp http.ResponseWriter, req *http.Request) {
-	site := initHandlerWithSiteByAccessToken(resp, req)
+	site := initHandlerWithSiteByUuidAndAccessToken(resp, req)
 
 	if site == nil {
 		return // error handled by func
@@ -87,7 +94,7 @@ func runSiteBuild(resp http.ResponseWriter, req *http.Request) {
 }
 
 func runSitePreview(resp http.ResponseWriter, req *http.Request) {
-	site := initHandlerWithSiteByAccessToken(resp, req)
+	site := initHandlerWithSiteByUuidAndAccessToken(resp, req)
 
 	if site == nil {
 		return // error handled by func
