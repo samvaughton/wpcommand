@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/samvaughton/wpcommand/v2/pkg/auth"
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
 	"github.com/samvaughton/wpcommand/v2/pkg/execution"
+	"github.com/samvaughton/wpcommand/v2/pkg/preview"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	"github.com/samvaughton/wpcommand/v2/pkg/util"
 	log "github.com/sirupsen/logrus"
@@ -80,9 +82,13 @@ func runSiteBuild(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	jobs := db.CreateCommandJobs(command, []*types.Site{site}, 0, fmt.Sprintf("job created via public api"))
+	jobs := db.CreateCommandJobs(command, []*types.Site{site}, db.CreateCommandJobContext{
+		RunByUserId: 0,
+		Description: fmt.Sprintf("job created via public api"),
+	})
 
-	json.NewEncoder(resp).Encode(jobs)
+	// this will be a single job as its one site
+	json.NewEncoder(resp).Encode(types.NewApiCommandJobFromJob(*jobs[0]))
 }
 
 func runSitePreview(resp http.ResponseWriter, req *http.Request) {
@@ -95,15 +101,53 @@ func runSitePreview(resp http.ResponseWriter, req *http.Request) {
 	command, err := db.CommandGetByTypeSiteSafe(types.CommandTypePreviewBuild, site.Id)
 
 	if err != nil {
-		log.Error(err)
 		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "site does not have a preview command", util.HttpEmptyErrors())
 
 		return
 	}
 
-	jobs := db.CreateCommandJobs(command, []*types.Site{site}, 0, fmt.Sprintf("job created via public api"))
+	buildId := uuid.New().String()
+	jobs := db.CreateCommandJobs(command, []*types.Site{site}, db.CreateCommandJobContext{
+		RunByUserId: 0,
+		Description: fmt.Sprintf("job created via public api"),
+		Config: map[string]interface{}{
+			"BuildId": buildId, // assign build id here so we can use it to display the preview URL
+		},
+	})
 
-	json.NewEncoder(resp).Encode(jobs)
+	// this will be a single job as its one site
+	json.NewEncoder(resp).Encode(types.NewApiPreviewCommandJob(
+		preview.GetPreviewUrl(buildId),
+		*types.NewApiCommandJobFromJob(*jobs[0]),
+	))
+}
+
+func getSitePreviewJobId(resp http.ResponseWriter, req *http.Request) {
+	site := initHandlerWithSiteByUuidAndAccessToken(resp, req)
+
+	if site == nil {
+		return // error handled by func
+	}
+
+	vars := mux.Vars(req)
+	job, err := db.CommandJobGetByUuid(vars["jobUuid"])
+
+	if err != nil {
+		util.HttpErrorEncode(resp, util.HttpStatusNotFound, "could not find preview job id", util.HttpEmptyErrors())
+
+		return
+	}
+
+	bprc, err := types.NewCommandTypePreviewBuildConfigFromConfig(job.Config)
+
+	if err != nil {
+		panic(err)
+	}
+
+	json.NewEncoder(resp).Encode(types.NewApiPreviewCommandJob(
+		preview.GetPreviewUrl(bprc.BuildId),
+		*types.NewApiCommandJobFromJob(*job),
+	))
 }
 
 func loadSiteHandler(resp http.ResponseWriter, req *http.Request) {

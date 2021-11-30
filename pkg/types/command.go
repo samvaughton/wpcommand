@@ -18,6 +18,7 @@ const CommandTypePreviewBuild = "PREVIEW_BUILD"
 const CommandTypeBuildRelease = "BUILD_RELEASE"
 
 type CommandTypePreviewBuildConfig struct {
+	BuildId         string
 	BuildPreviewRef string
 }
 

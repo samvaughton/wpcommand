@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/samvaughton/wpcommand/v2/pkg/types"
 	log "github.com/sirupsen/logrus"
@@ -124,12 +125,26 @@ func CommandJobsGetForAccount(accountId int64, opts CommandJobsFilterOptions) ([
 	return items, nil
 }
 
-func CreateCommandJobs(command *types.Command, sites []*types.Site, runByUserId int64, description string) []*types.CommandJob {
+type CreateCommandJobContext struct {
+	RunByUserId int64
+	Description string
+	Config      map[string]interface{}
+}
+
+func CreateCommandJobs(command *types.Command, sites []*types.Site, createContext CreateCommandJobContext) []*types.CommandJob {
 	var jobs []*types.CommandJob
 
 	runBy := null.NewInt(0, false)
-	if runByUserId > 0 {
-		runBy = null.IntFrom(runByUserId)
+	if createContext.RunByUserId > 0 {
+		runBy = null.IntFrom(createContext.RunByUserId)
+	}
+
+	mergedConfig, err := MergeJobConfigs(command.Config, createContext.Config)
+
+	if err != nil {
+		log.Error(err)
+
+		return jobs
 	}
 
 	for _, site := range sites {
@@ -140,9 +155,10 @@ func CreateCommandJobs(command *types.Command, sites []*types.Site, runByUserId 
 			RunByUserId: runBy,
 			Key:         command.Key,
 			Status:      types.CommandJobStatusCreated,
-			Description: description,
+			Description: createContext.Description,
 			CreatedAt:   time.Now(),
-			Config:      command.Config,
+			Config:      mergedConfig,
+			ResultData:  "{}",
 		}
 
 		_, err := Db.NewInsert().Model(job).Returning("*").Exec(context.Background())
@@ -157,4 +173,31 @@ func CreateCommandJobs(command *types.Command, sites []*types.Site, runByUserId 
 	}
 
 	return jobs
+}
+
+func MergeJobConfigs(cmdConfig string, contextConfig map[string]interface{}) (string, error) {
+
+	cc := make(map[string]interface{})
+
+	err := json.Unmarshal([]byte(cmdConfig), &cc)
+
+	if err != nil {
+		log.Error(err)
+
+		return "", err
+	}
+
+	for key, item := range contextConfig {
+		cc[key] = item
+	}
+
+	data, err := json.Marshal(cc)
+
+	if err != nil {
+		log.Error(err)
+
+		return "", err
+	}
+
+	return string(data), nil
 }

@@ -86,7 +86,9 @@ func RunJobBasedWpUserSync(flowOpts types.FlowOptions) {
 		return
 	}
 
-	db.CreateCommandJobs(command, sites, 0, fmt.Sprintf("job created via %s", flowOpts.LogSource)) // system
+	db.CreateCommandJobs(command, sites, db.CreateCommandJobContext{
+		Description: fmt.Sprintf("job created via %s", flowOpts.LogSource),
+	}) // system
 }
 
 func RunWpUserCreate(wpUser *types.CreateWpUserPayload, site *types.Site, flowOpts types.FlowOptions) error {

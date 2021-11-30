@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/samvaughton/wpcommand/v2/pkg/auth"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
@@ -168,8 +169,17 @@ func createCommandJobHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	mergedConfig := map[string]interface{}{}
+	if command.Type == types.CommandTypePreviewBuild {
+		mergedConfig["BuildId"] = uuid.New().String()
+	}
+
 	// create command job
-	jobs := db.CreateCommandJobs(command, sites, userAccount.UserId, fmt.Sprintf("job created via api"))
+	jobs := db.CreateCommandJobs(command, sites, db.CreateCommandJobContext{
+		RunByUserId: userAccount.UserId,
+		Description: fmt.Sprintf("job created via api"),
+		Config:      mergedConfig,
+	})
 
 	if len(jobs) == 0 {
 		log.Error(fmt.Sprintf("something went wrong creating jobs. command=%s selector=%s", command.Key, jobReq.Selector))

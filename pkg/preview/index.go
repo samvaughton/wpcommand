@@ -33,6 +33,10 @@ type BuildTracker struct {
 	jobChan  chan types.BuildRequest
 }
 
+func GetPreviewUrl(buildId string) string {
+	return fmt.Sprintf("https://%s.preview.k8.rentivo.com", buildId)
+}
+
 func NewGithubClient(token string) *gh.Client {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	tc := oauth2.NewClient(context.Background(), ts)

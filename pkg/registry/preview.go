@@ -3,7 +3,6 @@ package registry
 import (
 	"bytes"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	appConfig "github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/notify"
@@ -29,7 +28,7 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 					}
 
 					bpr := types.BuildRequest{
-						Id: uuid.New().String(),
+						Id: bprc.BuildId,
 
 						RepoOwner: appConfig.Config.Github.Owner,
 						RepoName:  appConfig.Config.Github.Repo,
@@ -135,7 +134,7 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 				Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {
 
 					buildId := pipeline.PreviousResult.Output
-					url := fmt.Sprintf("https://%s.preview.k8.rentivo.com", buildId)
+					url := preview.GetPreviewUrl(buildId)
 
 					t, err := template.New("build-preview-email").
 						Parse("Hi there,\n\nA preview build is now ready for your site {{ .SiteName }}. You may find it here:\n\n{{ .Url }}\n\nThis preview build will be automatically deleted after 4 hours.\n\nKind Regards, Rentivo")
