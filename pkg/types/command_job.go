@@ -58,5 +58,48 @@ type CommandJob struct {
 	Status      string
 	Description string
 	Config      string
+	ResultData  string
 	CreatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp"`
+}
+
+type ApiCommandJobSite struct {
+	Uuid        string
+	Description string
+}
+
+type ApiCommandJob struct {
+	Id          int64 `bun:"id,pk"`
+	Site        ApiCommandJobSite
+	Uuid        string
+	Key         string
+	Status      string
+	Description string
+	CreatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp"`
+}
+
+type ApiPreviewCommandJob struct {
+	PreviewUrl string
+	Job        ApiCommandJob
+}
+
+func NewApiPreviewCommandJob(previewUrl string, apiJob ApiCommandJob) *ApiPreviewCommandJob {
+	return &ApiPreviewCommandJob{
+		PreviewUrl: previewUrl,
+		Job:        apiJob,
+	}
+}
+
+func NewApiCommandJobFromJob(job CommandJob) *ApiCommandJob {
+	return &ApiCommandJob{
+		Id:          job.Id,
+		Uuid:        job.Uuid,
+		Key:         job.Key,
+		Status:      job.Status,
+		Description: job.Description,
+		CreatedAt:   job.CreatedAt,
+		Site: ApiCommandJobSite{
+			Uuid:        job.Site.Uuid,
+			Description: job.Site.Description,
+		},
+	}
 }

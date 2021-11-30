@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS command_jobs(
     description TEXT,
     created_at TIMESTAMP,
     config JSON DEFAULT '{}'::json NOT NULL,
+    result_data JSON DEFAULT '{}'::json NOT NULL,
     CONSTRAINT fk_command_id FOREIGN KEY (command_id) REFERENCES commands (id),
     CONSTRAINT fk_site_id FOREIGN KEY (site_id) REFERENCES sites (id)
 );
