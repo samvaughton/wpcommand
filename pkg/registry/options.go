@@ -15,10 +15,6 @@ func GetSetDefaultOptionsCommand(site *types.Site) pipeline.SiteCommand {
 				Args: []string{"wp option update show_on_front page"},
 			},
 			&pipeline.SimpleCommand{
-				Name: fmt.Sprintf("%s.%s", CmdWpSetDefaultOptions, "page_on_front=566"),
-				Args: []string{"wp option update page_on_front 566"},
-			},
-			&pipeline.SimpleCommand{
 				Name: fmt.Sprintf("%s.%s", CmdWpSetDefaultOptions, "permalink_structure=%postname%"),
 				Args: []string{"wp option update permalink_structure \"/%postname%/\""},
 			},
