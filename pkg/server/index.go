@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"github.com/samvaughton/wpcommand/v2/pkg/auth"
 	"github.com/samvaughton/wpcommand/v2/pkg/config"
 	"github.com/samvaughton/wpcommand/v2/pkg/db"
@@ -44,8 +45,14 @@ func Start(staticFiles *embed.FS, configData string, authData string) {
 	SetupInternal(router)
 	SetupSpa(router, staticFiles)
 
+	corsRouter := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"},
+	}).Handler(router)
+
 	srv := &http.Server{
-		Handler:      router,
+		Handler:      corsRouter,
 		Addr:         config.Config.ServerAddress,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
