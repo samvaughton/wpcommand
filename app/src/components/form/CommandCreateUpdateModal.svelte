@@ -30,7 +30,13 @@
 
                 const cfg = JSON.parse(data['Config']);
 
-                data['BuildPreviewRef'] = cfg['BuildPreviewRef'];
+                if (cfg['BuildPreviewRef']) {
+                    data['BuildPreviewRef'] = cfg['BuildPreviewRef'];
+                }
+
+                if (cfg['GithubActionName']) {
+                    data['GithubActionName'] = cfg['GithubActionName'];
+                }
 
                 return data;
             }
