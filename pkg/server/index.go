@@ -48,7 +48,7 @@ func Start(staticFiles *embed.FS, configData string, authData string) {
 	corsRouter := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"},
 	}).Handler(router)
 
 	srv := &http.Server{
