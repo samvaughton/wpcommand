@@ -15,6 +15,9 @@ build-binaries:
 	gox -verbose -output="release/{{.Dir}}-{{.OS}}-{{.Arch}}" \
 		-ldflags "$(LDFLAGS)" -osarch="linux/amd64"
 
+port-forward-prod:
+	kubectl -n wpcommand port-forward pod/wpcommand-db-postgresql-0 5432:5432
+
 dependency:
 	@go get -v ./pkg/./...
 
