@@ -114,6 +114,7 @@ func (p CreateCommandPayload) HydrateCommand(command *Command) {
 	command.HttpHeaders = p.HttpHeaders
 	command.HttpBody = p.HttpBody
 	command.Public = p.Public
+	command.CreatedAt = time.Now()
 
 	if command.HttpHeaders == "" {
 		command.HttpHeaders = "{}"
