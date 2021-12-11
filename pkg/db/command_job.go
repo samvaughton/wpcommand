@@ -150,6 +150,7 @@ func CreateCommandJobs(command *types.Command, sites []*types.Site, createContex
 	for _, site := range sites {
 		job := &types.CommandJob{
 			Uuid:        uuid.New().String(),
+			Site:        site,
 			SiteId:      site.Id,
 			CommandId:   command.Id,
 			RunByUserId: runBy,
