@@ -189,14 +189,15 @@ func NewCreateCommandPayloadFromHttpRequest(req *http.Request) (*CreateCommandPa
 }
 
 type UpdateCommandPayload struct {
-	Type            string
-	Description     string
-	HttpMethod      string
-	HttpUrl         string
-	HttpHeaders     string
-	HttpBody        string
-	BuildPreviewRef string
-	Public          bool
+	Type             string
+	Description      string
+	HttpMethod       string
+	HttpUrl          string
+	HttpHeaders      string
+	HttpBody         string
+	BuildPreviewRef  string
+	GithubActionName string
+	Public           bool
 }
 
 func (p UpdateCommandPayload) HydrateCommand(command *Command) {
@@ -209,9 +210,19 @@ func (p UpdateCommandPayload) HydrateCommand(command *Command) {
 	command.HttpBody = p.HttpBody
 	command.Public = p.Public
 
-	cfgJson, err := json.Marshal(map[string]string{
-		"BuildPreviewRef": p.BuildPreviewRef,
-	})
+	configData := map[string]string{}
+
+	if p.Type == CommandTypePreviewBuild {
+		configData = map[string]string{
+			"BuildPreviewRef": p.BuildPreviewRef,
+		}
+	} else if p.Type == CommandTypeBuildRelease {
+		configData = map[string]string{
+			"GithubActionName": p.GithubActionName,
+		}
+	}
+
+	cfgJson, err := json.Marshal(configData)
 
 	if err != nil {
 		log.Error(err)
@@ -242,6 +253,12 @@ func (p UpdateCommandPayload) Validate() error {
 			validation.Field(&p.Type, validation.Required),
 			validation.Field(&p.Description, validation.Required),
 			validation.Field(&p.BuildPreviewRef, validation.Required),
+		)
+	} else if p.Type == CommandTypeBuildRelease {
+		return validation.ValidateStruct(&p,
+			validation.Field(&p.Type, validation.Required),
+			validation.Field(&p.Description, validation.Required),
+			validation.Field(&p.GithubActionName, validation.Required),
 		)
 	}
 
