@@ -61,7 +61,7 @@ func GetBuildReleaseCommand(job types.CommandJob) pipeline.SiteCommand {
 					ticker := time.NewTicker(30 * time.Second)
 
 					// deadline
-					deadline := time.Now().Add(20 * time.Minute)
+					deadline := time.Now().Add(60 * time.Minute)
 
 					now := time.Now()
 
