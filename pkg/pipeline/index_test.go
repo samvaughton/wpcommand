@@ -13,7 +13,7 @@ import (
 func TestIsolatedCommands(t *testing.T) {
 	exampleCommand := "example bash test command"
 
-	testSite := &types.Site{TestMode: true}
+	testSite := &types.Site{types.ApiSiteCore{TestMode: true}, types.ApiSiteCredentials{}}
 
 	initDebugExecutor := func(site *types.Site) *execution.DebugCommandExecutor {
 		exec, err := execution.NewCommandExecutor(testSite, &types.Config{})
@@ -107,7 +107,7 @@ func TestPipelineFunctions(t *testing.T) {
 
 	exampleCommand := "example bash test command"
 
-	testSite := &types.Site{TestMode: true}
+	testSite := &types.Site{types.ApiSiteCore{TestMode: true}, types.ApiSiteCredentials{}}
 
 	initDebugExecutor := func(site *types.Site) *execution.DebugCommandExecutor {
 		exec, err := execution.NewCommandExecutor(testSite, &types.Config{})

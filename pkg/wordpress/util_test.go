@@ -7,7 +7,7 @@ import (
 
 func newTestExecutor(mockOutput string) execution.CommandExecutor {
 	return &execution.DebugCommandExecutor{
-		Site:       &types.Site{Key: "test-site"},
+		Site:       &types.Site{types.ApiSiteCore{Key: "test-site"}, types.ApiSiteCredentials{}},
 		MockOutput: mockOutput,
 	}
 }

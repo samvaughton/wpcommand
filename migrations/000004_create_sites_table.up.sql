@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS sites(
     site_config JSON DEFAULT '{}',
     wp_cached_data JSON DEFAULT '{}',
     wp_domain TEXT DEFAULT '',
+    access_token TEXT DEFAULT '',
     docker_registry_name TEXT DEFAULT '',
     test_mode BOOL DEFAULT FALSE NOT NULL,
     created_at TIMESTAMP,

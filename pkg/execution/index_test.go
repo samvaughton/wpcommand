@@ -8,7 +8,7 @@ import (
 
 func TestExecutionFactory(t *testing.T) {
 	t.Run("TestDebugExecutorIsReturned", func(t *testing.T) {
-		testSite := &types.Site{TestMode: true}
+		testSite := &types.Site{types.ApiSiteCore{TestMode: true}, types.ApiSiteCredentials{}}
 
 		exec, err := NewCommandExecutor(testSite, &types.Config{})
 
@@ -17,7 +17,7 @@ func TestExecutionFactory(t *testing.T) {
 	})
 
 	t.Run("TestK8ExecutorIsReturned", func(t *testing.T) {
-		testSite := &types.Site{TestMode: false, Namespace: "site-test", LabelSelector: "example.test/instance-name=test"}
+		testSite := &types.Site{types.ApiSiteCore{TestMode: false, Namespace: "site-test", LabelSelector: "example.test/instance-name=test"}, types.ApiSiteCredentials{}}
 
 		exec, err := NewCommandExecutor(testSite, &types.Config{})
 
@@ -26,7 +26,7 @@ func TestExecutionFactory(t *testing.T) {
 	})
 
 	t.Run("TestErrorIsReturned", func(t *testing.T) {
-		testSite := &types.Site{TestMode: false, Namespace: "", LabelSelector: "example.test/instance-name=test"}
+		testSite := &types.Site{types.ApiSiteCore{TestMode: false, Namespace: "", LabelSelector: "example.test/instance-name=test"}, types.ApiSiteCredentials{}}
 
 		exec, err := NewCommandExecutor(testSite, &types.Config{})
 
