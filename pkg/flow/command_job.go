@@ -16,7 +16,7 @@ func CleanupAbandonedJobs(flowOpts types.FlowOptions) {
 		"Detail": "START",
 	}).Debug("started")
 
-	jobs, err := db.CommandJobsGetAbandoned(1 * time.Hour)
+	jobs, err := db.CommandJobsGetAbandoned(2 * time.Hour)
 
 	if err != nil {
 		log.WithFields(log.Fields{
