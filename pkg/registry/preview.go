@@ -75,7 +75,7 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 					ticker := time.NewTicker(30 * time.Second)
 
 					// deadline
-					deadline := time.Now().Add(60 * time.Minute)
+					deadline := time.Now().Add(120 * time.Minute)
 
 					for {
 						select {
