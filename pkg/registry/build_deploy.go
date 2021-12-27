@@ -57,8 +57,7 @@ func GetBuildReleaseCommand(job types.CommandJob) pipeline.SiteCommand {
 				Wrapped: func(pipeline *pipeline.SiteCommandPipeline) (*types.CommandResult, error) {
 					// we need to check the latest on the site docker repo
 
-					// check every 15 seconds against the registry
-					ticker := time.NewTicker(30 * time.Second)
+					ticker := time.NewTicker(1 * time.Minute)
 
 					// deadline
 					deadline := time.Now().Add(120 * time.Minute)

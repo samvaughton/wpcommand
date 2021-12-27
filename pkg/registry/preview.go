@@ -71,8 +71,7 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 						return nil, errors.New("could not locate tracker object from workflow command")
 					}
 
-					// check every 15 seconds against the registry
-					ticker := time.NewTicker(30 * time.Second)
+					ticker := time.NewTicker(1 * time.Minute)
 
 					// deadline
 					deadline := time.Now().Add(120 * time.Minute)
