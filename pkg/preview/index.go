@@ -34,7 +34,7 @@ type BuildTracker struct {
 }
 
 func GetPreviewUrl(buildId string) string {
-	return fmt.Sprintf("https://%s.preview.k8.rentivo.com", buildId)
+	return fmt.Sprintf("http://%s.preview.k8.rentivo.com", buildId)
 }
 
 func NewGithubClient(token string) *gh.Client {
