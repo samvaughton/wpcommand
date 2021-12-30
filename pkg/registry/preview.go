@@ -61,12 +61,6 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 
 					buildId := pipeline.PreviousResult.Output
 
-					repo := fmt.Sprintf(
-						"%s/%s",
-						appConfig.Config.Docker.Namespace,
-						job.Site.DockerRegistryName,
-					)
-
 					if valid == false {
 						return nil, errors.New("could not locate tracker object from workflow command")
 					}
@@ -85,7 +79,7 @@ func GetPreviewBuildCommand(job types.CommandJob) pipeline.SiteCommand {
 
 							log.Debug(fmt.Sprintf("checking dockerhub registry for tag %s ", buildId), t.String())
 
-							tag, err := preview.GetDockerTag(repo, buildId)
+							tag, err := preview.GetDockerTag(appConfig.Config.Docker.GetPreviewImageName(), buildId)
 
 							if err != nil {
 								log.Error(err)
